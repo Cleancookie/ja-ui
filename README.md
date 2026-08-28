@@ -379,10 +379,12 @@ selectors that point at `<script type="application/json">` blocks:
 <div id="orders" data-ja-datatable data-ja-columns="#dt-columns" data-ja-rows="#dt-rows"></div>
 ```
 
-Events: `DataTable` emits `ja:datatable:columnresize` / `columnresized`, `autosize` / `autosized`,
-and `selectall` / `selectallchanged`. `CommandPalette` emits `ja:command-palette:show` / `shown` /
-`hide` / `hidden`, plus `filter`, `highlight` and a cancelable `select` carrying
-`{ item, index, query }`.
+`DataTable` emits `ja:datatable:columnresize` / `ja:datatable:columnresized`,
+`ja:datatable:autosize` / `ja:datatable:autosized`, and `ja:datatable:selectall` /
+`ja:datatable:selectallchanged`.
+
+`CommandPalette` emits `ja:command-palette:show` / `shown` / `hide` / `hidden`, plus `filter`,
+`highlight` and a cancelable `select` carrying `{ item, index, query }`.
 
 TypeScript definitions ship in the package.
 

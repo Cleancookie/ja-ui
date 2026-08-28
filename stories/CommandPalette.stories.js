@@ -63,31 +63,47 @@ function demo({ items, config = {}, buttonLabel, hint, open = false, query = '' 
   });
 
   let cleaned = false;
+  let observer = null;
+  let rafId = 0;
+  let wasConnected = root.isConnected;
   const cleanup = () => {
     if (cleaned) return;
     cleaned = true;
-    observer.disconnect();
+    if (rafId) cancelAnimationFrame(rafId);
+    observer?.disconnect();
     palette.dispose();
     host.remove();
   };
-  const observer = new MutationObserver(() => {
-    if (!root.isConnected) cleanup();
+  const cleanupRoot = document.getElementById('storybook-root') ?? document.body;
+  observer = new MutationObserver(() => {
+    if (cleaned) return;
+    if (root.isConnected) {
+      wasConnected = true;
+      return;
+    }
+    if (wasConnected) cleanup();
   });
-  observer.observe(document.body, { childList: true, subtree: true });
+  observer.observe(cleanupRoot, { childList: true, subtree: true });
 
   root.querySelector('[data-open]').addEventListener('click', () => palette.show());
 
   if (open) {
     // Wait for Storybook to insert the element — the virtual list measures itself.
-    requestAnimationFrame(() => {
-      if (!root.isConnected) return;
+    const openWhenConnected = () => {
+      if (cleaned) return;
+      if (!root.isConnected) {
+        rafId = requestAnimationFrame(openWhenConnected);
+        return;
+      }
+      rafId = 0;
       palette.show();
       if (query) {
         const input = host.querySelector('.command-palette-input');
         input.value = query;
         input.dispatchEvent(new Event('input', { bubbles: true }));
       }
-    });
+    };
+    openWhenConnected();
   }
   return root;
 }

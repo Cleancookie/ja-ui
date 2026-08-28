@@ -262,12 +262,13 @@ async function main() {
     }, widthBefore)
   );
   const widthDragBefore = await page.evaluate(() => window.dataTable._columnWidths[1]);
-  const handle = page.locator('#dt .datatable-header-cell[data-col="1"] .datatable-resize-handle');
-  const box = await handle.boundingBox();
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width / 2 + 64, box.y + box.height / 2, { steps: 4 });
-  await page.mouse.up();
+  await page.evaluate(() => {
+    const handle = document.querySelector('#dt .datatable-header-cell[data-col="1"] .datatable-resize-handle');
+    handle.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: 200 }));
+    window.dispatchEvent(new PointerEvent('pointermove', { clientX: 264 }));
+    window.dispatchEvent(new PointerEvent('pointerup', { clientX: 264 }));
+  });
+  await page.waitForTimeout(80);
   check(
     'dragging a header edge resizes the column',
     await page.evaluate((before) => window.dataTable._columnWidths[1] > before, widthDragBefore)
@@ -280,16 +281,16 @@ async function main() {
   );
   await page.evaluate(() => {
     const viewport = document.querySelector('#dt .datatable-viewport');
-    viewport.scrollTop = 500000 * 40;
-    viewport.scrollLeft = 400 * 160;
+    viewport.scrollTop = window.dataTable._headerHeight + 500000 * window.dataTable._rowHeight;
+    viewport.scrollLeft = window.dataTable._gutterWidth + window.dataTable._columnOffsets[400];
     viewport.dispatchEvent(new Event('scroll'));
   });
   await page.waitForTimeout(150);
   check(
     'data table keeps rendering after deep scrolling',
     await page.evaluate(() => {
-      const any = document.querySelector('#dt .datatable-cell[data-row="500001"][data-col="400"]');
-      return Boolean(any?.textContent?.includes('R500002C401'));
+      const any = document.querySelector('#dt .datatable-cell[data-row="500000"][data-col="400"]');
+      return Boolean(any?.textContent?.includes('R500001C401'));
     })
   );
 

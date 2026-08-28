@@ -481,6 +481,7 @@ export class DataTable extends Component {
       startX: event.clientX,
       startWidth: this._columnWidths[index],
     };
+    this._pendingWidth = this._columnWidths[index];
     this._element.classList.add('is-resizing');
     window.addEventListener('pointermove', this._onPointerMove);
     window.addEventListener('pointerup', this._onPointerUp, { once: true });
@@ -502,6 +503,7 @@ export class DataTable extends Component {
     cancelAnimationFrame(this._widthFrame);
     this._widthFrame = 0;
     const { column } = this._resize;
+    this.resizeColumn(column, this._pendingWidth, { silent: true });
     const width = this._columnWidths[column];
     this._stopResize();
     this._emit('columnresized', { column, width });
@@ -520,10 +522,8 @@ export class DataTable extends Component {
     const { rowStart, rowEnd } = this._renderState;
     for (let i = rowStart; i < rowEnd; i += 1) rows.add(i);
     if (rows.size >= this._autoSizeSample) return [...rows].slice(0, this._autoSizeSample);
-    if (this._rowCount <= this._autoSizeSample) {
-      for (let i = 0; i < this._rowCount; i += 1) rows.add(i);
-      return [...rows];
-    }
+    for (let i = 0; i < this._rowCount && rows.size < this._autoSizeSample; i += 1) rows.add(i);
+    if (this._rowCount <= this._autoSizeSample) return [...rows];
     const last = this._rowCount - 1;
     for (let i = 0; rows.size < this._autoSizeSample; i += 1) {
       const ratio = this._autoSizeSample === 1 ? 0 : i / (this._autoSizeSample - 1);

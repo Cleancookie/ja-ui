@@ -46,26 +46,44 @@ function demo({ items, config = {}, buttonLabel, hint, open = false, query = '' 
         <span class="text-muted">${hint}</span>
       </div>
       <p class="text-muted" data-result>Nothing run yet.</p>
-      <div class="command-palette"></div>
     </div>
   `;
 
   const result = root.querySelector('[data-result]');
-  const palette = new CommandPalette(root.querySelector('.command-palette'), {
+  const host = document.createElement('div');
+  host.className = 'command-palette';
+  document.body.append(host);
+
+  const palette = new CommandPalette(host, {
     items,
     onSelect: (item) => {
       result.textContent = `Ran: ${item.label}`;
     },
     ...config,
   });
+
+  let cleaned = false;
+  const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
+    observer.disconnect();
+    palette.dispose();
+    host.remove();
+  };
+  const observer = new MutationObserver(() => {
+    if (!root.isConnected) cleanup();
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+
   root.querySelector('[data-open]').addEventListener('click', () => palette.show());
 
   if (open) {
     // Wait for Storybook to insert the element — the virtual list measures itself.
     requestAnimationFrame(() => {
+      if (!root.isConnected) return;
       palette.show();
       if (query) {
-        const input = root.querySelector('.command-palette-input');
+        const input = host.querySelector('.command-palette-input');
         input.value = query;
         input.dispatchEvent(new Event('input', { bubbles: true }));
       }

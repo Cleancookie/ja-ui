@@ -61,7 +61,35 @@ leaves it in place.
 Keep it base-path agnostic: the site is served from `/<repo>/`, so no absolute URLs
 (`/examples/…`) anywhere in the landing page, the example pages or the stories.
 
+## Commit messages
+
+Every commit message starts with an emoji. It is not decoration — the release tooling
+reads it to work out the semver bump, so a commit without one cannot be versioned.
+
+| Emoji | Meaning | Bump |
+| --- | --- | --- |
+| 🔥 | Breaking change — removed or renamed a class, attribute, event, export or token | **major** |
+| ✨ | New feature — a new component, variant, utility or public API | **minor** |
+| 🛠️ | Change — refactor, retune, perf, build/tooling, dependency work | **minor** |
+| 🐛 | Bug fix | **patch** |
+| 📝 | Docs — README, CONTRIBUTING, stories, the playground site, comments | **patch** |
+
+The emoji is the first character, then a space, then an imperative subject in lower
+case with no trailing full stop. One emoji per commit — if a change is both a feature
+and a fix, split it or take the higher bump. A release bumps by the highest bump among
+the commits since the last tag, so a single 🔥 makes the whole release major, and a 🔥
+commit also needs a `BREAKING CHANGE:` paragraph in the body describing the migration.
+
+```
+✨ add a toast component
+🐛 stop the command palette double-binding on re-init
+🛠️ regenerate colour variants from the token set
+📝 document the dark theme override
+🔥 rename data-ja-modal to data-ja-dialog
+```
+
 ## Releasing
 
-Bump `version` in `package.json`, push, then publish a GitHub release. The
-`publish` workflow builds and pushes the package to the GitHub npm registry.
+Bump `version` in `package.json` by the highest bump among the commit emoji since the
+last release, push, then publish a GitHub release. The `publish` workflow builds and
+pushes the package to the GitHub npm registry.

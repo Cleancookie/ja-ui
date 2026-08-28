@@ -1,0 +1,82 @@
+{
+  "name": "@cleancookie/ja-ui",
+  "version": "0.1.0",
+  "description": "Just Another UI \u2014 a zero-dependency, Bootstrap 5-compatible component library with a modern CSS-variable theme.",
+  "keywords": [
+    "css",
+    "ui",
+    "components",
+    "bootstrap",
+    "design-system",
+    "zero-dependency"
+  ],
+  "license": "MIT",
+  "author": "Alex Law",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cleancookie/ja-ui.git"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "main": "./dist/ja-ui.js",
+  "module": "./dist/ja-ui.js",
+  "types": "./dist/ja-ui.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/ja-ui.d.ts",
+      "import": "./dist/ja-ui.js",
+      "default": "./dist/ja-ui.js"
+    },
+    "./css": "./dist/ja-ui.css",
+    "./ja-ui.css": "./dist/ja-ui.css",
+    "./ja-ui.min.css": "./dist/ja-ui.min.css",
+    "./iife": "./dist/ja-ui.iife.js",
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "storybook dev -p 6006 --no-open",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build -o storybook-static",
+    "shots": "node tools/screenshot.mjs",
+    "shots:gif": "node tools/record-gif.mjs",
+    "docs:images": "npm run build && npm run build-storybook && npm run shots && npm run shots:gif",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",
+    "gen": "node tools/gen-theme-colors.mjs && node tools/gen-grid.mjs && node tools/gen-variants.mjs && node tools/gen-utilities.mjs",
+    "build:css": "esbuild src/styles/index.css --bundle --loader:.css=css --outfile=dist/ja-ui.css",
+    "build:css:min": "esbuild src/styles/index.css --bundle --minify --loader:.css=css --outfile=dist/ja-ui.min.css",
+    "build:js": "esbuild src/index.js --bundle --format=esm --target=es2022 --outfile=dist/ja-ui.js",
+    "build:js:min": "esbuild src/index.js --bundle --minify --format=esm --target=es2022 --outfile=dist/ja-ui.min.js",
+    "build:iife": "esbuild src/index.js --bundle --minify --format=iife --global-name=JaUI --target=es2022 --outfile=dist/ja-ui.iife.js",
+    "build:types": "node -e \"fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('src/index.d.ts','dist/ja-ui.d.ts')\"",
+    "build": "npm run gen && npm run clean && npm run build:css && npm run build:css:min && npm run build:js && npm run build:js:min && npm run build:iife && npm run build:types",
+    "smoke": "node tools/smoke.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@storybook/addon-a11y": "^9.1.10",
+    "@storybook/addon-docs": "^9.1.10",
+    "@storybook/html-vite": "^9.1.10",
+    "esbuild": "^0.25.10",
+    "gifenc": "^1.0.3",
+    "playwright": "^1.62.1",
+    "pngjs": "^7.0.0",
+    "storybook": "^9.1.10",
+    "vite": "^7.1.7"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,118 @@
+/* =============================================================================
+   ja-ui — tables
+   ============================================================================= */
+
+.table {
+  --ja-table-color: var(--ja-text);
+  --ja-table-bg: transparent;
+  --ja-table-padding-x: var(--ja-space-4);
+  --ja-table-padding-y: var(--ja-space-3);
+  --ja-table-accent-bg: transparent;
+  --ja-table-striped-bg: color-mix(in srgb, var(--ja-ink) 5%, transparent);
+  --ja-table-hover-bg: color-mix(in srgb, var(--ja-pop) 25%, transparent);
+  --ja-table-active-bg: color-mix(in srgb, var(--ja-primary) 20%, transparent);
+  --ja-table-head-bg: var(--ja-ink);
+  --ja-table-head-color: var(--ja-cream);
+  --ja-table-divider: var(--ja-border-width) solid var(--ja-border-color);
+
+  inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--ja-table-color);
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+  text-align: start;
+}
+
+.table > :not(caption) > * > * {
+  padding: var(--ja-table-padding-y) var(--ja-table-padding-x);
+  background-color: var(--ja-table-bg);
+  border-block-end: var(--ja-table-divider);
+  box-shadow: inset 0 0 0 9999px var(--ja-table-accent-bg);
+}
+
+/* Head is a solid block of ink — no washed-out grey headers here. */
+.table > thead > tr > th {
+  background-color: var(--ja-table-head-bg);
+  color: var(--ja-table-head-color);
+  font-family: var(--ja-font-heading);
+  font-size: var(--ja-font-size-xs);
+  font-weight: var(--ja-label-weight);
+  letter-spacing: var(--ja-label-tracking);
+  text-transform: uppercase;
+  text-align: start;
+  white-space: nowrap;
+  vertical-align: middle;
+  border-block-end: var(--ja-table-divider);
+}
+.table > thead > tr > th:first-child { border-start-start-radius: inherit; }
+.table > thead > tr > th:last-child { border-start-end-radius: inherit; }
+
+.table > tbody > tr:last-child > * {
+  border-block-end-width: 0;
+}
+.table > tfoot > tr > * {
+  font-weight: var(--ja-font-weight-bold);
+  border-block-start: var(--ja-table-divider);
+  background-color: var(--ja-surface-sunken);
+}
+
+.table-sm {
+  --ja-table-padding-x: var(--ja-space-3);
+  --ja-table-padding-y: var(--ja-space-2);
+}
+.table-lg {
+  --ja-table-padding-y: var(--ja-space-4);
+}
+
+.table-bordered > :not(caption) > * > * + * {
+  border-inline-start: var(--ja-table-divider);
+}
+.table-borderless > :not(caption) > * > * {
+  border-width: 0;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  --ja-table-accent-bg: var(--ja-table-striped-bg);
+}
+.table-striped-columns > :not(caption) > tr > :nth-child(even) {
+  --ja-table-accent-bg: var(--ja-table-striped-bg);
+}
+.table-hover > tbody > tr:hover > * {
+  --ja-table-accent-bg: var(--ja-table-hover-bg);
+}
+.table > :not(caption) > tr.table-active > *,
+.table > tbody > tr.table-active > * {
+  --ja-table-accent-bg: var(--ja-table-active-bg);
+}
+
+.table-group-divider {
+  border-block-start: calc(var(--ja-border-width) * 2) solid var(--ja-border-color);
+}
+
+.table-sticky > thead > tr > th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+@media (width < 576px) { .table-responsive-sm { overflow-x: auto; } }
+@media (width < 768px) { .table-responsive-md { overflow-x: auto; } }
+@media (width < 992px) { .table-responsive-lg { overflow-x: auto; } }
+@media (width < 1200px) { .table-responsive-xl { overflow-x: auto; } }
+@media (width < 1400px) { .table-responsive-xxl { overflow-x: auto; } }
+
+/* Wrap a table in this to get the full paper-cutout treatment. */
+.table-card {
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius);
+  background-color: var(--ja-surface);
+  box-shadow: var(--ja-shadow);
+  overflow: clip;
+}
+.table-card > .table {
+  border-radius: inherit;
+}

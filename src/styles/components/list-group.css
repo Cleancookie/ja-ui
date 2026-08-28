@@ -1,0 +1,110 @@
+/* =============================================================================
+   ja-ui — list group
+   ============================================================================= */
+
+.list-group {
+  --ja-list-group-bg: var(--ja-white);
+  --ja-list-group-color: var(--ja-text);
+  --ja-list-group-radius: var(--ja-radius);
+  --ja-list-group-padding-x: var(--ja-space-4);
+  --ja-list-group-padding-y: var(--ja-space-3);
+  --ja-list-group-active-bg: var(--ja-primary);
+  --ja-list-group-active-color: var(--ja-primary-fg);
+  --ja-list-group-shadow: var(--ja-shadow);
+
+  display: flex;
+  flex-direction: column;
+  padding-inline-start: 0;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-list-group-radius);
+  background-color: var(--ja-list-group-bg);
+  box-shadow: var(--ja-list-group-shadow);
+  list-style: none;
+  overflow: clip;
+}
+
+.list-group-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--ja-space-3);
+  padding: var(--ja-list-group-padding-y) var(--ja-list-group-padding-x);
+  background-color: var(--ja-list-group-bg);
+  color: var(--ja-list-group-color);
+  text-decoration: none;
+}
+.list-group-item + .list-group-item {
+  border-block-start: var(--ja-border-width) solid var(--ja-border-color);
+}
+
+.list-group-item-action {
+  inline-size: 100%;
+  text-align: inherit;
+  cursor: pointer;
+  transition: background-color var(--ja-duration-fast) var(--ja-ease-out),
+    padding-inline-start var(--ja-duration) var(--ja-ease);
+}
+.list-group-item-action:hover {
+  background-color: var(--ja-surface-hover);
+  padding-inline-start: calc(var(--ja-list-group-padding-x) + var(--ja-space-2));
+}
+.list-group-item-action:focus-visible {
+  outline: var(--ja-ring-width) solid var(--ja-ring-color);
+  outline-offset: calc(var(--ja-ring-width) * -1);
+  z-index: 2;
+}
+.list-group-item-action:active {
+  background-color: var(--ja-surface-active);
+}
+
+.list-group-item.active {
+  z-index: 2;
+  background-color: var(--ja-list-group-active-bg);
+  color: var(--ja-list-group-active-color);
+  font-weight: var(--ja-font-weight-bold);
+}
+.list-group-item.disabled,
+.list-group-item:disabled {
+  color: var(--ja-text-subtle);
+  pointer-events: none;
+}
+
+.list-group-flush {
+  --ja-list-group-shadow: none;
+  --ja-list-group-radius: 0;
+  border-inline-width: 0;
+}
+
+.list-group-numbered {
+  counter-reset: ja-list-group;
+}
+.list-group-numbered > .list-group-item::before {
+  content: counter(ja-list-group);
+  counter-increment: ja-list-group;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius-pill);
+  background-color: var(--ja-pop);
+  color: var(--ja-pop-fg);
+  font-family: var(--ja-font-heading);
+  font-size: var(--ja-font-size-xs);
+  font-weight: var(--ja-font-weight-black);
+  font-variant-numeric: tabular-nums;
+}
+
+.list-group-horizontal {
+  flex-direction: row;
+}
+.list-group-horizontal > .list-group-item + .list-group-item {
+  border-block-start: 0;
+  border-inline-start: var(--ja-border-width) solid var(--ja-border-color);
+}
+@media (width >= 576px) { .list-group-horizontal-sm { flex-direction: row; } .list-group-horizontal-sm > .list-group-item + .list-group-item { border-block-start: 0; border-inline-start: var(--ja-border-width) solid var(--ja-border-color); } }
+@media (width >= 768px) { .list-group-horizontal-md { flex-direction: row; } .list-group-horizontal-md > .list-group-item + .list-group-item { border-block-start: 0; border-inline-start: var(--ja-border-width) solid var(--ja-border-color); } }
+@media (width >= 992px) { .list-group-horizontal-lg { flex-direction: row; } .list-group-horizontal-lg > .list-group-item + .list-group-item { border-block-start: 0; border-inline-start: var(--ja-border-width) solid var(--ja-border-color); } }
+@media (width >= 1200px) { .list-group-horizontal-xl { flex-direction: row; } .list-group-horizontal-xl > .list-group-item + .list-group-item { border-block-start: 0; border-inline-start: var(--ja-border-width) solid var(--ja-border-color); } }
+@media (width >= 1400px) { .list-group-horizontal-xxl { flex-direction: row; } .list-group-horizontal-xxl > .list-group-item + .list-group-item { border-block-start: 0; border-inline-start: var(--ja-border-width) solid var(--ja-border-color); } }

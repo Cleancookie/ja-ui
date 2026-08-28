@@ -1,0 +1,93 @@
+/* =============================================================================
+   ja-ui — offcanvas
+   ============================================================================= */
+
+.offcanvas {
+  --ja-offcanvas-width: 22rem;
+  --ja-offcanvas-height: 18rem;
+  --ja-offcanvas-bg: var(--ja-white);
+  --ja-offcanvas-padding: var(--ja-space-5);
+
+  position: fixed;
+  z-index: var(--ja-z-offcanvas);
+  display: flex;
+  flex-direction: column;
+  max-inline-size: 100%;
+  background-color: var(--ja-offcanvas-bg);
+  color: var(--ja-text);
+  visibility: hidden;
+  transition: translate var(--ja-duration-slow) var(--ja-ease-out),
+    visibility var(--ja-duration-slow);
+  outline: 0;
+}
+.offcanvas.showing,
+.offcanvas.show {
+  visibility: visible;
+  translate: 0 0;
+}
+
+.offcanvas-start {
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: var(--ja-offcanvas-width);
+  border-inline-end: var(--ja-border-width) solid var(--ja-border-color);
+  translate: -100% 0;
+}
+.offcanvas-end {
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: var(--ja-offcanvas-width);
+  border-inline-start: var(--ja-border-width) solid var(--ja-border-color);
+  translate: 100% 0;
+}
+.offcanvas-top {
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: var(--ja-offcanvas-height);
+  border-block-end: var(--ja-border-width) solid var(--ja-border-color);
+  translate: 0 -100%;
+}
+.offcanvas-bottom {
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: var(--ja-offcanvas-height);
+  border-block-start: var(--ja-border-width) solid var(--ja-border-color);
+  translate: 0 100%;
+}
+
+.offcanvas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ja-space-3);
+  padding: var(--ja-space-4) var(--ja-offcanvas-padding);
+  border-block-end: var(--ja-border-width) solid var(--ja-border-color);
+  background-color: var(--ja-surface-sunken);
+}
+.offcanvas-title {
+  font-family: var(--ja-font-heading);
+  font-size: var(--ja-font-size-lg);
+  font-weight: var(--ja-heading-weight);
+  line-height: var(--ja-line-height-tight);
+  text-transform: var(--ja-heading-case);
+}
+.offcanvas-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ja-space-3);
+  padding: var(--ja-offcanvas-padding);
+  overflow-y: auto;
+}
+
+.offcanvas-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--ja-z-offcanvas-backdrop);
+  background-color: var(--ja-backdrop-bg);
+  opacity: 0;
+  transition: opacity var(--ja-duration) var(--ja-ease-out);
+}
+.offcanvas-backdrop.show {
+  opacity: 1;
+}

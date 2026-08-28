@@ -1,0 +1,223 @@
+/* =============================================================================
+   ja-ui — typography
+   Headings are set in the display face at heavy weights. Nothing is timid.
+   ============================================================================= */
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--ja-heading-family);
+  font-weight: var(--ja-heading-weight);
+  line-height: var(--ja-heading-line-height);
+  letter-spacing: var(--ja-heading-tracking);
+  text-transform: var(--ja-heading-case);
+  /* Inherit, so a heading inside a dark or coloured section stays readable. */
+  color: inherit;
+  text-wrap: balance;
+}
+
+h1, .h1 { font-size: clamp(2rem, 1.5rem + 2vw, 3rem); }
+h2, .h2 { font-size: clamp(1.625rem, 1.35rem + 1.4vw, 2.25rem); }
+h3, .h3 { font-size: clamp(1.375rem, 1.25rem + 0.7vw, 1.75rem); }
+h4, .h4 { font-size: 1.375rem; }
+h5, .h5 { font-size: 1.125rem; }
+h6, .h6 {
+  font-size: var(--ja-font-size-sm);
+  letter-spacing: var(--ja-label-tracking);
+  text-transform: uppercase;
+}
+
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+  font-family: var(--ja-heading-family);
+  font-weight: var(--ja-font-weight-black);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  text-transform: var(--ja-heading-case);
+  text-wrap: balance;
+}
+.display-1 { font-size: clamp(3rem, 2rem + 6vw, 6rem); }
+.display-2 { font-size: clamp(2.75rem, 1.9rem + 5vw, 5rem); }
+.display-3 { font-size: clamp(2.5rem, 1.8rem + 4vw, 4.25rem); }
+.display-4 { font-size: clamp(2.25rem, 1.7rem + 3vw, 3.5rem); }
+.display-5 { font-size: clamp(2rem, 1.6rem + 2.2vw, 3rem); }
+.display-6 { font-size: clamp(1.75rem, 1.5rem + 1.5vw, 2.5rem); }
+
+p {
+  text-wrap: pretty;
+}
+
+.lead {
+  font-size: var(--ja-font-size-lg);
+  font-weight: var(--ja-font-weight-medium);
+  color: var(--ja-text-muted);
+  text-wrap: pretty;
+}
+
+.small, small {
+  font-size: var(--ja-font-size-sm);
+}
+
+/* Marked text is a highlighter stripe, not a tint. */
+.mark, mark {
+  padding: 0.05em 0.3em;
+  border-radius: var(--ja-radius-xs);
+  background-color: var(--ja-pop);
+  color: var(--ja-pop-fg);
+  box-decoration-break: clone;
+}
+
+.list-unstyled {
+  padding-inline-start: 0;
+  list-style: none;
+}
+.list-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ja-space-3);
+  padding-inline-start: 0;
+  list-style: none;
+}
+.list-inline-item {
+  display: inline-block;
+}
+/* Checklist with a real marker instead of a bullet. */
+.list-check {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ja-space-2);
+  padding-inline-start: 0;
+  list-style: none;
+}
+.list-check > li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ja-space-2);
+}
+.list-check > li::before {
+  content: "";
+  flex-shrink: 0;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius-pill);
+  background-color: var(--ja-success);
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="%231e293b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 8.5 3 3 6-6.5"/></svg>');
+  background-size: 70%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.initialism {
+  font-size: 0.875em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Quotes sit in their own bordered block. */
+.blockquote,
+blockquote {
+  padding: var(--ja-space-4);
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-inline-start-width: var(--ja-space-2);
+  border-radius: var(--ja-radius);
+  background-color: var(--ja-white);
+  box-shadow: var(--ja-shadow-xs);
+  font-size: var(--ja-font-size-lg);
+  font-weight: var(--ja-font-weight-medium);
+}
+.blockquote-footer {
+  font-size: var(--ja-font-size-sm);
+  font-weight: var(--ja-font-weight-bold);
+  color: var(--ja-text-muted);
+}
+.blockquote-footer::before {
+  content: "\2014\00A0";
+}
+
+/* Code -------------------------------------------------------------------- */
+code, kbd, samp, pre {
+  font-family: var(--ja-font-mono);
+  font-size: 0.875em;
+}
+code {
+  padding: 0.1em 0.35em;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius-xs);
+  background-color: var(--ja-code-bg);
+  color: var(--ja-code-color);
+  font-weight: var(--ja-font-weight-medium);
+  word-wrap: break-word;
+}
+a > code { color: inherit; }
+
+kbd {
+  display: inline-block;
+  padding: 0.1em 0.4em;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius-xs);
+  background-color: var(--ja-white);
+  box-shadow: 0 2px 0 0 var(--ja-shadow-color);
+  color: var(--ja-text);
+  font-size: 0.8125em;
+  font-weight: var(--ja-font-weight-bold);
+}
+kbd kbd { padding: 0; border: 0; box-shadow: none; }
+
+pre {
+  display: block;
+  overflow: auto;
+  padding: var(--ja-space-4);
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius);
+  background-color: var(--ja-ink);
+  color: var(--ja-cream);
+  font-size: var(--ja-font-size-sm);
+  line-height: 1.6;
+  tab-size: 2;
+  box-shadow: var(--ja-shadow);
+}
+pre code {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Figures & images -------------------------------------------------------- */
+.figure {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--ja-space-2);
+}
+.figure-img {
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius);
+  box-shadow: var(--ja-shadow);
+}
+.figure-caption {
+  font-size: var(--ja-font-size-sm);
+  font-weight: var(--ja-font-weight-medium);
+  color: var(--ja-text-muted);
+}
+.img-fluid {
+  max-inline-size: 100%;
+  block-size: auto;
+}
+.img-thumbnail {
+  padding: var(--ja-space-1);
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius);
+  background-color: var(--ja-white);
+  box-shadow: var(--ja-shadow-xs);
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+/* Vertical rule ----------------------------------------------------------- */
+.vr {
+  display: inline-block;
+  align-self: stretch;
+  inline-size: var(--ja-border-width);
+  min-block-size: 1em;
+  background-color: var(--ja-border-color);
+}

@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en" data-ja-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard · ja-ui</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
+    <link rel="stylesheet" href="../dist/ja-ui.css" />
+    <script src="../dist/ja-ui.iife.js" defer></script>
+  </head>
+  <body class="pattern-dots">
+    <a class="visually-hidden-focusable btn btn-primary m-3" href="#main">Skip to content</a>
+
+    <nav class="navbar navbar-expand-lg sticky-top bg-white">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">ja&nbsp;ui</a>
+        <button class="navbar-toggler" data-ja-toggle="offcanvas" data-ja-target="#sidebar" aria-label="Open navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="d-none d-lg-flex align-items-center gap-3 flex-grow-1">
+          <div class="input-group" style="max-inline-size: 22rem">
+            <span class="input-group-text">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </span>
+            <input class="form-control" placeholder="Search customers, invoices…" aria-label="Search" />
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-ghost btn-icon position-relative" aria-label="Notifications">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="badge badge-dot bg-danger position-absolute top-0 end-0"></span>
+          </button>
+          <div class="dropdown">
+            <button class="btn btn-ghost d-flex align-items-center gap-2" data-ja-toggle="dropdown" aria-expanded="false">
+              <span class="avatar avatar-sm">AL</span>
+              <span class="d-none d-sm-inline">Alex</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><h6 class="dropdown-header">Signed in as alex</h6></li>
+              <li><a class="dropdown-item" href="#">Profile</a></li>
+              <li><a class="dropdown-item" href="#">Preferences</a></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item" href="#">Sign out</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row g-0">
+        <!-- Sidebar -->
+        <aside class="col-lg-2 d-none d-lg-block border-end bg-white" style="min-block-size: calc(100vh - 4.5rem)">
+          <nav class="nav flex-column gap-1 p-3">
+            <a class="nav-link active" href="#">Overview</a>
+            <a class="nav-link" href="#">Customers</a>
+            <a class="nav-link" href="#">Invoices</a>
+            <a class="nav-link" href="#">Products</a>
+            <a class="nav-link" href="#">Reports</a>
+            <hr class="my-3" />
+            <span class="text-label text-muted px-4 pb-2">Settings</span>
+            <a class="nav-link" href="#">Team</a>
+            <a class="nav-link" href="#">Billing</a>
+            <a class="nav-link" href="#">API keys</a>
+          </nav>
+        </aside>
+
+        <!-- Main -->
+        <main id="main" class="col-lg-10 p-4 p-xl-5 d-flex flex-column gap-5">
+          <header class="d-flex flex-wrap align-items-end justify-content-between gap-3">
+            <div>
+              <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item"><a href="#">Home</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Overview</li>
+                </ol>
+              </nav>
+              <h1 class="mt-2">Good afternoon, Alex</h1>
+              <p class="lead">Here is how the last 30 days went.</p>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-secondary">Export CSV</button>
+              <button class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                New invoice
+              </button>
+            </div>
+          </header>
+
+          <!-- Stats -->
+          <section class="row g-4">
+            <div class="col-6 col-xl-3">
+              <div class="stat h-100">
+                <span class="stat-label">Revenue</span>
+                <span class="stat-value">£48,120</span>
+                <span class="stat-delta stat-delta-up">▲ 12.4% vs last month</span>
+              </div>
+            </div>
+            <div class="col-6 col-xl-3">
+              <div class="stat h-100">
+                <span class="stat-label">Active customers</span>
+                <span class="stat-value">2,840</span>
+                <span class="stat-delta stat-delta-up">▲ 3.1%</span>
+              </div>
+            </div>
+            <div class="col-6 col-xl-3">
+              <div class="stat h-100">
+                <span class="stat-label">Overdue invoices</span>
+                <span class="stat-value">17</span>
+                <span class="stat-delta stat-delta-down">▼ 42%</span>
+              </div>
+            </div>
+            <div class="col-6 col-xl-3">
+              <div class="stat h-100">
+                <span class="stat-label">Avg. response</span>
+                <span class="stat-value">184<span class="fs-5">ms</span></span>
+                <span class="stat-delta stat-delta-down">▲ 8ms</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="row g-4">
+            <!-- Chart-ish panel -->
+            <div class="col-xl-8">
+              <div class="card h-100">
+                <div class="card-header justify-content-between">
+                  <span>Revenue by week</span>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary btn-sm active">30d</button>
+                    <button class="btn btn-outline-secondary btn-sm">90d</button>
+                    <button class="btn btn-outline-secondary btn-sm">1y</button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="d-flex align-items-end justify-content-between gap-2" style="block-size: 14rem" role="img" aria-label="Bar chart of weekly revenue, trending upward">
+                    <div class="sticker bg-primary-subtle w-100" style="block-size: 38%"></div>
+                    <div class="sticker bg-primary-subtle w-100" style="block-size: 52%"></div>
+                    <div class="sticker bg-primary-subtle w-100" style="block-size: 44%"></div>
+                    <div class="sticker bg-primary-subtle w-100" style="block-size: 68%"></div>
+                    <div class="sticker bg-primary-subtle w-100" style="block-size: 61%"></div>
+                    <div class="sticker bg-primary w-100" style="block-size: 86%"></div>
+                    <div class="sticker bg-pop w-100" style="block-size: 100%"></div>
+                  </div>
+                  <div class="d-flex justify-content-between text-label text-muted mt-3">
+                    <span>W22</span><span>W23</span><span>W24</span><span>W25</span><span>W26</span><span>W27</span><span>W28</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activity -->
+            <div class="col-xl-4">
+              <div class="card h-100">
+                <div class="card-header">Recent activity</div>
+                <div class="list-group list-group-flush">
+                  <div class="list-group-item">
+                    <span class="avatar avatar-sm bg-fresh">JB</span>
+                    <div class="flex-grow-1">
+                      <strong class="d-block">Jaz approved INV-2041</strong>
+                      <span class="text-muted fs-sm">4 minutes ago</span>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <span class="avatar avatar-sm bg-pop">KR</span>
+                    <div class="flex-grow-1">
+                      <strong class="d-block">Kem added 3 products</strong>
+                      <span class="text-muted fs-sm">1 hour ago</span>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <span class="avatar avatar-sm">AL</span>
+                    <div class="flex-grow-1">
+                      <strong class="d-block">You changed billing settings</strong>
+                      <span class="text-muted fs-sm">Yesterday</span>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <span class="avatar avatar-sm bg-danger">!</span>
+                    <div class="flex-grow-1">
+                      <strong class="d-block">Payment failed for Fabrikam</strong>
+                      <span class="text-muted fs-sm">Yesterday</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-footer justify-content-center">
+                  <a href="#" class="fw-bold">View everything</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <section class="d-flex flex-column gap-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+              <h2>Latest invoices</h2>
+              <div class="d-flex gap-2">
+                <div class="dropdown">
+                  <button class="btn btn-outline-secondary dropdown-toggle" data-ja-toggle="dropdown">Status</button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item active" href="#">All</a></li>
+                    <li><a class="dropdown-item" href="#">Paid</a></li>
+                    <li><a class="dropdown-item" href="#">Pending</a></li>
+                    <li><a class="dropdown-item" href="#">Overdue</a></li>
+                  </ul>
+                </div>
+                <button class="btn btn-soft-primary" data-ja-toggle="modal" data-ja-target="#invoice-modal">Quick create</button>
+              </div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Reference</th>
+                      <th>Client</th>
+                      <th>Issued</th>
+                      <th>Status</th>
+                      <th class="text-end">Total</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>INV-2041</code></td>
+                      <td class="d-flex align-items-center gap-2"><span class="avatar avatar-sm">NT</span> Northwind Traders</td>
+                      <td>12 Aug 2026</td>
+                      <td><span class="badge bg-success-subtle">Paid</span></td>
+                      <td class="text-end fw-bold">£4,120.00</td>
+                      <td class="text-end"><button class="btn btn-ghost btn-sm">Open</button></td>
+                    </tr>
+                    <tr>
+                      <td><code>INV-2042</code></td>
+                      <td class="d-flex align-items-center gap-2"><span class="avatar avatar-sm bg-pop">CL</span> Contoso Ltd</td>
+                      <td>14 Aug 2026</td>
+                      <td><span class="badge bg-warning-subtle">Pending</span></td>
+                      <td class="text-end fw-bold">£980.50</td>
+                      <td class="text-end"><button class="btn btn-ghost btn-sm">Open</button></td>
+                    </tr>
+                    <tr>
+                      <td><code>INV-2043</code></td>
+                      <td class="d-flex align-items-center gap-2"><span class="avatar avatar-sm bg-danger">FI</span> Fabrikam Inc</td>
+                      <td>02 Aug 2026</td>
+                      <td><span class="badge bg-danger-subtle">Overdue</span></td>
+                      <td class="text-end fw-bold">£12,400.00</td>
+                      <td class="text-end"><button class="btn btn-ghost btn-sm">Open</button></td>
+                    </tr>
+                    <tr>
+                      <td><code>INV-2044</code></td>
+                      <td class="d-flex align-items-center gap-2"><span class="avatar avatar-sm bg-fresh">AW</span> Adventure Works</td>
+                      <td>18 Aug 2026</td>
+                      <td><span class="badge bg-success-subtle">Paid</span></td>
+                      <td class="text-end fw-bold">£2,315.75</td>
+                      <td class="text-end"><button class="btn btn-ghost btn-sm">Open</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <nav class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <span class="text-muted fs-sm">Showing 4 of 128 invoices</span>
+              <ul class="pagination pagination-sm">
+                <li class="page-item disabled"><a class="page-link">Previous</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+              </ul>
+            </nav>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Mobile sidebar -->
+    <div class="offcanvas offcanvas-start" id="sidebar" tabindex="-1">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Menu</h5>
+        <button class="btn-close" data-ja-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <nav class="nav flex-column gap-1">
+          <a class="nav-link active" href="#">Overview</a>
+          <a class="nav-link" href="#">Customers</a>
+          <a class="nav-link" href="#">Invoices</a>
+          <a class="nav-link" href="#">Products</a>
+          <a class="nav-link" href="#">Reports</a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Quick create -->
+    <div class="modal fade" id="invoice-modal" tabindex="-1" aria-labelledby="invoice-modal-title">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="invoice-modal-title">New invoice</h5>
+            <button class="btn-close" data-ja-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label" for="m-client">Client</label>
+              <select class="form-select" id="m-client">
+                <option>Northwind Traders</option>
+                <option>Contoso Ltd</option>
+                <option>Fabrikam Inc</option>
+              </select>
+            </div>
+            <div class="row g-3">
+              <div class="col-6 form-group">
+                <label class="form-label" for="m-amount">Amount</label>
+                <div class="input-group">
+                  <span class="input-group-text">£</span>
+                  <input class="form-control" id="m-amount" value="0.00" />
+                </div>
+              </div>
+              <div class="col-6 form-group">
+                <label class="form-label" for="m-due">Due</label>
+                <input type="date" class="form-control" id="m-due" />
+              </div>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="m-send" checked />
+              <label class="form-check-label" for="m-send">Email it as soon as it's created</label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" data-ja-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary">Create invoice</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

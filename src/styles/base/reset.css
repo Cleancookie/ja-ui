@@ -1,8 +1,8 @@
 /* =============================================================================
    ja-ui — reset
    Opinionated, modern, and margin-free: no element in this library ships a
-   margin. Spacing between things is the parent's job (see the .m-*/.gap-*
-   utilities and .vstack/.hstack).
+   margin. Spacing between things is the parent's job — use the margin and gap
+   utilities, or .vstack and .hstack.
    ============================================================================= */
 
 *,

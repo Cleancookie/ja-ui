@@ -12,6 +12,8 @@ export { Component } from './js/base.js';
 export { Alert } from './js/alert.js';
 export { Button } from './js/button.js';
 export { Collapse } from './js/collapse.js';
+export { CommandPalette } from './js/command-palette.js';
+export { fuzzyMatch, fuzzyFilter, parseQuery } from './js/fuzzy.js';
 export { Dropdown } from './js/dropdown.js';
 export { Modal } from './js/modal.js';
 export { Offcanvas } from './js/offcanvas.js';

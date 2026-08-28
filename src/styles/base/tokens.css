@@ -208,6 +208,7 @@
   --ja-z-offcanvas: 1045;
   --ja-z-modal-backdrop: 1050;
   --ja-z-modal: 1055;
+  --ja-z-command-palette: 1070;
   --ja-z-toast: 1090;
 
   /* Backdrops are solid ink at opacity — no blur anywhere in this library. */

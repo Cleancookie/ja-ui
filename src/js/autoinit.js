@@ -1,6 +1,7 @@
 import { Alert } from './alert.js';
 import { Button } from './button.js';
 import { Collapse } from './collapse.js';
+import { CommandPalette } from './command-palette.js';
 import { Dropdown, initDropdownDismiss } from './dropdown.js';
 import { Modal } from './modal.js';
 import { Offcanvas } from './offcanvas.js';
@@ -14,6 +15,7 @@ const TOGGLES = {
     Collapse.getOrCreateInstance(target, {
       parent: trigger.dataset.jaParent ?? null,
     }).toggle(),
+  'command-palette': (target, trigger) => CommandPalette.getOrCreateInstance(target).toggle(trigger),
   dropdown: (_target, trigger) => Dropdown.getOrCreateInstance(trigger).toggle(),
   modal: (target, trigger) => Modal.getOrCreateInstance(target).toggle(trigger),
   offcanvas: (target, trigger) => Offcanvas.getOrCreateInstance(target).toggle(trigger),
@@ -24,6 +26,7 @@ const TOGGLES = {
 
 const DISMISSALS = {
   alert: (element) => Alert.getOrCreateInstance(element).close(),
+  'command-palette': (element) => CommandPalette.getOrCreateInstance(element).hide(),
   modal: (element) => Modal.getOrCreateInstance(element).hide(),
   offcanvas: (element) => Offcanvas.getOrCreateInstance(element).hide(),
   toast: (element) => Toast.getOrCreateInstance(element).hide(),
@@ -31,6 +34,7 @@ const DISMISSALS = {
 
 const SELECTORS = {
   alert: '.alert',
+  'command-palette': '.command-palette',
   modal: '.modal',
   offcanvas: '.offcanvas',
   toast: '.toast',
@@ -51,6 +55,12 @@ export function autoInit() {
 
   restoreTheme();
   initDropdownDismiss();
+
+  // A palette with a global shortcut has to exist before the shortcut is
+  // pressed, so these are the one thing that is scanned up front.
+  for (const element of document.querySelectorAll('.command-palette[data-ja-hotkey]')) {
+    CommandPalette.getOrCreateInstance(element);
+  }
 
   document.addEventListener('click', (event) => {
     const dismisser = event.target.closest?.('[data-ja-dismiss]');

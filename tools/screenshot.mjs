@@ -29,7 +29,18 @@ const MIME = {
   '.map': 'application/json',
 };
 
-/** Component shots, taken from the built stories. */
+/**
+ * Only regenerate the shots whose name contains one of the arguments:
+ *   node tools/screenshot.mjs command-palette
+ */
+const FILTERS = process.argv.slice(2);
+const wanted = (name) => !FILTERS.length || FILTERS.some((f) => name.includes(f));
+
+/**
+ * Component shots, taken from the built stories. The optional fourth field
+ * takes the whole viewport instead of the story root — for overlays, which
+ * deliberately escape it.
+ */
 const COMPONENTS = [
   ['components-button--solid', 'buttons-solid', 1040],
   ['components-button--outline', 'buttons-outline', 1040],
@@ -50,6 +61,7 @@ const COMPONENTS = [
   ['components-feedback--progress', 'progress', 620],
   ['components-feedback--spinners', 'spinners', 620],
   ['components-overlays--static-toasts', 'toasts', 460],
+  ['components-command-palette--open', 'command-palette', 900, true],
   ['forms-controls--text-inputs', 'forms', 560],
   ['forms-controls--checks-and-radios', 'checks', 560],
   ['forms-controls--full-form', 'form-card', 700],
@@ -133,15 +145,17 @@ async function main() {
   const ctx = await browser.newContext({ deviceScaleFactor: 2, reducedMotion: 'reduce' });
   const page = await ctx.newPage();
 
-  for (const [id, name, width] of COMPONENTS) {
-    await page.setViewportSize({ width, height: 900 });
+  for (const [id, name, width, fullViewport] of COMPONENTS) {
+    if (!wanted(name)) continue;
+    await page.setViewportSize({ width, height: fullViewport ? 560 : 900 });
     await page.goto(storyUrl(id), { waitUntil: 'networkidle' });
     await page.evaluate(() => {
       document.body.style.padding = '24px';
       document.documentElement.style.background = 'var(--ja-body-bg)';
     });
     await page.waitForTimeout(250);
-    await shoot(page, join(OUT, `${name}.png`));
+    if (fullViewport) await page.screenshot({ path: join(OUT, `${name}.png`), animations: 'disabled' });
+    else await shoot(page, join(OUT, `${name}.png`));
     console.log(`  ${name}.png`);
   }
 
@@ -153,6 +167,7 @@ async function main() {
     ['components-card--interactive', 'cards-brutal', 960, 'skin:brutal'],
     ['forms-controls--text-inputs', 'forms-brutal', 560, 'skin:brutal'],
   ]) {
+    if (!wanted(name)) continue;
     await page.setViewportSize({ width, height: 900 });
     await page.goto(storyUrl(id, globals), { waitUntil: 'networkidle' });
     await page.evaluate(() => {
@@ -168,6 +183,7 @@ async function main() {
   const wide = await browser.newContext({ deviceScaleFactor: 1, reducedMotion: 'reduce' });
   const widePage = await wide.newPage();
   for (const [file, name, width, height] of TEMPLATES) {
+    if (!wanted(name)) continue;
     await widePage.setViewportSize({ width, height });
     await widePage.goto(`http://localhost:${PORT}/examples/${file}`, {
       waitUntil: 'networkidle',

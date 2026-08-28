@@ -47,6 +47,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o storybook-static",
     "shots": "node tools/screenshot.mjs",
+    "site": "npm run build && npm run build-storybook && node tools/build-site.mjs",
+    "site:serve": "node tools/build-site.mjs --serve",
     "shots:gif": "node tools/record-gif.mjs",
     "docs:images": "npm run build && npm run build-storybook && npm run shots && npm run shots:gif",
     "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",

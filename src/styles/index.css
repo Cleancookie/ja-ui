@@ -38,6 +38,7 @@
 @import "./components/navbar.css";
 @import "./components/dropdown.css";
 @import "./components/modal.css";
+@import "./components/command-palette.css";
 @import "./components/offcanvas.css";
 @import "./components/toast.css";
 @import "./components/accordion.css";

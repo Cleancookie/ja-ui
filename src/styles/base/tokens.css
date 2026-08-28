@@ -224,81 +224,55 @@
 }
 
 /* =============================================================================
-   Neo-brutalist skin — same components, louder
-   ============================================================================= */
-@layer ja-skin {
-  :where([data-ja-style="brutal"]) {
-    --ja-ink: #000000;
-    --ja-cream: #fffdf5;
-
-    --ja-font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-    --ja-font-heading: "Space Grotesk", var(--ja-font-sans);
-    --ja-heading-weight: 900;
-    --ja-heading-tracking: -0.035em;
-    --ja-heading-line-height: 0.95;
-    --ja-heading-case: uppercase;
-    --ja-font-weight-normal: 700;
-    --ja-font-weight-medium: 700;
-    --ja-font-weight-semibold: 700;
-    --ja-font-weight-bold: 900;
-    --ja-font-weight-black: 900;
-    --ja-label-weight: 900;
-    --ja-label-tracking: 0.12em;
-
-    --ja-primary: #ff6b6b;
-    --ja-secondary: #c4b5fd;
-    --ja-success: #34d399;
-    --ja-info: #c4b5fd;
-    --ja-warning: #ffd93d;
-    --ja-danger: #ff6b6b;
-    --ja-light: #ffffff;
-    --ja-dark: #000000;
-    --ja-pop: #ffd93d;
-    --ja-fresh: #c4b5fd;
-
-    --ja-primary-fg: #000000;
-    --ja-secondary-fg: #000000;
-    --ja-info-fg: #000000;
-    --ja-dark-fg: #ffffff;
-
-    /* Sharp or fully round — nothing in between. */
-    --ja-radius-xs: 0;
-    --ja-radius-sm: 0;
-    --ja-radius: 0;
-    --ja-radius-lg: 0;
-    --ja-radius-xl: 0;
-    --ja-radius-blob: 0;
-    --ja-btn-radius-base: 0;
-
-    --ja-border-width: 4px;
-    --ja-border-color-subtle: #000000;
-
-    --ja-shadow-xs: 4px 4px 0 0 var(--ja-shadow-color);
-    --ja-shadow-sm: 4px 4px 0 0 var(--ja-shadow-color);
-    --ja-shadow: 6px 6px 0 0 var(--ja-shadow-color);
-    --ja-shadow-lg: 8px 8px 0 0 var(--ja-shadow-color);
-    --ja-shadow-xl: 12px 12px 0 0 var(--ja-shadow-color);
-    --ja-shadow-2xl: 16px 16px 0 0 var(--ja-shadow-color);
-    --ja-shadow-hover: 10px 10px 0 0 var(--ja-shadow-color);
-    --ja-shadow-active: 0 0 0 0 var(--ja-shadow-color);
-    --ja-lift: -3px;
-    --ja-press: 3px;
-
-    --ja-ease: linear;
-    --ja-ease-out: linear;
-    --ja-duration: 100ms;
-
-    --ja-focus-fill: #ffd93d;
-    --ja-pattern-color: color-mix(in srgb, var(--ja-ink) 100%, transparent);
-    --ja-backdrop-bg: color-mix(in srgb, var(--ja-ink) 70%, transparent);
-  }
-}
-
-/* =============================================================================
    Dark theme — the ink and the paper swap, shadows go light
    ============================================================================= */
-@layer ja-theme {
-  :where(:root[data-ja-theme="dark"], [data-ja-theme="dark"]) {
+
+:root[data-ja-theme="dark"],
+[data-ja-theme="dark"] {
+  --ja-cream: #14161f;
+  --ja-ink: #f4f2e9;
+  --ja-white: #1c1f2b;
+
+  --ja-slate-50: #232735;
+  --ja-slate-100: #232735;
+  --ja-slate-200: #2f3444;
+  --ja-slate-300: #414859;
+  --ja-slate-400: #7c869c;
+  --ja-slate-500: #9aa4b8;
+  --ja-slate-600: #c2cad8;
+  --ja-slate-700: #dde3ec;
+  --ja-slate-800: #f4f2e9;
+  --ja-slate-900: #ffffff;
+
+  --ja-violet: #a78bfa;
+  --ja-pink: #f9a8d4;
+  --ja-lilac: #c7b8fb;
+  --ja-amber: #fcd34d;
+  --ja-mint: #6ee7b7;
+  --ja-sky: #7dd3fc;
+  --ja-red: #ff8f8f;
+
+  --ja-primary-fg: #14161f;
+  --ja-secondary-fg: #14161f;
+  --ja-dark: #f4f2e9;
+  --ja-dark-fg: #14161f;
+  --ja-light: #2f3444;
+  --ja-light-fg: #f4f2e9;
+
+  --ja-body-bg: var(--ja-cream);
+  --ja-surface: var(--ja-white);
+  --ja-surface-raised: var(--ja-slate-50);
+  --ja-surface-sunken: var(--ja-slate-50);
+  --ja-secondary: var(--ja-slate-500);
+  --ja-control-bg: var(--ja-slate-50);
+  --ja-control-disabled-bg: var(--ja-slate-100);
+  --ja-code-bg: color-mix(in srgb, var(--ja-primary) 16%, var(--ja-white));
+  --ja-focus-fill: color-mix(in srgb, var(--ja-warning) 24%, var(--ja-white));
+  --ja-backdrop-bg: color-mix(in srgb, #000 70%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-ja-theme="light"]) {
     --ja-cream: #14161f;
     --ja-ink: #f4f2e9;
     --ja-white: #1c1f2b;
@@ -342,50 +316,103 @@
   }
 }
 
+/* =============================================================================
+   Neo-brutalist skin — same components, louder
+   -----------------------------------------------------------------------------
+   Everything below overrides the base tokens by specificity alone. Cascade
+   layers are deliberately not used: unlayered declarations beat layered ones,
+   and the base :root block above is unlayered, so a layered override would
+   never win.
+   ============================================================================= */
+
+:root[data-ja-style="brutal"],
+[data-ja-style="brutal"] {
+  --ja-ink: #000000;
+  --ja-cream: #fffdf5;
+
+  --ja-font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --ja-font-heading: "Space Grotesk", var(--ja-font-sans);
+  --ja-heading-weight: 900;
+  --ja-heading-tracking: -0.035em;
+  --ja-heading-line-height: 0.95;
+  --ja-heading-case: uppercase;
+  --ja-font-weight-normal: 700;
+  --ja-font-weight-medium: 700;
+  --ja-font-weight-semibold: 700;
+  --ja-font-weight-bold: 900;
+  --ja-font-weight-black: 900;
+  --ja-label-weight: 900;
+  --ja-label-tracking: 0.12em;
+
+  --ja-primary: #ff6b6b;
+  --ja-secondary: #c4b5fd;
+  --ja-success: #34d399;
+  --ja-info: #c4b5fd;
+  --ja-warning: #ffd93d;
+  --ja-danger: #ff6b6b;
+  --ja-light: #ffffff;
+  --ja-dark: #000000;
+  --ja-pop: #ffd93d;
+  --ja-fresh: #c4b5fd;
+
+  --ja-primary-fg: #000000;
+  --ja-secondary-fg: #000000;
+  --ja-info-fg: #000000;
+  --ja-dark-fg: #ffffff;
+
+  /* Sharp or fully round — nothing in between. */
+  --ja-radius-xs: 0;
+  --ja-radius-sm: 0;
+  --ja-radius: 0;
+  --ja-radius-lg: 0;
+  --ja-radius-xl: 0;
+  --ja-radius-blob: 0;
+  --ja-btn-radius-base: 0;
+
+  --ja-border-width: 4px;
+  --ja-border-color-subtle: #000000;
+
+  --ja-shadow-xs: 4px 4px 0 0 var(--ja-shadow-color);
+  --ja-shadow-sm: 4px 4px 0 0 var(--ja-shadow-color);
+  --ja-shadow: 6px 6px 0 0 var(--ja-shadow-color);
+  --ja-shadow-lg: 8px 8px 0 0 var(--ja-shadow-color);
+  --ja-shadow-xl: 12px 12px 0 0 var(--ja-shadow-color);
+  --ja-shadow-2xl: 16px 16px 0 0 var(--ja-shadow-color);
+  --ja-shadow-hover: 10px 10px 0 0 var(--ja-shadow-color);
+  --ja-shadow-active: 0 0 0 0 var(--ja-shadow-color);
+  --ja-lift: -3px;
+  --ja-press: 3px;
+
+  --ja-ease: linear;
+  --ja-ease-out: linear;
+  --ja-duration: 100ms;
+
+  --ja-focus-fill: #ffd93d;
+  /* Neo-brutalism has no subtle greys: it is black, or it is a colour. */
+  --ja-text-muted: var(--ja-ink);
+  --ja-text-subtle: var(--ja-ink);
+  --ja-border-color-subtle: var(--ja-ink);
+  --ja-pattern-color: color-mix(in srgb, var(--ja-ink) 100%, transparent);
+  --ja-backdrop-bg: color-mix(in srgb, var(--ja-ink) 70%, transparent);
+}
+
+/* Dark + brutal: the skin sets its own black-on-cream, so put the paper back. */
+:root[data-ja-style="brutal"][data-ja-theme="dark"],
+[data-ja-style="brutal"][data-ja-theme="dark"] {
+  --ja-cream: #14161f;
+  --ja-ink: #f4f2e9;
+  --ja-white: #1c1f2b;
+  --ja-dark-fg: #14161f;
+  --ja-primary-fg: #14161f;
+}
+
 @media (prefers-color-scheme: dark) {
-  @layer ja-theme {
-    :where(:root:not([data-ja-theme="light"])) {
-      --ja-cream: #14161f;
-      --ja-ink: #f4f2e9;
-      --ja-white: #1c1f2b;
-
-      --ja-slate-50: #232735;
-      --ja-slate-100: #232735;
-      --ja-slate-200: #2f3444;
-      --ja-slate-300: #414859;
-      --ja-slate-400: #7c869c;
-      --ja-slate-500: #9aa4b8;
-      --ja-slate-600: #c2cad8;
-      --ja-slate-700: #dde3ec;
-      --ja-slate-800: #f4f2e9;
-      --ja-slate-900: #ffffff;
-
-      --ja-violet: #a78bfa;
-      --ja-pink: #f9a8d4;
-    --ja-lilac: #c7b8fb;
-      --ja-amber: #fcd34d;
-      --ja-mint: #6ee7b7;
-      --ja-sky: #7dd3fc;
-      --ja-red: #ff8f8f;
-
-      --ja-primary-fg: #14161f;
-      --ja-secondary-fg: #14161f;
-      --ja-dark: #f4f2e9;
-      --ja-dark-fg: #14161f;
-      --ja-light: #2f3444;
-      --ja-light-fg: #f4f2e9;
-
-      --ja-body-bg: var(--ja-cream);
-      --ja-surface: var(--ja-white);
-      --ja-surface-raised: var(--ja-slate-50);
-      --ja-surface-sunken: var(--ja-slate-50);
-      --ja-secondary: var(--ja-slate-500);
-      --ja-control-bg: var(--ja-slate-50);
-      --ja-control-disabled-bg: var(--ja-slate-100);
-      --ja-code-bg: color-mix(in srgb, var(--ja-primary) 16%, var(--ja-white));
-      --ja-focus-fill: color-mix(in srgb, var(--ja-warning) 24%, var(--ja-white));
-      --ja-backdrop-bg: color-mix(in srgb, #000 70%, transparent);
-    }
+  :root[data-ja-style="brutal"]:not([data-ja-theme="light"]) {
+    --ja-cream: #14161f;
+    --ja-ink: #f4f2e9;
+    --ja-white: #1c1f2b;
+    --ja-dark-fg: #14161f;
+    --ja-primary-fg: #14161f;
   }
 }
 

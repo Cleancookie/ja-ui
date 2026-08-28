@@ -63,11 +63,11 @@ const COMPONENTS = [
 
 /** Full-page shots of the standalone templates. */
 const TEMPLATES = [
-  ['dashboard.html', 'template-dashboard', 1440, 1500],
-  ['cms.html', 'template-cms', 1440, 1400],
-  ['marketing.html', 'template-marketing', 1440, 2000],
-  ['pricing.html', 'template-pricing', 1440, 1500],
-  ['shop.html', 'template-shop', 1440, 1600],
+  ['dashboard.html', 'template-dashboard', 1440, 1000],
+  ['cms.html', 'template-cms', 1440, 900],
+  ['marketing.html', 'template-marketing', 1440, 1000],
+  ['pricing.html', 'template-pricing', 1440, 1000],
+  ['shop.html', 'template-shop', 1440, 1000],
   ['signin.html', 'template-signin', 1200, 900],
 ];
 
@@ -103,6 +103,23 @@ function findChromium() {
   return undefined;
 }
 
+/**
+ * Shoot the story root plus a margin. Decoration deliberately escapes its box
+ * (icon discs that straddle a card border, corner stickers, hard shadows), and
+ * an element-clipped screenshot would slice it off.
+ */
+async function shoot(page, path, margin = 28) {
+  const box = await page.locator('#storybook-root').boundingBox();
+  const viewport = page.viewportSize();
+  const clip = {
+    x: Math.max(0, box.x - margin),
+    y: Math.max(0, box.y - margin),
+    width: Math.min(viewport.width - Math.max(0, box.x - margin), box.width + margin * 2),
+    height: Math.min(viewport.height - Math.max(0, box.y - margin), box.height + margin * 2),
+  };
+  await page.screenshot({ path, clip, animations: 'disabled' });
+}
+
 const storyUrl = (id, globals) =>
   `http://localhost:${PORT}/iframe.html?id=${id}&viewMode=story` +
   (globals ? `&globals=${encodeURIComponent(globals)}` : '');
@@ -124,8 +141,7 @@ async function main() {
       document.documentElement.style.background = 'var(--ja-body-bg)';
     });
     await page.waitForTimeout(250);
-    const root = page.locator('#storybook-root');
-    await root.screenshot({ path: join(OUT, `${name}.png`), animations: 'disabled' });
+    await shoot(page, join(OUT, `${name}.png`));
     console.log(`  ${name}.png`);
   }
 
@@ -143,10 +159,7 @@ async function main() {
       document.body.style.padding = '24px';
     });
     await page.waitForTimeout(250);
-    await page.locator('#storybook-root').screenshot({
-      path: join(OUT, `${name}.png`),
-      animations: 'disabled',
-    });
+    await shoot(page, join(OUT, `${name}.png`));
     console.log(`  ${name}.png`);
   }
   await ctx.close();
@@ -160,7 +173,11 @@ async function main() {
       waitUntil: 'networkidle',
     });
     await widePage.waitForTimeout(400);
-    await widePage.screenshot({ path: join(OUT, `${name}.png`), animations: 'disabled' });
+    await widePage.screenshot({
+      path: join(OUT, `${name}.png`),
+      fullPage: true,
+      animations: 'disabled',
+    });
     console.log(`  ${name}.png`);
   }
   await wide.close();

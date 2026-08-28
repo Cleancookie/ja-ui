@@ -6,8 +6,6 @@
    ground, components build on both, and utilities win last.
    ============================================================================= */
 
-/* Cascade layers keep the theme/skin overrides predictable without !important. */
-@layer ja-theme, ja-skin;
 
 /* 1. Vocabulary */
 @import "./base/tokens.css";

@@ -177,11 +177,14 @@
   --ja-shadow-xl: 12px 12px 0 0 var(--ja-shadow-color);
   --ja-shadow-2xl: 16px 16px 0 0 var(--ja-shadow-color);
   --ja-shadow-inset: inset 0 2px 0 0 color-mix(in srgb, var(--ja-ink) 10%, transparent);
-  /* Interaction pair: things lift toward you, then press into the page. */
-  --ja-shadow-hover: 6px 6px 0 0 var(--ja-shadow-color);
-  --ja-shadow-active: 2px 2px 0 0 var(--ja-shadow-color);
-  --ja-lift: -2px;
-  --ja-press: 2px;
+  /* Interaction pair: things lift toward you, then press into the page.
+     The shadow always grows or shrinks by exactly as much as the element
+     moves, so its far corner stays pinned and the light source never jumps.
+     Keep --ja-press + --ja-shadow-active's offset equal to --ja-shadow's. */
+  --ja-shadow-hover: 5px 5px 0 0 var(--ja-shadow-color);
+  --ja-shadow-active: 3px 3px 0 0 var(--ja-shadow-color);
+  --ja-lift: -1px;
+  --ja-press: 1px;
 
   /* --- Focus ring: thick, high-contrast, unmissable ---------------------- */
   --ja-ring-color: var(--ja-ink);

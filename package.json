@@ -18,7 +18,11 @@
   },
   "type": "module",
   "sideEffects": [
-    "*.css"
+    "*.css",
+    "./src/index.js",
+    "./dist/ja-ui.js",
+    "./dist/ja-ui.min.js",
+    "./dist/ja-ui.iife.js"
   ],
   "main": "./dist/ja-ui.js",
   "module": "./dist/ja-ui.js",

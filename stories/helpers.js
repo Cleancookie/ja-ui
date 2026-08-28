@@ -2,6 +2,14 @@
 export const html = (strings, ...values) =>
   strings.reduce((out, chunk, i) => out + chunk + (values[i] ?? ''), '');
 
+/**
+ * A DOM id that is unique per render. Storybook's autodocs page renders the
+ * primary story twice, so any story with hardcoded ids ends up with two copies
+ * of them and the toggles all retarget the first copy.
+ */
+let uidSeq = 0;
+export const uid = (prefix) => `${prefix}-${(uidSeq += 1)}`;
+
 export const COLORS = [
   'primary',
   'secondary',

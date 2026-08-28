@@ -8,6 +8,8 @@
    Components own their padding and internal `gap`, nothing more.
 3. **Every visual value is a token.** If you write a colour, radius, shadow or duration
    literal inside a component, it belongs in `src/styles/base/tokens.css` instead.
+   The dark theme is declared twice — once for `[data-ja-theme="dark"]`, once for
+   `prefers-color-scheme` — and `npm run lint:css` fails if the two drift apart.
 4. **Bootstrap's class names, ja-ui's data attributes.** Classes mirror Bootstrap 5 so
    markup ports across. JavaScript hooks are `data-ja-*` and events are `ja:*`, so the
    two libraries never fight over behaviour.

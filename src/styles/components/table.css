@@ -11,8 +11,8 @@
   --ja-table-striped-bg: color-mix(in srgb, var(--ja-ink) 5%, transparent);
   --ja-table-hover-bg: color-mix(in srgb, var(--ja-pop) 25%, transparent);
   --ja-table-active-bg: color-mix(in srgb, var(--ja-primary) 20%, transparent);
-  --ja-table-head-bg: var(--ja-ink);
-  --ja-table-head-color: var(--ja-cream);
+  --ja-table-head-bg: var(--ja-ink-fill);
+  --ja-table-head-color: var(--ja-ink-fill-fg);
   --ja-table-divider: var(--ja-border-width) solid var(--ja-border-color);
 
   inline-size: 100%;

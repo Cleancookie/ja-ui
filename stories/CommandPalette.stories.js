@@ -123,17 +123,21 @@ export const Open = {
   parameters: {
     docs: {
       description: {
-        story: 'The palette as it looks mid-search, for the docs. Escape closes it.',
+        story:
+          'The palette as it looks mid-search. It opens itself on load — but only when the ' +
+          'story is viewed on its own, because the palette is a page-level overlay: on this ' +
+          'docs page it would cover the article and lock its scroll. Press the button to see it.',
       },
     },
   },
-  render: () =>
+  // `open` is off in docs view — see the note above.
+  render: (_args, context) =>
     demo({
       items: COMMANDS,
       config: { placeholder: 'Type a command…' },
       buttonLabel: 'Open the palette',
-      hint: 'already open',
-      open: true,
+      hint: context.viewMode === 'docs' ? 'opens on load in the story view' : 'already open',
+      open: context.viewMode !== 'docs',
       query: 'de st',
     }),
 };

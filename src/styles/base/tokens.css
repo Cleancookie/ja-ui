@@ -153,6 +153,12 @@
   --ja-border-color-subtle: var(--ja-slate-200);
   --ja-border: var(--ja-border-width) solid var(--ja-border-color);
 
+  /* A block filled with solid ink — table heads, code blocks. Split out from
+     --ja-ink so a dark theme can dial it down instead of flipping to a light
+     slab in the middle of a dark page. */
+  --ja-ink-fill: var(--ja-ink);
+  --ja-ink-fill-fg: var(--ja-cream);
+
   --ja-link-color: color-mix(in srgb, var(--ja-primary) 82%, var(--ja-ink));
   --ja-link-hover-color: var(--ja-primary);
   --ja-link-decoration: underline;
@@ -225,95 +231,191 @@
 }
 
 /* =============================================================================
-   Dark theme — the ink and the paper swap, shadows go light
+   Dark theme — One Dark
+   -----------------------------------------------------------------------------
+   The two rules below must stay identical: the attribute is the explicit
+   choice, the media query is the OS default. `npm run lint:css` fails if they
+   drift.
    ============================================================================= */
 
 :root[data-ja-theme="dark"],
 [data-ja-theme="dark"] {
-  --ja-cream: #14161f;
-  --ja-ink: #f4f2e9;
-  --ja-white: #1c1f2b;
+  /* --- Paper and ink ------------------------------------------------------
+     Not an inversion of the light theme: One Dark's own chrome. The paper is
+     a desaturated blue-grey, the ink is a soft #abb2bf rather than white, and
+     the borders step back to #3e4451 so the 2px outlines read as structure
+     instead of glare.
+     ---------------------------------------------------------------------- */
+  --ja-cream: #282c34;
+  --ja-ink: #abb2bf;
+  --ja-white: #2c313a;
 
-  --ja-slate-50: #232735;
-  --ja-slate-100: #232735;
-  --ja-slate-200: #2f3444;
-  --ja-slate-300: #414859;
-  --ja-slate-400: #7c869c;
-  --ja-slate-500: #9aa4b8;
-  --ja-slate-600: #c2cad8;
-  --ja-slate-700: #dde3ec;
-  --ja-slate-800: #f4f2e9;
-  --ja-slate-900: #ffffff;
+  --ja-slate-50: #2c313a;
+  --ja-slate-100: #323842;
+  --ja-slate-200: #3e4451;
+  --ja-slate-300: #4b5263;
+  --ja-slate-400: #5c6370;
+  --ja-slate-500: #828997;
+  --ja-slate-600: #9da5b4;
+  --ja-slate-700: #abb2bf;
+  --ja-slate-800: #c5ccd6;
+  --ja-slate-900: #dfe4ec;
 
-  --ja-violet: #a78bfa;
-  --ja-pink: #f9a8d4;
-  --ja-lilac: #c7b8fb;
-  --ja-amber: #fcd34d;
-  --ja-mint: #6ee7b7;
-  --ja-sky: #7dd3fc;
-  --ja-red: #ff8f8f;
+  /* One Dark's syntax accents, doing duty as the semantic palette. */
+  --ja-violet: #c678dd;
+  --ja-lilac: #d3a5e8;
+  --ja-pink: #e06c75;
+  --ja-amber: #e5c07b;
+  --ja-mint: #98c379;
+  --ja-sky: #61afef;
+  --ja-red: #e06c75;
+  --ja-cyan: #56b6c2;
+  --ja-orange: #d19a66;
 
-  --ja-primary-fg: #14161f;
-  --ja-secondary-fg: #14161f;
-  --ja-dark: #f4f2e9;
-  --ja-dark-fg: #14161f;
-  --ja-light: #2f3444;
-  --ja-light-fg: #f4f2e9;
+  --ja-info: var(--ja-cyan);
+  --ja-pop: var(--ja-orange);
+
+  /* Every accent is mid-tone, so filled surfaces take dark ink on top. */
+  --ja-primary-fg: #21252b;
+  --ja-secondary-fg: #21252b;
+  --ja-success-fg: #21252b;
+  --ja-info-fg: #21252b;
+  --ja-warning-fg: #21252b;
+  --ja-danger-fg: #21252b;
+  --ja-pop-fg: #21252b;
+  --ja-fresh-fg: #21252b;
+  --ja-light: var(--ja-slate-200);
+  --ja-light-fg: var(--ja-slate-700);
+  --ja-dark: var(--ja-slate-800);
+  --ja-dark-fg: #21252b;
+  --ja-secondary: var(--ja-slate-500);
 
   --ja-body-bg: var(--ja-cream);
   --ja-surface: var(--ja-white);
-  --ja-surface-raised: var(--ja-slate-50);
-  --ja-surface-sunken: var(--ja-slate-50);
-  --ja-secondary: var(--ja-slate-500);
-  --ja-control-bg: var(--ja-slate-50);
+  --ja-surface-raised: var(--ja-slate-100);
+  --ja-surface-sunken: #21252b;
+  /* Ink is mid-grey here, so hover states lift with light, not with ink. */
+  --ja-surface-hover: color-mix(in srgb, #ffffff 6%, transparent);
+  --ja-surface-active: color-mix(in srgb, #ffffff 11%, transparent);
+
+  --ja-text-inverse: #21252b;
+
+  /* The whole reason this theme reads as calm: borders stop shouting. */
+  --ja-border-color: #3e4451;
+  --ja-border-color-strong: #4b5263;
+  --ja-border-color-subtle: #353b45;
+  --ja-ink-fill: #21252b;
+  --ja-ink-fill-fg: var(--ja-slate-700);
+
+  /* Hard offset shadows still, but cast in the dark rather than in the ink. */
+  --ja-shadow-color: #16181d;
+
+  --ja-link-color: var(--ja-sky);
+  --ja-link-hover-color: #8cc6f7;
+
+  --ja-code-color: #98c379;
+  --ja-code-bg: #21252b;
+
+  --ja-ring-color: var(--ja-sky);
+  --ja-focus-fill: color-mix(in srgb, var(--ja-sky) 20%, var(--ja-white));
+
+  --ja-control-bg: #21252b;
   --ja-control-disabled-bg: var(--ja-slate-100);
-  --ja-code-bg: color-mix(in srgb, var(--ja-primary) 16%, var(--ja-white));
-  --ja-focus-fill: color-mix(in srgb, var(--ja-warning) 24%, var(--ja-white));
-  --ja-backdrop-bg: color-mix(in srgb, #000 70%, transparent);
+  --ja-control-disabled-color: var(--ja-slate-400);
+  --ja-control-placeholder-color: var(--ja-slate-400);
+
+  --ja-backdrop-bg: color-mix(in srgb, #14161a 74%, transparent);
+  --ja-pattern-color: color-mix(in srgb, #ffffff 7%, transparent);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-ja-theme="light"]) {
-    --ja-cream: #14161f;
-    --ja-ink: #f4f2e9;
-    --ja-white: #1c1f2b;
+    /* --- Paper and ink ------------------------------------------------------
+       Not an inversion of the light theme: One Dark's own chrome. The paper is
+       a desaturated blue-grey, the ink is a soft #abb2bf rather than white, and
+       the borders step back to #3e4451 so the 2px outlines read as structure
+       instead of glare.
+       ---------------------------------------------------------------------- */
+    --ja-cream: #282c34;
+    --ja-ink: #abb2bf;
+    --ja-white: #2c313a;
 
-    --ja-slate-50: #232735;
-    --ja-slate-100: #232735;
-    --ja-slate-200: #2f3444;
-    --ja-slate-300: #414859;
-    --ja-slate-400: #7c869c;
-    --ja-slate-500: #9aa4b8;
-    --ja-slate-600: #c2cad8;
-    --ja-slate-700: #dde3ec;
-    --ja-slate-800: #f4f2e9;
-    --ja-slate-900: #ffffff;
+    --ja-slate-50: #2c313a;
+    --ja-slate-100: #323842;
+    --ja-slate-200: #3e4451;
+    --ja-slate-300: #4b5263;
+    --ja-slate-400: #5c6370;
+    --ja-slate-500: #828997;
+    --ja-slate-600: #9da5b4;
+    --ja-slate-700: #abb2bf;
+    --ja-slate-800: #c5ccd6;
+    --ja-slate-900: #dfe4ec;
 
-    --ja-violet: #a78bfa;
-    --ja-pink: #f9a8d4;
-    --ja-lilac: #c7b8fb;
-    --ja-amber: #fcd34d;
-    --ja-mint: #6ee7b7;
-    --ja-sky: #7dd3fc;
-    --ja-red: #ff8f8f;
+    /* One Dark's syntax accents, doing duty as the semantic palette. */
+    --ja-violet: #c678dd;
+    --ja-lilac: #d3a5e8;
+    --ja-pink: #e06c75;
+    --ja-amber: #e5c07b;
+    --ja-mint: #98c379;
+    --ja-sky: #61afef;
+    --ja-red: #e06c75;
+    --ja-cyan: #56b6c2;
+    --ja-orange: #d19a66;
 
-    --ja-primary-fg: #14161f;
-    --ja-secondary-fg: #14161f;
-    --ja-dark: #f4f2e9;
-    --ja-dark-fg: #14161f;
-    --ja-light: #2f3444;
-    --ja-light-fg: #f4f2e9;
+    --ja-info: var(--ja-cyan);
+    --ja-pop: var(--ja-orange);
+
+    /* Every accent is mid-tone, so filled surfaces take dark ink on top. */
+    --ja-primary-fg: #21252b;
+    --ja-secondary-fg: #21252b;
+    --ja-success-fg: #21252b;
+    --ja-info-fg: #21252b;
+    --ja-warning-fg: #21252b;
+    --ja-danger-fg: #21252b;
+    --ja-pop-fg: #21252b;
+    --ja-fresh-fg: #21252b;
+    --ja-light: var(--ja-slate-200);
+    --ja-light-fg: var(--ja-slate-700);
+    --ja-dark: var(--ja-slate-800);
+    --ja-dark-fg: #21252b;
+    --ja-secondary: var(--ja-slate-500);
 
     --ja-body-bg: var(--ja-cream);
     --ja-surface: var(--ja-white);
-    --ja-surface-raised: var(--ja-slate-50);
-    --ja-surface-sunken: var(--ja-slate-50);
-    --ja-secondary: var(--ja-slate-500);
-    --ja-control-bg: var(--ja-slate-50);
+    --ja-surface-raised: var(--ja-slate-100);
+    --ja-surface-sunken: #21252b;
+    /* Ink is mid-grey here, so hover states lift with light, not with ink. */
+    --ja-surface-hover: color-mix(in srgb, #ffffff 6%, transparent);
+    --ja-surface-active: color-mix(in srgb, #ffffff 11%, transparent);
+
+    --ja-text-inverse: #21252b;
+
+    /* The whole reason this theme reads as calm: borders stop shouting. */
+    --ja-border-color: #3e4451;
+    --ja-border-color-strong: #4b5263;
+    --ja-border-color-subtle: #353b45;
+    --ja-ink-fill: #21252b;
+    --ja-ink-fill-fg: var(--ja-slate-700);
+
+    /* Hard offset shadows still, but cast in the dark rather than in the ink. */
+    --ja-shadow-color: #16181d;
+
+    --ja-link-color: var(--ja-sky);
+    --ja-link-hover-color: #8cc6f7;
+
+    --ja-code-color: #98c379;
+    --ja-code-bg: #21252b;
+
+    --ja-ring-color: var(--ja-sky);
+    --ja-focus-fill: color-mix(in srgb, var(--ja-sky) 20%, var(--ja-white));
+
+    --ja-control-bg: #21252b;
     --ja-control-disabled-bg: var(--ja-slate-100);
-    --ja-code-bg: color-mix(in srgb, var(--ja-primary) 16%, var(--ja-white));
-    --ja-focus-fill: color-mix(in srgb, var(--ja-warning) 24%, var(--ja-white));
-    --ja-backdrop-bg: color-mix(in srgb, #000 70%, transparent);
+    --ja-control-disabled-color: var(--ja-slate-400);
+    --ja-control-placeholder-color: var(--ja-slate-400);
+
+    --ja-backdrop-bg: color-mix(in srgb, #14161a 74%, transparent);
+    --ja-pattern-color: color-mix(in srgb, #ffffff 7%, transparent);
   }
 }
 
@@ -405,6 +507,8 @@
   --ja-white: #1c1f2b;
   --ja-dark-fg: #14161f;
   --ja-primary-fg: #14161f;
+  --ja-ink-fill: var(--ja-ink);
+  --ja-ink-fill-fg: var(--ja-cream);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -414,6 +518,8 @@
     --ja-white: #1c1f2b;
     --ja-dark-fg: #14161f;
     --ja-primary-fg: #14161f;
+    --ja-ink-fill: var(--ja-ink);
+    --ja-ink-fill-fg: var(--ja-cream);
   }
 }
 

@@ -168,8 +168,8 @@ pre {
   padding: var(--ja-space-4);
   border: var(--ja-border-width) solid var(--ja-border-color);
   border-radius: var(--ja-radius);
-  background-color: var(--ja-ink);
-  color: var(--ja-cream);
+  background-color: var(--ja-ink-fill);
+  color: var(--ja-ink-fill-fg);
   font-size: var(--ja-font-size-sm);
   line-height: 1.6;
   tab-size: 2;

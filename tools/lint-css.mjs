@@ -59,6 +59,41 @@ for (const file of files) {
   }
 }
 
+// The dark theme is written twice — once for the explicit attribute, once for
+// the OS preference — and the two must not drift apart.
+{
+  const source = readFileSync('src/styles/base/tokens.css', 'utf8');
+  const declarations = (block) =>
+    block
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith('--'))
+      .join('\n');
+
+  for (const [name, attribute, media] of [
+    [
+      'default',
+      /\[data-ja-theme="dark"\] \{([\s\S]*?)\n\}/,
+      /:root:not\(\[data-ja-theme="light"\]\) \{([\s\S]*?)\n  \}/,
+    ],
+    [
+      'brutal',
+      /\[data-ja-style="brutal"\]\[data-ja-theme="dark"\] \{([\s\S]*?)\n\}/,
+      /:root\[data-ja-style="brutal"\]:not\(\[data-ja-theme="light"\]\) \{([\s\S]*?)\n  \}/,
+    ],
+  ]) {
+    const a = source.match(attribute);
+    const b = source.match(media);
+    if (!a || !b) {
+      problems.push(`src/styles/base/tokens.css  cannot find both ${name} dark blocks to compare`);
+    } else if (declarations(a[1]) !== declarations(b[1])) {
+      problems.push(
+        `src/styles/base/tokens.css  the ${name} dark theme differs between [data-ja-theme="dark"] and the prefers-color-scheme block — they must declare the same tokens.`
+      );
+    }
+  }
+}
+
 // The rule that the above bug actually destroyed — assert it survives a build.
 try {
   const bundle = readFileSync('dist/ja-ui.css', 'utf8');

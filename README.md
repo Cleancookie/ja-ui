@@ -248,7 +248,13 @@ base colour.
 
 ### Dark mode
 
-Follows `prefers-color-scheme` on its own. Force it with `data-ja-theme="light" | "dark"`
+The default skin's dark theme is **One Dark**: `#282c34` paper, `#abb2bf` ink, and borders
+that step back to `#3e4451` so the 2px outlines read as structure rather than glare. It is
+not an inversion of the light theme — an ink-filled block (a table head, a `<pre>`) goes
+deeper via `--ja-ink-fill` instead of flipping to a light slab mid-page. The `brutal` skin
+keeps its high-contrast dark, because that is the point of that skin.
+
+Dark follows `prefers-color-scheme` on its own. Force it with `data-ja-theme="light" | "dark"`
 on `<html>`, or from JavaScript:
 
 ```js
@@ -387,4 +393,4 @@ stories/         Storybook
 
 ## Licence
 
-MIT © Alex Law
+MIT

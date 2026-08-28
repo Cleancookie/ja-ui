@@ -200,7 +200,7 @@ slides between rows, and virtualised rendering for lists in the hundred thousand
 | **Layout** | Containers, 12-column flex grid, gutters, `.vstack` / `.hstack`, ratios, sticky helpers |
 | **Content** | Typography, display headings, lead, blockquote, code, `kbd`, figures, images, tables |
 | **Forms** | Inputs, textarea, select, file, colour, range, checks, radios, switches, floating labels, input groups, validation |
-| **Components** | Accordion, alert, badge, breadcrumb, buttons, button group, card, close button, collapse, command palette, dropdown, list group, modal, navbar, navs & tabs, offcanvas, pagination, placeholders, progress, spinners, toasts |
+| **Components** | Accordion, alert, badge, breadcrumb, buttons, button group, card, close button, collapse, command palette, data table, dropdown, list group, modal, navbar, navs & tabs, offcanvas, pagination, placeholders, progress, spinners, toasts |
 | **Decoration** | Patterns (dots, grid, stripes, cross), stickers, rotations, squiggle dividers, marquee, avatars, stat tiles, text outline & highlight |
 | **Utilities** | Spacing (0–8), display, flex, gap, position, sizing, borders, radii, shadows, colours, typography, overflow, visibility — all responsive, all logical-property based |
 | **Extra variants** | `.btn-soft-*`, `.btn-ghost`, `.btn-flat`, `.btn-icon`, `.pop` and `.fresh` colours, `.card-hover`, `.table-card`, `.pagination-pills` |
@@ -300,6 +300,7 @@ document.querySelector('#confirm').addEventListener('ja:modal:hidden', () => {
 | Component | Data attribute | Options |
 | --- | --- | --- |
 | `CommandPalette` | `data-ja-toggle="command-palette"` | `items`, `hotkey`, `placeholder`, `emptyText`, `groups`, `limit`, `keepOpen`, `backdrop`, `keyboard`, `clearOnClose`, `overscan`, `onSelect` |
+| `DataTable` | `data-ja-datatable` | `columns`, `rows`, `columnCount`, `rowCount`, `defaultColumnWidth`, `minColumnWidth`, `maxAutoWidth`, `autoSizeSample`, `rowHeight`, `headerHeight`, `gutterWidth`, `overscan`, `selectable` |
 | `Modal` | `data-ja-toggle="modal"` | `backdrop` (`true`/`false`/`'static'`), `keyboard`, `focus` |
 | `Offcanvas` | `data-ja-toggle="offcanvas"` | `backdrop`, `keyboard`, `scroll` |
 | `Collapse` | `data-ja-toggle="collapse"` | `parent`, `toggle` |
@@ -349,8 +350,39 @@ const palette = new CommandPalette('#palette', {
 Row heights come from CSS (`--ja-command-palette-item-height`,
 `--ja-command-palette-header-height`) and are measured by the JS, so they must stay in `px`.
 
-Events: `ja:command-palette:show` / `shown` / `hide` / `hidden`, plus `filter`, `highlight`
-and a cancelable `select` carrying `{ item, index, query }`.
+### Data table
+
+The plain `.table` remains the dumb markup-first table. `DataTable` is the heavy-duty sibling for
+spreadsheet-sized data: rows and columns are virtualised, every column starts at a fixed width,
+dragging its edge resizes it, and a double-click auto-sizes it up to a cap so a giant JSON blob
+does not blow the whole sheet open.
+
+```js
+import { DataTable } from '@cleancookie/ja-ui';
+
+new DataTable('#orders', {
+  columnCount: 1000,
+  rowCount: 1000000,
+  defaultColumnWidth: 160,
+  maxAutoWidth: 320,
+  getColumnLabel: (index) => `Field ${index + 1}`,
+  getCell: (rowIndex, columnIndex) => `R${rowIndex + 1} · C${columnIndex + 1}`,
+});
+```
+
+If your data already fits in JSON, the constructor also reads `data-ja-columns` / `data-ja-rows`
+selectors that point at `<script type="application/json">` blocks:
+
+```html
+<script type="application/json" id="dt-columns">["SKU","Name","Warehouse"]</script>
+<script type="application/json" id="dt-rows">[["A-100","Travel mug","Manchester"]]</script>
+<div id="orders" data-ja-datatable data-ja-columns="#dt-columns" data-ja-rows="#dt-rows"></div>
+```
+
+Events: `DataTable` emits `ja:datatable:columnresize` / `columnresized`, `autosize` / `autosized`,
+and `selectall` / `selectallchanged`. `CommandPalette` emits `ja:command-palette:show` / `shown` /
+`hide` / `hidden`, plus `filter`, `highlight` and a cancelable `select` carrying
+`{ item, index, query }`.
 
 TypeScript definitions ship in the package.
 

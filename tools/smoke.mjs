@@ -70,6 +70,7 @@ const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8" />
   <button class="btn" id="tog" data-ja-toggle="button" aria-pressed="false">Toggle</button>
 
   <div class="command-palette" id="cp"></div>
+  <div id="dt" style="inline-size: 880px; margin-top: 1rem;"></div>
 <script>${JS}</script></body></html>`;
 
 const results = [];
@@ -223,6 +224,74 @@ async function main() {
   await page.waitForTimeout(350);
   check('Enter runs the highlighted item', await page.evaluate(() => window.picked === 'User settings'));
   check('palette closes after a selection', !(await page.isVisible('#cp .command-palette-dialog')));
+
+  // Data table -------------------------------------------------------------
+  await page.evaluate(() => {
+    window.dataTable = new window.JaUI.DataTable('#dt', {
+      columnCount: 1000,
+      rowCount: 1000000,
+      defaultColumnWidth: 160,
+      maxAutoWidth: 280,
+      autoSizeSample: 32,
+      getColumnLabel: (index) => `Field ${index + 1}`,
+      getCell: (rowIndex, columnIndex) =>
+        columnIndex === 3 && rowIndex === 20
+          ? '{"kind":"blob","payload":"this long string should clamp before it gets silly wide"}'
+          : `R${rowIndex + 1}C${columnIndex + 1}`,
+    });
+  });
+  await page.waitForTimeout(150);
+  check(
+    'data table virtualises a million-by-thousand sheet',
+    await page.evaluate(() => {
+      const cells = document.querySelectorAll('#dt .datatable-cell:not([hidden])').length;
+      const headers = document.querySelectorAll('#dt .datatable-header-cell:not([hidden])').length;
+      return cells > 0 && cells < 800 && headers > 0 && headers < 20;
+    })
+  );
+  await page.click('#dt .datatable-corner');
+  check('data table selects the whole sheet from the corner gutter', await page.evaluate(() => window.dataTable.selectedAll));
+  const widthBefore = await page.evaluate(() => window.dataTable._columnWidths[3]);
+  await page.dblclick('#dt .datatable-header-cell[data-col="3"] .datatable-resize-handle');
+  await page.waitForTimeout(80);
+  check(
+    'double-click auto-sizes a column but respects the cap',
+    await page.evaluate((before) => {
+      const after = window.dataTable._columnWidths[3];
+      return after > before && after <= 280;
+    }, widthBefore)
+  );
+  const widthDragBefore = await page.evaluate(() => window.dataTable._columnWidths[1]);
+  const handle = page.locator('#dt .datatable-header-cell[data-col="1"] .datatable-resize-handle');
+  const box = await handle.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 64, box.y + box.height / 2, { steps: 4 });
+  await page.mouse.up();
+  check(
+    'dragging a header edge resizes the column',
+    await page.evaluate((before) => window.dataTable._columnWidths[1] > before, widthDragBefore)
+  );
+  await page.dblclick('#dt .datatable-corner .datatable-resize-handle');
+  await page.waitForTimeout(100);
+  check(
+    'double-clicking the selected corner edge auto-sizes every column',
+    await page.evaluate(() => window.dataTable._columnWidths[0] !== 160 && window.dataTable._columnWidths[3] <= 280)
+  );
+  await page.evaluate(() => {
+    const viewport = document.querySelector('#dt .datatable-viewport');
+    viewport.scrollTop = 500000 * 40;
+    viewport.scrollLeft = 400 * 160;
+    viewport.dispatchEvent(new Event('scroll'));
+  });
+  await page.waitForTimeout(150);
+  check(
+    'data table keeps rendering after deep scrolling',
+    await page.evaluate(() => {
+      const any = document.querySelector('#dt .datatable-cell[data-row="500001"][data-col="400"]');
+      return Boolean(any?.textContent?.includes('R500002C401'));
+    })
+  );
 
   // Theme API --------------------------------------------------------------
   await page.evaluate(() => window.JaUI.setTheme('dark'));

@@ -24,7 +24,8 @@ src/styles/layout/       stacks, ratios, sticky helpers
 src/styles/components/   one file per component — structure only, no colour loops
 src/styles/generated/    grid, colour variants, utilities — DO NOT EDIT
 src/js/                  one module per interactive component
-tools/                   CSS generators, screenshots, GIFs, smoke test
+tools/                   CSS generators, screenshots, GIFs, smoke test, site build
+site/                    the landing page for the published playground
 ```
 
 Anything repetitive across colours or breakpoints is generated. Edit the generator in
@@ -40,6 +41,15 @@ is out of date.
    `src/index.js`, registered in `src/js/autoinit.js`, and typed in `src/index.d.ts`.
 4. A story in `stories/`, and an assertion in `tools/smoke.mjs` if it has JS.
 5. `npm run build && npm run smoke`.
+
+## The playground
+
+`npm run site` assembles `_site/` — the `site/` landing page, `examples/`, the README
+images and the built Storybook under `/storybook/` — and `npm run site:serve` previews it
+on :6008. Every push to `main` deploys it to GitHub Pages.
+
+Keep it base-path agnostic: the site is served from `/<repo>/`, so no absolute URLs
+(`/examples/…`) anywhere in the landing page, the example pages or the stories.
 
 ## Releasing
 

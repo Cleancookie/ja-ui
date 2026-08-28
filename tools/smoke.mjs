@@ -67,6 +67,8 @@ const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8" />
     <div class="toast-body">Hello</div></div></div>
 
   <button class="btn" id="tog" data-ja-toggle="button" aria-pressed="false">Toggle</button>
+
+  <div class="command-palette" id="cp"></div>
 <script>${JS}</script></body></html>`;
 
 const results = [];
@@ -151,6 +153,47 @@ async function main() {
   check('toggle button presses', (await page.getAttribute('#tog', 'aria-pressed')) === 'true');
   await page.click('#tog');
   check('toggle button releases', (await page.getAttribute('#tog', 'aria-pressed')) === 'false');
+
+  // Command palette --------------------------------------------------------
+  await page.evaluate(() => {
+    window.picked = null;
+    window.palette = new window.JaUI.CommandPalette('#cp', {
+      items: [
+        { label: 'Deploy to staging', group: 'Actions' },
+        { label: 'Deploy to production', group: 'Actions', disabled: true },
+        { label: 'User settings', description: 'Theme and shortcuts', group: 'Settings' },
+        ...Array.from({ length: 5000 }, (_, i) => ({ label: `Record ${i}`, group: 'Data' })),
+      ],
+      onSelect: (item) => {
+        window.picked = item.label;
+      },
+    });
+  });
+  await page.mouse.move(450, 300); // park the cursor over the list before it opens
+  await page.evaluate(() => window.palette.show());
+  await page.waitForTimeout(350);
+  check('palette opens', await page.isVisible('#cp .command-palette-dialog'));
+  check('palette focuses its input', await page.evaluate(() => document.activeElement?.classList.contains('command-palette-input')));
+  check(
+    'palette virtualises a 5,000-row list',
+    await page.evaluate(() => {
+      const rows = document.querySelectorAll('#cp .command-palette-item:not([hidden])').length;
+      return rows > 0 && rows < 40;
+    })
+  );
+  check('a resting pointer does not steal the selection', await page.evaluate(() => window.palette.activeItem?.label === 'Deploy to staging'));
+  await page.keyboard.press('ArrowDown');
+  check('arrow keys skip disabled rows', await page.evaluate(() => window.palette.activeItem?.label === 'User settings'));
+  await page.keyboard.press('Control+k');
+  check('ctrl-K moves back up', await page.evaluate(() => window.palette.activeItem?.label === 'Deploy to staging'));
+  await page.fill('#cp .command-palette-input', 'usr set');
+  await page.waitForTimeout(80);
+  check('fuzzy search matches across gaps', await page.evaluate(() => window.palette.activeItem?.label === 'User settings'));
+  check('matched characters are marked', (await page.locator('#cp .command-palette-item.is-active mark').count()) > 0);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(350);
+  check('Enter runs the highlighted item', await page.evaluate(() => window.picked === 'User settings'));
+  check('palette closes after a selection', !(await page.isVisible('#cp .command-palette-dialog')));
 
   // Theme API --------------------------------------------------------------
   await page.evaluate(() => window.JaUI.setTheme('dark'));

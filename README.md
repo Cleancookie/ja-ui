@@ -14,6 +14,9 @@ Cream paper, ink borders, hard offset shadows, and buttons that physically press
 
 ![Buttons in every colour](docs/images/buttons-solid.png)
 
+**[Play with it →](https://cleancookie.github.io/ja-ui/)** — every template and every
+component, running live.
+
 </div>
 
 ---
@@ -170,6 +173,16 @@ popover yet), plus a few additions.
 
 </td>
 </tr>
+<tr>
+<td colspan="2">
+
+**Command palette** — an fzf-style ctrl-P for serious apps: fuzzy ranking, a highlight that
+slides between rows, and virtualised rendering for lists in the hundred thousands
+
+![Command palette](docs/images/command-palette.png)
+
+</td>
+</tr>
 </table>
 
 <details>
@@ -180,7 +193,7 @@ popover yet), plus a few additions.
 | **Layout** | Containers, 12-column flex grid, gutters, `.vstack` / `.hstack`, ratios, sticky helpers |
 | **Content** | Typography, display headings, lead, blockquote, code, `kbd`, figures, images, tables |
 | **Forms** | Inputs, textarea, select, file, colour, range, checks, radios, switches, floating labels, input groups, validation |
-| **Components** | Accordion, alert, badge, breadcrumb, buttons, button group, card, close button, collapse, dropdown, list group, modal, navbar, navs & tabs, offcanvas, pagination, placeholders, progress, spinners, toasts |
+| **Components** | Accordion, alert, badge, breadcrumb, buttons, button group, card, close button, collapse, command palette, dropdown, list group, modal, navbar, navs & tabs, offcanvas, pagination, placeholders, progress, spinners, toasts |
 | **Decoration** | Patterns (dots, grid, stripes, cross), stickers, rotations, squiggle dividers, marquee, avatars, stat tiles, text outline & highlight |
 | **Utilities** | Spacing (0–8), display, flex, gap, position, sizing, borders, radii, shadows, colours, typography, overflow, visibility — all responsive, all logical-property based |
 | **Extra variants** | `.btn-soft-*`, `.btn-ghost`, `.btn-flat`, `.btn-icon`, `.pop` and `.fresh` colours, `.card-hover`, `.table-card`, `.pagination-pills` |
@@ -273,6 +286,7 @@ document.querySelector('#confirm').addEventListener('ja:modal:hidden', () => {
 
 | Component | Data attribute | Options |
 | --- | --- | --- |
+| `CommandPalette` | `data-ja-toggle="command-palette"` | `items`, `hotkey`, `placeholder`, `emptyText`, `groups`, `limit`, `keepOpen`, `backdrop`, `keyboard`, `clearOnClose`, `overscan`, `onSelect` |
 | `Modal` | `data-ja-toggle="modal"` | `backdrop` (`true`/`false`/`'static'`), `keyboard`, `focus` |
 | `Offcanvas` | `data-ja-toggle="offcanvas"` | `backdrop`, `keyboard`, `scroll` |
 | `Collapse` | `data-ja-toggle="collapse"` | `parent`, `toggle` |
@@ -285,6 +299,45 @@ document.querySelector('#confirm').addEventListener('ja:modal:hidden', () => {
 Events are namespaced `ja:<component>:<type>` — `show`, `shown`, `hide`, `hidden` (`show`
 and `hide` are cancelable). Attributes are `data-ja-*`, never `data-bs-*`, so the JS half
 never collides with Bootstrap if both are on the page.
+
+### Command palette
+
+The one component with no Bootstrap equivalent. It is built for desktop-shaped apps: a
+global shortcut, fuzzy search over everything you can do, Enter to run it.
+
+```js
+import { CommandPalette } from '@cleancookie/ja-ui';
+
+const palette = new CommandPalette('#palette', {
+  hotkey: 'mod+k',                       // ⌘K on macOS, ctrl-K everywhere else
+  items: () => [                         // a function is re-read on every open
+    { label: 'Deploy to staging', description: 'acme-web', group: 'Actions', hint: '⌘D' },
+    { label: 'Open user settings', group: 'Settings', keywords: 'profile theme' },
+    ...files.map((path) => path),        // plain strings are items too
+  ],
+  onSelect: (item) => run(item),
+});
+```
+
+```html
+<div class="command-palette" id="palette" data-ja-hotkey="mod+k"
+     data-ja-items="#palette-items"></div>
+<script type="application/json" id="palette-items">[{ "label": "Deploy" }]</script>
+```
+
+| | |
+| --- | --- |
+| **Matching** | Subsequence search with fzf's bonuses — word boundaries, camelCase, tight runs beat scattered ones. Space-separated terms are ANDed, so `usr set` finds *User settings*. `description`, `keywords` and `group` are searched too, at a lower weight; `label` is what gets highlighted. |
+| **Keys** | `↑`/`↓` and `ctrl-J`/`ctrl-K` (also `ctrl-N`/`ctrl-P`) move, `PageUp`/`PageDown` and `ctrl-U`/`ctrl-D` page, `Home`/`End` jump, `Enter` runs, `Escape` closes. The selection wraps and skips `disabled` items. |
+| **Mouse** | A pointer already resting over the list when the palette opens does **not** take the selection — hover only takes over once the mouse genuinely moves. Opening under the cursor never runs the wrong thing. |
+| **Motion** | One highlight block slides between rows; it jumps rather than animating when the result set changes, because that is not a move. Keyboard navigation scrolls instantly while the highlight animates — a smooth-scrolling list racing an animating highlight is what makes most palettes feel soupy on a held-down arrow key. |
+| **Scale** | Only the visible window is in the DOM, and rows are recycled as you scroll. Each keystroke re-filters inside the previous result set, so a 100,000-item list filters in ~25 ms on the first character and under 10 ms after that. |
+
+Row heights come from CSS (`--ja-command-palette-item-height`,
+`--ja-command-palette-header-height`) and are measured by the JS, so they must stay in `px`.
+
+Events: `ja:command-palette:show` / `shown` / `hide` / `hidden`, plus `filter`, `highlight`
+and a cancelable `select` carrying `{ item, index, query }`.
 
 TypeScript definitions ship in the package.
 
@@ -303,7 +356,16 @@ npm run build           # dist/ — css, esm, iife, types
 npm run smoke           # drive every JS component in a real browser
 npm run gen             # regenerate the derived CSS (grid, variants, utilities)
 npm run docs:images     # rebuild every screenshot and GIF in this README
+npm run site            # assemble the GitHub Pages site into _site/
+npm run site:serve      # preview it on :6008
 ```
+
+The playground at
+[cleancookie.github.io/ja-ui](https://cleancookie.github.io/ja-ui/) is `_site/`: the
+landing page from `site/`, the template pages, and the built Storybook under
+`/storybook/`. Every push to `main` rebuilds and deploys it
+(`.github/workflows/pages.yml`). Nothing in it uses absolute paths, so it works from any
+base path.
 
 The CSS is authored by hand in `src/styles/**`, except the repetitive parts — the grid,
 the per-colour variants and the utility classes — which are generated by the scripts in
@@ -317,8 +379,9 @@ src/
     components/  one file per component, structure only
     generated/   grid, colour variants, utilities  (npm run gen)
   js/            one module per interactive component
-tools/           CSS generators, screenshot + GIF capture, smoke test
+tools/           CSS generators, screenshot + GIF capture, smoke test, site build
 examples/        standalone template pages
+site/            the playground landing page
 stories/         Storybook
 ```
 

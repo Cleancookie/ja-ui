@@ -39,6 +39,84 @@ export declare class Collapse extends Component<CollapseConfig> {
   toggle(): void;
 }
 
+export interface CommandPaletteItem {
+  /** Shown as the row's title, and the text the fuzzy matcher ranks on. */
+  label: string;
+  /** Muted text beside the label. Also searchable, at a lower weight. */
+  description?: string;
+  /** Right-hand text — a keyboard shortcut, a type, a path. */
+  hint?: string;
+  /** Alias for `hint`. */
+  shortcut?: string;
+  /** Group header shown when the query is empty; searchable either way. */
+  group?: string;
+  /** Trusted HTML (an inline `<svg>`) rendered in the row's leading slot. */
+  icon?: string;
+  /** Extra search terms that are never displayed. */
+  keywords?: string | string[];
+  disabled?: boolean;
+  onSelect?(item: CommandPaletteItem, event: Event | null): void;
+  [key: string]: unknown;
+}
+
+export interface CommandPaletteConfig extends ComponentConfig {
+  /** Items, a function returning them (called on every open), or a selector
+   *  for a `<script type="application/json">` holding them. */
+  items?: Array<CommandPaletteItem | string> | (() => Array<CommandPaletteItem | string>) | string | null;
+  placeholder?: string;
+  emptyText?: string;
+  /** Global shortcut that opens it, e.g. `'mod+k'` — `mod` is ⌘ on macOS. */
+  hotkey?: string | null;
+  /** Dim the page behind, and close on an outside click. Default: true. */
+  backdrop?: boolean;
+  /** Close on Escape. Default: true. */
+  keyboard?: boolean;
+  /** Reset the query when it closes. Default: true. */
+  clearOnClose?: boolean;
+  /** Show group headers while the query is empty. Default: true. */
+  groups?: boolean;
+  /** Rows rendered either side of the visible window. Default: 4. */
+  overscan?: number;
+  /** Cap the number of results. Default: 0 (no cap). */
+  limit?: number;
+  /** Stay open after a selection. Default: false. */
+  keepOpen?: boolean;
+  onSelect?(item: CommandPaletteItem, event: Event | null): void;
+}
+
+export declare class CommandPalette extends Component<CommandPaletteConfig> {
+  readonly isShown: boolean;
+  readonly items: CommandPaletteItem[];
+  readonly activeItem: CommandPaletteItem | null;
+  show(relatedTarget?: Element | null): void;
+  hide(): void;
+  toggle(relatedTarget?: Element | null): void;
+  /** Replace the list. Lowercase haystacks are built once, here. */
+  setItems(items: Array<CommandPaletteItem | string>): this;
+  /** Run the highlighted row. Returns false if there was nothing to run. */
+  select(event?: Event | null): boolean;
+}
+
+export interface FuzzyMatch {
+  score: number;
+  /** Indices into the label, for highlighting. */
+  positions: number[];
+}
+
+/** Split a raw query into the lowercase terms `fuzzyMatch` expects. */
+export declare function parseQuery(query: string): string[];
+
+export declare function fuzzyMatch(
+  text: string,
+  terms: string[],
+  options?: { lowerText?: string; primaryLength?: number }
+): FuzzyMatch | null;
+
+export declare function fuzzyFilter(
+  texts: string[],
+  query: string
+): Array<{ index: number } & FuzzyMatch>;
+
 export interface DropdownConfig extends ComponentConfig {
   /** Close when a menu item is clicked. Default: true. */
   autoClose?: boolean;
@@ -129,6 +207,13 @@ export interface JaUIEventMap {
   'ja:collapse:shown': CustomEvent;
   'ja:collapse:hide': CustomEvent;
   'ja:collapse:hidden': CustomEvent;
+  'ja:command-palette:show': CustomEvent<{ relatedTarget: Element | null }>;
+  'ja:command-palette:shown': CustomEvent<{ relatedTarget: Element | null }>;
+  'ja:command-palette:hide': CustomEvent;
+  'ja:command-palette:hidden': CustomEvent;
+  'ja:command-palette:filter': CustomEvent<{ query: string; count: number }>;
+  'ja:command-palette:highlight': CustomEvent<{ item: CommandPaletteItem | null; index: number }>;
+  'ja:command-palette:select': CustomEvent<{ item: CommandPaletteItem; index: number; query: string }>;
   'ja:dropdown:show': CustomEvent;
   'ja:dropdown:shown': CustomEvent;
   'ja:dropdown:hide': CustomEvent;

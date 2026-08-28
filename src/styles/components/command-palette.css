@@ -1,0 +1,315 @@
+/* =============================================================================
+   ja-ui — command palette
+   -----------------------------------------------------------------------------
+   A ctrl-P overlay: search field, virtualised result list, and one highlight
+   block that slides between rows instead of blinking between them.
+
+   The row heights below are read by the JavaScript to lay the virtual list
+   out, so they must stay in **px** — a rem or a percentage will not measure.
+   ============================================================================= */
+
+.command-palette {
+  --ja-command-palette-width: 42rem;
+  --ja-command-palette-top: 12vh;
+  --ja-command-palette-max-height: 24rem;
+  /* Read by the JS. Keep these in px. */
+  --ja-command-palette-item-height: 44px;
+  --ja-command-palette-header-height: 32px;
+  --ja-command-palette-bg: var(--ja-white);
+  --ja-command-palette-gutter: var(--ja-space-2);
+  --ja-command-palette-highlight-bg: color-mix(in srgb, var(--ja-primary) 18%, transparent);
+  --ja-command-palette-mark-color: color-mix(in srgb, var(--ja-primary) 75%, var(--ja-ink));
+
+  position: fixed;
+  inset: 0;
+  z-index: var(--ja-z-command-palette);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--ja-command-palette-top) var(--ja-space-4) var(--ja-space-4);
+}
+.command-palette.show {
+  display: flex;
+}
+
+.command-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--ja-backdrop-bg);
+  opacity: 0;
+  transition: opacity var(--ja-duration) var(--ja-ease-out);
+}
+.command-palette.show .command-palette-backdrop {
+  opacity: 1;
+}
+
+.command-palette-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  max-inline-size: var(--ja-command-palette-width);
+  max-block-size: 100%;
+  overflow: hidden;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius-lg);
+  background-color: var(--ja-command-palette-bg);
+  background-clip: padding-box;
+  box-shadow: var(--ja-shadow-2xl);
+  translate: 0 -1rem;
+  scale: 0.97;
+  opacity: 0;
+  transition: translate var(--ja-duration) var(--ja-ease),
+    scale var(--ja-duration) var(--ja-ease),
+    opacity var(--ja-duration) var(--ja-ease-out);
+}
+.command-palette.show .command-palette-dialog {
+  translate: 0 0;
+  scale: 1;
+  opacity: 1;
+}
+
+/* Search ------------------------------------------------------------------ */
+
+.command-palette-search {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--ja-space-3);
+  padding-inline: var(--ja-space-4);
+  block-size: 3.5rem;
+  border-block-end: var(--ja-border-width) solid var(--ja-border-color);
+  background-color: var(--ja-surface-sunken);
+}
+.command-palette-icon {
+  flex: 0 0 auto;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  color: var(--ja-text-muted);
+}
+.command-palette-input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ja-text);
+  font-family: inherit;
+  font-size: var(--ja-font-size-lg);
+  font-weight: var(--ja-font-weight-medium);
+  line-height: 1.2;
+}
+.command-palette-input:focus,
+.command-palette-input:focus-visible {
+  outline: 0;
+  box-shadow: none;
+}
+.command-palette-input::placeholder {
+  color: var(--ja-control-placeholder-color);
+}
+.command-palette-esc {
+  flex: 0 0 auto;
+}
+
+/* Results ----------------------------------------------------------------- */
+
+.command-palette-list {
+  position: relative;
+  flex: 1 1 auto;
+  max-block-size: var(--ja-command-palette-max-height);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--ja-command-palette-gutter);
+  contain: layout paint;
+  scrollbar-width: thin;
+}
+.command-palette-canvas {
+  position: relative;
+  inline-size: 100%;
+}
+
+.command-palette-item,
+.command-palette-header,
+.command-palette-highlight {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+}
+
+.command-palette-item {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--ja-space-3);
+  block-size: var(--ja-command-palette-item-height);
+  padding-inline: var(--ja-space-3);
+  border-radius: var(--ja-radius-sm);
+  color: var(--ja-text);
+  cursor: pointer;
+  user-select: none;
+  contain: layout paint style;
+}
+.command-palette-item.is-disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.command-palette-item-icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  color: var(--ja-text-muted);
+}
+.command-palette-item-icon svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+.command-palette-item-text {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: baseline;
+  gap: var(--ja-space-2);
+  min-inline-size: 0;
+}
+.command-palette-item-label {
+  flex: 0 1 auto;
+  overflow: hidden;
+  font-weight: var(--ja-font-weight-semibold);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.command-palette-item-label mark {
+  padding: 0;
+  background: none;
+  color: var(--ja-command-palette-mark-color);
+  font-weight: var(--ja-font-weight-bold);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+.command-palette-item-description {
+  flex: 0 1 auto;
+  overflow: hidden;
+  color: var(--ja-text-muted);
+  font-size: var(--ja-font-size-sm);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.command-palette-item-meta {
+  flex: 0 0 auto;
+  color: var(--ja-text-muted);
+  font-size: var(--ja-font-size-xs);
+  font-weight: var(--ja-label-weight);
+  letter-spacing: var(--ja-label-tracking);
+  text-transform: var(--ja-label-case);
+}
+.command-palette-item.is-active .command-palette-item-meta,
+.command-palette-item.is-active .command-palette-item-description {
+  color: var(--ja-text);
+}
+
+.command-palette-header {
+  display: flex;
+  align-items: flex-end;
+  block-size: var(--ja-command-palette-header-height);
+  padding: 0 var(--ja-space-3) var(--ja-space-1);
+  color: var(--ja-text-muted);
+  font-size: var(--ja-font-size-xs);
+  font-weight: var(--ja-label-weight);
+  letter-spacing: var(--ja-label-tracking);
+  text-transform: var(--ja-label-case);
+}
+
+/* The one moving part: a block that slides to whatever is selected. */
+.command-palette-highlight {
+  z-index: 0;
+  block-size: var(--ja-command-palette-item-height);
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius-sm);
+  background-color: var(--ja-command-palette-highlight-bg);
+  box-shadow: var(--ja-shadow-xs);
+  pointer-events: none;
+  will-change: translate;
+  transition: translate var(--ja-duration-fast) var(--ja-ease-out),
+    block-size var(--ja-duration-fast) var(--ja-ease-out),
+    opacity var(--ja-duration-fast) linear;
+}
+/* Jumping to a new result set is not a move — do not animate across it. */
+.command-palette-highlight.is-instant {
+  transition: none;
+}
+.command-palette-highlight.is-hidden {
+  opacity: 0;
+}
+
+.command-palette-empty {
+  padding: var(--ja-space-6) var(--ja-space-4);
+  color: var(--ja-text-muted);
+  text-align: center;
+}
+
+/* Footer ------------------------------------------------------------------ */
+
+.command-palette-footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ja-space-3);
+  padding: var(--ja-space-2) var(--ja-space-4);
+  border-block-start: var(--ja-border-width) solid var(--ja-border-color);
+  background-color: var(--ja-surface-sunken);
+  color: var(--ja-text-muted);
+  font-size: var(--ja-font-size-xs);
+  font-weight: var(--ja-label-weight);
+  letter-spacing: var(--ja-label-tracking);
+  text-transform: var(--ja-label-case);
+}
+.command-palette-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.command-palette kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 1.6em;
+  padding: 0.1em 0.35em;
+  border: 2px solid var(--ja-border-color);
+  border-radius: var(--ja-radius-xs);
+  background-color: var(--ja-surface);
+  color: var(--ja-text);
+  font-family: var(--ja-font-mono);
+  font-size: 0.9em;
+  letter-spacing: 0;
+  line-height: 1.5;
+  text-transform: none;
+}
+
+@media (width < 576px) {
+  .command-palette {
+    --ja-command-palette-top: var(--ja-space-4);
+    --ja-command-palette-max-height: 60vh;
+    padding-inline: var(--ja-space-3);
+  }
+  .command-palette-legend {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .command-palette-dialog,
+  .command-palette-backdrop,
+  .command-palette-highlight {
+    transition: none;
+  }
+  .command-palette-dialog {
+    translate: 0 0;
+    scale: 1;
+  }
+}

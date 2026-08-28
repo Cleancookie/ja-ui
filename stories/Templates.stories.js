@@ -18,7 +18,8 @@ const frame = (file, title) => ({
   name: title,
   render: () => {
     const iframe = document.createElement('iframe');
-    iframe.src = `/examples/${file}`;
+    // Relative, so the built Storybook works under any base path (GitHub Pages).
+    iframe.src = `examples/${file}`;
     iframe.title = title;
     iframe.style.cssText = 'inline-size:100%;block-size:100vh;border:0;display:block';
     return iframe;

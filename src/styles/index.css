@@ -1,0 +1,52 @@
+/* =============================================================================
+   ja-ui — Just Another UI
+   A zero-dependency, Bootstrap 5-compatible component library.
+
+   Import order matters: tokens define the vocabulary, the reset clears the
+   ground, components build on both, and utilities win last.
+   ============================================================================= */
+
+/* Cascade layers keep the theme/skin overrides predictable without !important. */
+@layer ja-theme, ja-skin;
+
+/* 1. Vocabulary */
+@import "./base/tokens.css";
+@import "./generated/theme-colors.css";
+
+/* 2. Ground */
+@import "./base/reset.css";
+@import "./base/typography.css";
+
+/* 3. Layout */
+@import "./generated/grid.css";
+@import "./layout/helpers.css";
+
+/* 4. Components */
+@import "./components/transitions.css";
+@import "./components/buttons.css";
+@import "./components/badge.css";
+@import "./components/alert.css";
+@import "./components/card.css";
+@import "./components/list-group.css";
+@import "./components/table.css";
+@import "./components/breadcrumb-pagination.css";
+@import "./components/progress.css";
+@import "./components/spinners.css";
+@import "./components/placeholders.css";
+@import "./components/forms.css";
+@import "./components/input-group.css";
+@import "./components/validation.css";
+@import "./components/nav.css";
+@import "./components/navbar.css";
+@import "./components/dropdown.css";
+@import "./components/modal.css";
+@import "./components/offcanvas.css";
+@import "./components/toast.css";
+@import "./components/accordion.css";
+@import "./components/decorations.css";
+
+/* 5. Colour variants for every component above */
+@import "./generated/variants.css";
+
+/* 6. Utilities — last word, and the only place !important lives */
+@import "./generated/utilities.css";

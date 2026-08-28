@@ -1,0 +1,400 @@
+/* =============================================================================
+   ja-ui — design tokens
+   ---------------------------------------------------------------------------
+   Two skins, one class API:
+     (default)                 Playful Geometric — cream paper, slate ink,
+                               chunky 2px borders, hard offset shadows,
+                               pill buttons, bouncy press physics.
+     [data-ja-style="brutal"]  Neo-brutalism — pure black, 4px borders, zero
+                               radius, uppercase, deeper ink shadows.
+     [data-ja-theme="dark"]    Dark inversion of whichever skin is active.
+
+   Everything visual lives here. Override any variable on :root (or on any
+   subtree) to reskin the whole library.
+   ============================================================================= */
+
+:root {
+  color-scheme: light dark;
+
+  /* --- Type ---------------------------------------------------------------
+     Fonts are referenced, never downloaded — ja-ui ships zero network
+     requests. Add this to your <head> for the intended look:
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+     ---------------------------------------------------------------------- */
+  --ja-font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ja-font-heading: "Outfit", "Space Grotesk", var(--ja-font-sans);
+  --ja-font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo,
+    Consolas, monospace;
+
+  /* Major-third scale (1.25) */
+  --ja-font-size: 1rem;
+  --ja-font-size-xs: 0.75rem;
+  --ja-font-size-sm: 0.875rem;
+  --ja-font-size-lg: 1.125rem;
+  --ja-font-size-xl: 1.25rem;
+  --ja-line-height: 1.6;
+  --ja-line-height-tight: 1.2;
+
+  --ja-font-weight-normal: 400;
+  --ja-font-weight-medium: 500;
+  --ja-font-weight-semibold: 600;
+  --ja-font-weight-bold: 700;
+  --ja-font-weight-black: 800;
+
+  --ja-heading-family: var(--ja-font-heading);
+  --ja-heading-weight: 800;
+  --ja-heading-tracking: -0.02em;
+  --ja-heading-line-height: 1.1;
+  --ja-heading-case: none;
+
+  /* Labels, buttons, table heads: the loud small text. */
+  --ja-label-weight: 700;
+  --ja-label-tracking: 0.04em;
+  --ja-label-case: uppercase;
+
+  /* --- Space scale (8px rhythm, 4px half-steps) --------------------------- */
+  --ja-space-0: 0;
+  --ja-space-1: 0.25rem;
+  --ja-space-2: 0.5rem;
+  --ja-space-3: 0.75rem;
+  --ja-space-4: 1rem;
+  --ja-space-5: 1.5rem;
+  --ja-space-6: 2rem;
+  --ja-space-7: 3rem;
+  --ja-space-8: 4rem;
+
+  /* --- Radii -------------------------------------------------------------- */
+  --ja-radius-xs: 0.375rem;
+  --ja-radius-sm: 0.5rem;
+  --ja-radius: 0.75rem;
+  --ja-radius-lg: 1rem;
+  --ja-radius-xl: 1.5rem;
+  --ja-radius-pill: 999px;
+  /* The signature asymmetric "speech bubble" corner. */
+  --ja-radius-blob: var(--ja-radius-lg) var(--ja-radius-lg) var(--ja-radius-lg) 0;
+
+  /* --- Motion: bouncy, fast, mechanical ---------------------------------- */
+  --ja-ease: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoot */
+  --ja-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ja-duration-fast: 100ms;
+  --ja-duration: 200ms;
+  --ja-duration-slow: 320ms;
+  --ja-transition: var(--ja-duration) var(--ja-ease);
+
+  /* --- Palette ------------------------------------------------------------ */
+  --ja-cream: #fffdf5;
+  --ja-ink: #1e293b;
+  --ja-white: #ffffff;
+
+  --ja-violet: #8b5cf6;
+  --ja-lilac: #c4b5fd;
+  --ja-pink: #f472b6;
+  --ja-amber: #fbbf24;
+  --ja-mint: #34d399;
+  --ja-sky: #38bdf8;
+  --ja-red: #ff6b6b;
+
+  --ja-slate-50: #f8fafc;
+  --ja-slate-100: #f1f5f9;
+  --ja-slate-200: #e2e8f0;
+  --ja-slate-300: #cbd5e1;
+  --ja-slate-400: #94a3b8;
+  --ja-slate-500: #64748b;
+  --ja-slate-600: #475569;
+  --ja-slate-700: #334155;
+  --ja-slate-800: #1e293b;
+  --ja-slate-900: #0f172a;
+
+  /* --- Semantic colours (Bootstrap's names, ja-ui's palette) ------------- */
+  --ja-primary: var(--ja-violet);
+  --ja-secondary: var(--ja-slate-500);
+  --ja-success: var(--ja-mint);
+  --ja-info: var(--ja-sky);
+  --ja-warning: var(--ja-amber);
+  --ja-danger: var(--ja-red);
+  --ja-light: var(--ja-slate-100);
+  --ja-dark: var(--ja-ink);
+  /* ja-ui extras — the confetti colours, available as full variants. */
+  --ja-pop: var(--ja-pink);
+  --ja-fresh: var(--ja-lilac);
+
+  /* Ink that sits on top of a filled colour. */
+  --ja-primary-fg: var(--ja-white);
+  --ja-secondary-fg: var(--ja-white);
+  --ja-success-fg: var(--ja-ink);
+  --ja-info-fg: var(--ja-ink);
+  --ja-warning-fg: var(--ja-ink);
+  --ja-danger-fg: var(--ja-ink);
+  --ja-light-fg: var(--ja-ink);
+  --ja-dark-fg: var(--ja-cream);
+  --ja-pop-fg: var(--ja-ink);
+  --ja-fresh-fg: var(--ja-ink);
+
+  /* --- Surfaces & ink ---------------------------------------------------- */
+  --ja-body-bg: var(--ja-cream);
+  --ja-body-color: var(--ja-ink);
+  --ja-surface: var(--ja-white);
+  --ja-surface-raised: var(--ja-white);
+  --ja-surface-sunken: var(--ja-slate-100);
+  --ja-surface-hover: color-mix(in srgb, var(--ja-ink) 6%, transparent);
+  --ja-surface-active: color-mix(in srgb, var(--ja-ink) 12%, transparent);
+
+  --ja-text: var(--ja-ink);
+  --ja-text-muted: var(--ja-slate-500);
+  --ja-text-subtle: var(--ja-slate-400);
+  --ja-text-inverse: var(--ja-cream);
+
+  /* Chunky by default: 2px, and always ink — never a washed-out hairline. */
+  --ja-border-width: 2px;
+  --ja-border-color: var(--ja-ink);
+  --ja-border-color-strong: var(--ja-ink);
+  --ja-border-color-subtle: var(--ja-slate-200);
+  --ja-border: var(--ja-border-width) solid var(--ja-border-color);
+
+  --ja-link-color: color-mix(in srgb, var(--ja-primary) 82%, var(--ja-ink));
+  --ja-link-hover-color: var(--ja-primary);
+  --ja-link-decoration: underline;
+  --ja-link-decoration-thickness: 2px;
+  --ja-link-hover-decoration: underline;
+
+  --ja-code-color: color-mix(in srgb, var(--ja-primary) 70%, var(--ja-ink));
+  --ja-code-bg: color-mix(in srgb, var(--ja-primary) 10%, var(--ja-white));
+
+  /* --- Elevation: hard, offset, zero blur -------------------------------- */
+  --ja-shadow-color: var(--ja-ink);
+  --ja-shadow-xs: 2px 2px 0 0 var(--ja-shadow-color);
+  --ja-shadow-sm: 3px 3px 0 0 var(--ja-shadow-color);
+  --ja-shadow: 4px 4px 0 0 var(--ja-shadow-color);
+  --ja-shadow-lg: 8px 8px 0 0 var(--ja-shadow-color);
+  --ja-shadow-xl: 12px 12px 0 0 var(--ja-shadow-color);
+  --ja-shadow-2xl: 16px 16px 0 0 var(--ja-shadow-color);
+  --ja-shadow-inset: inset 0 2px 0 0 color-mix(in srgb, var(--ja-ink) 10%, transparent);
+  /* Interaction pair: things lift toward you, then press into the page. */
+  --ja-shadow-hover: 6px 6px 0 0 var(--ja-shadow-color);
+  --ja-shadow-active: 2px 2px 0 0 var(--ja-shadow-color);
+  --ja-lift: -2px;
+  --ja-press: 2px;
+
+  /* --- Focus ring: thick, high-contrast, unmissable ---------------------- */
+  --ja-ring-color: var(--ja-ink);
+  --ja-ring-width: 3px;
+  --ja-ring-offset: 2px;
+  /* Inputs light up instead of glowing. */
+  --ja-focus-fill: color-mix(in srgb, var(--ja-warning) 30%, var(--ja-white));
+
+  /* --- Controls ----------------------------------------------------------- */
+  --ja-control-height: 2.75rem; /* 44px — a real touch target */
+  --ja-control-height-sm: 2.25rem;
+  --ja-control-height-lg: 3.25rem;
+  --ja-control-padding-x: 1rem;
+  --ja-control-padding-x-sm: 0.75rem;
+  --ja-control-padding-x-lg: 1.5rem;
+  --ja-control-radius: var(--ja-radius);
+  --ja-btn-radius-base: var(--ja-radius-pill);
+  --ja-control-bg: var(--ja-white);
+  --ja-control-color: var(--ja-text);
+  --ja-control-border-color: var(--ja-border-color);
+  --ja-control-placeholder-color: color-mix(in srgb, var(--ja-ink) 40%, transparent);
+  --ja-control-disabled-bg: var(--ja-slate-100);
+  --ja-control-disabled-color: var(--ja-slate-400);
+
+  /* --- Layering ---------------------------------------------------------- */
+  --ja-z-dropdown: 1000;
+  --ja-z-sticky: 1020;
+  --ja-z-fixed: 1030;
+  --ja-z-offcanvas-backdrop: 1040;
+  --ja-z-offcanvas: 1045;
+  --ja-z-modal-backdrop: 1050;
+  --ja-z-modal: 1055;
+  --ja-z-toast: 1090;
+
+  /* Backdrops are solid ink at opacity — no blur anywhere in this library. */
+  --ja-backdrop-bg: color-mix(in srgb, var(--ja-ink) 55%, transparent);
+
+  /* --- Patterns (backgrounds are never flat) ----------------------------- */
+  --ja-pattern-color: color-mix(in srgb, var(--ja-ink) 12%, transparent);
+  --ja-pattern-size: 20px;
+
+  /* --- Grid -------------------------------------------------------------- */
+  --ja-gutter-x: 1.5rem;
+  --ja-gutter-y: 0;
+  --ja-container-padding-x: 1.25rem;
+}
+
+/* =============================================================================
+   Neo-brutalist skin — same components, louder
+   ============================================================================= */
+@layer ja-skin {
+  :where([data-ja-style="brutal"]) {
+    --ja-ink: #000000;
+    --ja-cream: #fffdf5;
+
+    --ja-font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --ja-font-heading: "Space Grotesk", var(--ja-font-sans);
+    --ja-heading-weight: 900;
+    --ja-heading-tracking: -0.035em;
+    --ja-heading-line-height: 0.95;
+    --ja-heading-case: uppercase;
+    --ja-font-weight-normal: 700;
+    --ja-font-weight-medium: 700;
+    --ja-font-weight-semibold: 700;
+    --ja-font-weight-bold: 900;
+    --ja-font-weight-black: 900;
+    --ja-label-weight: 900;
+    --ja-label-tracking: 0.12em;
+
+    --ja-primary: #ff6b6b;
+    --ja-secondary: #c4b5fd;
+    --ja-success: #34d399;
+    --ja-info: #c4b5fd;
+    --ja-warning: #ffd93d;
+    --ja-danger: #ff6b6b;
+    --ja-light: #ffffff;
+    --ja-dark: #000000;
+    --ja-pop: #ffd93d;
+    --ja-fresh: #c4b5fd;
+
+    --ja-primary-fg: #000000;
+    --ja-secondary-fg: #000000;
+    --ja-info-fg: #000000;
+    --ja-dark-fg: #ffffff;
+
+    /* Sharp or fully round — nothing in between. */
+    --ja-radius-xs: 0;
+    --ja-radius-sm: 0;
+    --ja-radius: 0;
+    --ja-radius-lg: 0;
+    --ja-radius-xl: 0;
+    --ja-radius-blob: 0;
+    --ja-btn-radius-base: 0;
+
+    --ja-border-width: 4px;
+    --ja-border-color-subtle: #000000;
+
+    --ja-shadow-xs: 4px 4px 0 0 var(--ja-shadow-color);
+    --ja-shadow-sm: 4px 4px 0 0 var(--ja-shadow-color);
+    --ja-shadow: 6px 6px 0 0 var(--ja-shadow-color);
+    --ja-shadow-lg: 8px 8px 0 0 var(--ja-shadow-color);
+    --ja-shadow-xl: 12px 12px 0 0 var(--ja-shadow-color);
+    --ja-shadow-2xl: 16px 16px 0 0 var(--ja-shadow-color);
+    --ja-shadow-hover: 10px 10px 0 0 var(--ja-shadow-color);
+    --ja-shadow-active: 0 0 0 0 var(--ja-shadow-color);
+    --ja-lift: -3px;
+    --ja-press: 3px;
+
+    --ja-ease: linear;
+    --ja-ease-out: linear;
+    --ja-duration: 100ms;
+
+    --ja-focus-fill: #ffd93d;
+    --ja-pattern-color: color-mix(in srgb, var(--ja-ink) 100%, transparent);
+    --ja-backdrop-bg: color-mix(in srgb, var(--ja-ink) 70%, transparent);
+  }
+}
+
+/* =============================================================================
+   Dark theme — the ink and the paper swap, shadows go light
+   ============================================================================= */
+@layer ja-theme {
+  :where(:root[data-ja-theme="dark"], [data-ja-theme="dark"]) {
+    --ja-cream: #14161f;
+    --ja-ink: #f4f2e9;
+    --ja-white: #1c1f2b;
+
+    --ja-slate-50: #232735;
+    --ja-slate-100: #232735;
+    --ja-slate-200: #2f3444;
+    --ja-slate-300: #414859;
+    --ja-slate-400: #7c869c;
+    --ja-slate-500: #9aa4b8;
+    --ja-slate-600: #c2cad8;
+    --ja-slate-700: #dde3ec;
+    --ja-slate-800: #f4f2e9;
+    --ja-slate-900: #ffffff;
+
+    --ja-violet: #a78bfa;
+    --ja-pink: #f9a8d4;
+    --ja-lilac: #c7b8fb;
+    --ja-amber: #fcd34d;
+    --ja-mint: #6ee7b7;
+    --ja-sky: #7dd3fc;
+    --ja-red: #ff8f8f;
+
+    --ja-primary-fg: #14161f;
+    --ja-secondary-fg: #14161f;
+    --ja-dark: #f4f2e9;
+    --ja-dark-fg: #14161f;
+    --ja-light: #2f3444;
+    --ja-light-fg: #f4f2e9;
+
+    --ja-body-bg: var(--ja-cream);
+    --ja-surface: var(--ja-white);
+    --ja-surface-raised: var(--ja-slate-50);
+    --ja-surface-sunken: var(--ja-slate-50);
+    --ja-secondary: var(--ja-slate-500);
+    --ja-control-bg: var(--ja-slate-50);
+    --ja-control-disabled-bg: var(--ja-slate-100);
+    --ja-code-bg: color-mix(in srgb, var(--ja-primary) 16%, var(--ja-white));
+    --ja-focus-fill: color-mix(in srgb, var(--ja-warning) 24%, var(--ja-white));
+    --ja-backdrop-bg: color-mix(in srgb, #000 70%, transparent);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  @layer ja-theme {
+    :where(:root:not([data-ja-theme="light"])) {
+      --ja-cream: #14161f;
+      --ja-ink: #f4f2e9;
+      --ja-white: #1c1f2b;
+
+      --ja-slate-50: #232735;
+      --ja-slate-100: #232735;
+      --ja-slate-200: #2f3444;
+      --ja-slate-300: #414859;
+      --ja-slate-400: #7c869c;
+      --ja-slate-500: #9aa4b8;
+      --ja-slate-600: #c2cad8;
+      --ja-slate-700: #dde3ec;
+      --ja-slate-800: #f4f2e9;
+      --ja-slate-900: #ffffff;
+
+      --ja-violet: #a78bfa;
+      --ja-pink: #f9a8d4;
+    --ja-lilac: #c7b8fb;
+      --ja-amber: #fcd34d;
+      --ja-mint: #6ee7b7;
+      --ja-sky: #7dd3fc;
+      --ja-red: #ff8f8f;
+
+      --ja-primary-fg: #14161f;
+      --ja-secondary-fg: #14161f;
+      --ja-dark: #f4f2e9;
+      --ja-dark-fg: #14161f;
+      --ja-light: #2f3444;
+      --ja-light-fg: #f4f2e9;
+
+      --ja-body-bg: var(--ja-cream);
+      --ja-surface: var(--ja-white);
+      --ja-surface-raised: var(--ja-slate-50);
+      --ja-surface-sunken: var(--ja-slate-50);
+      --ja-secondary: var(--ja-slate-500);
+      --ja-control-bg: var(--ja-slate-50);
+      --ja-control-disabled-bg: var(--ja-slate-100);
+      --ja-code-bg: color-mix(in srgb, var(--ja-primary) 16%, var(--ja-white));
+      --ja-focus-fill: color-mix(in srgb, var(--ja-warning) 24%, var(--ja-white));
+      --ja-backdrop-bg: color-mix(in srgb, #000 70%, transparent);
+    }
+  }
+}
+
+/* Reduced motion: kill the bounce, keep the state changes. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ja-ease: linear;
+    --ja-ease-out: linear;
+    --ja-lift: 0px;
+    --ja-press: 0px;
+  }
+}

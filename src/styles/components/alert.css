@@ -1,0 +1,84 @@
+/* =============================================================================
+   ja-ui — alerts
+   ============================================================================= */
+
+.alert {
+  --ja-alert-bg: var(--ja-white);
+  --ja-alert-color: var(--ja-text);
+  --ja-alert-accent: var(--ja-ink);
+  --ja-alert-padding-x: var(--ja-space-4);
+  --ja-alert-padding-y: var(--ja-space-4);
+  --ja-alert-radius: var(--ja-radius);
+  --ja-alert-shadow: var(--ja-shadow);
+
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ja-space-3);
+  padding: var(--ja-alert-padding-y) var(--ja-alert-padding-x);
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-alert-radius);
+  background-color: var(--ja-alert-bg);
+  color: var(--ja-alert-color);
+  box-shadow: var(--ja-alert-shadow);
+}
+
+/* The accent bar: a solid block of colour, not a tint. */
+.alert::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: var(--ja-space-2);
+  background-color: var(--ja-alert-accent);
+  border-inline-end: var(--ja-border-width) solid var(--ja-border-color);
+  border-start-start-radius: inherit;
+  border-end-start-radius: inherit;
+}
+.alert > * {
+  margin-inline-start: var(--ja-space-2);
+}
+
+.alert-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius-pill);
+  background-color: var(--ja-alert-accent);
+  color: var(--ja-white);
+}
+.alert-icon > svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+  stroke-width: 3;
+}
+
+.alert-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ja-space-1);
+  min-inline-size: 0;
+}
+
+.alert-heading {
+  font-family: var(--ja-font-heading);
+  font-size: var(--ja-font-size-lg);
+  font-weight: var(--ja-heading-weight);
+  line-height: var(--ja-line-height-tight);
+  color: inherit;
+}
+
+.alert-link {
+  color: inherit;
+  font-weight: var(--ja-font-weight-bold);
+  text-decoration: underline;
+  text-decoration-thickness: var(--ja-link-decoration-thickness);
+}
+
+.alert-flat {
+  --ja-alert-shadow: none;
+}

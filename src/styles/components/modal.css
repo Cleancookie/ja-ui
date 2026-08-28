@@ -1,0 +1,155 @@
+/* =============================================================================
+   ja-ui — modal
+   ============================================================================= */
+
+.modal {
+  --ja-modal-width: 32rem;
+  --ja-modal-bg: var(--ja-white);
+  --ja-modal-padding: var(--ja-space-5);
+
+  position: fixed;
+  inset: 0;
+  z-index: var(--ja-z-modal);
+  display: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: 0;
+}
+.modal.show {
+  display: block;
+}
+
+.modal-dialog {
+  position: relative;
+  inline-size: auto;
+  max-inline-size: var(--ja-modal-width);
+  margin: var(--ja-space-5) auto;
+  pointer-events: none;
+}
+.modal.fade .modal-dialog {
+  transition: translate var(--ja-duration) var(--ja-ease),
+    scale var(--ja-duration) var(--ja-ease),
+    opacity var(--ja-duration) var(--ja-ease-out);
+  translate: 0 -1.5rem;
+  scale: 0.96;
+  opacity: 0;
+}
+.modal.fade.show .modal-dialog {
+  translate: 0 0;
+  scale: 1;
+  opacity: 1;
+}
+
+.modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius-lg);
+  background-color: var(--ja-modal-bg);
+  background-clip: padding-box;
+  box-shadow: var(--ja-shadow-2xl);
+  pointer-events: auto;
+  outline: 0;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ja-space-3);
+  padding: var(--ja-space-4) var(--ja-modal-padding);
+  border-block-end: var(--ja-border-width) solid var(--ja-border-color);
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
+  background-color: var(--ja-surface-sunken);
+}
+.modal-title {
+  font-family: var(--ja-font-heading);
+  font-size: var(--ja-font-size-xl);
+  font-weight: var(--ja-heading-weight);
+  line-height: var(--ja-line-height-tight);
+  letter-spacing: var(--ja-heading-tracking);
+  text-transform: var(--ja-heading-case);
+}
+.modal-body {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ja-space-3);
+  padding: var(--ja-modal-padding);
+}
+.modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ja-space-3);
+  padding: var(--ja-space-4) var(--ja-modal-padding);
+  border-block-start: var(--ja-border-width) solid var(--ja-border-color);
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
+  background-color: var(--ja-surface-sunken);
+}
+
+/* Sizes ------------------------------------------------------------------- */
+.modal-sm { --ja-modal-width: 22rem; }
+.modal-lg { --ja-modal-width: 50rem; }
+.modal-xl { --ja-modal-width: 72rem; }
+
+.modal-dialog-centered {
+  display: flex;
+  align-items: center;
+  min-block-size: calc(100% - var(--ja-space-5) * 2);
+}
+.modal-dialog-scrollable {
+  block-size: calc(100% - var(--ja-space-5) * 2);
+}
+.modal-dialog-scrollable .modal-content {
+  max-block-size: 100%;
+  overflow: hidden;
+}
+.modal-dialog-scrollable .modal-body {
+  overflow-y: auto;
+}
+
+.modal-fullscreen {
+  --ja-modal-width: 100%;
+  inline-size: 100%;
+  max-inline-size: none;
+  block-size: 100%;
+  margin: 0;
+}
+.modal-fullscreen .modal-content {
+  block-size: 100%;
+  border: 0;
+  border-radius: 0;
+}
+@media (width < 576px) {
+  .modal-fullscreen-sm-down { inline-size: 100%; max-inline-size: none; block-size: 100%; margin: 0; }
+  .modal-fullscreen-sm-down .modal-content { block-size: 100%; border-radius: 0; }
+}
+@media (width < 992px) {
+  .modal-fullscreen-lg-down { inline-size: 100%; max-inline-size: none; block-size: 100%; margin: 0; }
+  .modal-fullscreen-lg-down .modal-content { block-size: 100%; border-radius: 0; }
+}
+
+/* Backdrop: solid ink, never blurred -------------------------------------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--ja-z-modal-backdrop);
+  background-color: var(--ja-backdrop-bg);
+  opacity: 0;
+  transition: opacity var(--ja-duration) var(--ja-ease-out);
+}
+.modal-backdrop.show {
+  opacity: 1;
+}
+
+/* Set on <body> while a modal or offcanvas is open. */
+.ja-scroll-locked {
+  overflow: hidden;
+}

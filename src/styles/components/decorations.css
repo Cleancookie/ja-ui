@@ -1,0 +1,210 @@
+/* =============================================================================
+   ja-ui — decoration
+   Backgrounds are never flat and nothing sits perfectly square. These are the
+   pieces that give a page its personality: patterns, stickers, shapes, marquees.
+   ============================================================================= */
+
+/* Patterns ---------------------------------------------------------------- */
+.pattern-dots {
+  background-image: radial-gradient(var(--ja-pattern-color) 1.5px, transparent 1.6px);
+  background-size: var(--ja-pattern-size) var(--ja-pattern-size);
+}
+.pattern-grid {
+  background-image: linear-gradient(to right, var(--ja-pattern-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--ja-pattern-color) 1px, transparent 1px);
+  background-size: var(--ja-pattern-size) var(--ja-pattern-size);
+}
+.pattern-stripes {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--ja-pattern-color) 0 6px,
+    transparent 6px 14px
+  );
+}
+.pattern-cross {
+  background-image: radial-gradient(var(--ja-pattern-color) 2px, transparent 2.5px),
+    radial-gradient(var(--ja-pattern-color) 2px, transparent 2.5px);
+  background-size: calc(var(--ja-pattern-size) * 2) calc(var(--ja-pattern-size) * 2);
+  background-position: 0 0, var(--ja-pattern-size) var(--ja-pattern-size);
+}
+.pattern-sm { --ja-pattern-size: 12px; }
+.pattern-lg { --ja-pattern-size: 32px; }
+.pattern-strong { --ja-pattern-color: color-mix(in srgb, var(--ja-ink) 30%, transparent); }
+
+/* Sticker rotations — deliberately breaking the grid ---------------------- */
+.rotate-1 { rotate: 1deg; }
+.rotate-2 { rotate: 2deg; }
+.rotate-3 { rotate: 3deg; }
+.rotate-n1 { rotate: -1deg; }
+.rotate-n2 { rotate: -2deg; }
+.rotate-n3 { rotate: -3deg; }
+.rotate-n6 { rotate: -6deg; }
+.rotate-6 { rotate: 6deg; }
+.rotate-0 { rotate: 0deg; }
+
+/* Generic hard-shadow box — the library's core visual unit ---------------- */
+.sticker {
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius);
+  background-color: var(--ja-white);
+  box-shadow: var(--ja-shadow);
+}
+.sticker-lift {
+  transition: box-shadow var(--ja-duration) var(--ja-ease),
+    translate var(--ja-duration) var(--ja-ease),
+    rotate var(--ja-duration) var(--ja-ease);
+}
+.sticker-lift:hover {
+  box-shadow: var(--ja-shadow-lg);
+  translate: var(--ja-lift) var(--ja-lift);
+  rotate: -1deg;
+}
+
+/* Decorative shapes to scatter behind content ---------------------------- */
+.shape {
+  position: absolute;
+  z-index: -1;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  background-color: var(--ja-pop);
+  pointer-events: none;
+}
+.shape-circle { border-radius: var(--ja-radius-pill); }
+.shape-square { border-radius: 0; }
+.shape-blob { border-radius: var(--ja-radius-blob); }
+.shape-arch { border-radius: var(--ja-radius-pill) var(--ja-radius-pill) 0 0; }
+.shape-triangle {
+  border: 0;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+/* Section divider drawn as a repeating squiggle -------------------------- */
+.squiggle {
+  block-size: 12px;
+  inline-size: 100%;
+  background-color: var(--ja-ink);
+  mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="12" viewBox="0 0 40 12"><path d="M0 6c5-8 15-8 20 0s15 8 20 0" fill="none" stroke="%23000" stroke-width="3"/></svg>')
+    repeat-x center / 40px 12px;
+}
+
+/* Text treatments --------------------------------------------------------- */
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--ja-ink);
+  paint-order: stroke fill;
+}
+.text-shadow-hard {
+  text-shadow: 4px 4px 0 var(--ja-ink);
+}
+.text-highlight {
+  display: inline-block;
+  padding: 0.05em 0.35em;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius-sm);
+  background-color: var(--ja-pop);
+  color: var(--ja-pop-fg);
+  box-shadow: var(--ja-shadow-xs);
+}
+
+/* Marquee ----------------------------------------------------------------- */
+.marquee {
+  --ja-marquee-duration: 24s;
+  display: flex;
+  overflow: hidden;
+  gap: var(--ja-space-5);
+  border-block: var(--ja-border-width) solid var(--ja-border-color);
+  background-color: var(--ja-pop);
+  color: var(--ja-pop-fg);
+  padding-block: var(--ja-space-2);
+  font-family: var(--ja-font-heading);
+  font-weight: var(--ja-font-weight-black);
+  letter-spacing: var(--ja-label-tracking);
+  text-transform: uppercase;
+  user-select: none;
+}
+.marquee > * {
+  display: flex;
+  gap: var(--ja-space-5);
+  flex-shrink: 0;
+  min-inline-size: 100%;
+  animation: ja-marquee var(--ja-marquee-duration) linear infinite;
+}
+.marquee-reverse > * {
+  animation-direction: reverse;
+}
+@keyframes ja-marquee {
+  to { translate: calc(-100% - var(--ja-space-5)) 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee > * { animation: none; }
+}
+
+/* Avatars ----------------------------------------------------------------- */
+.avatar {
+  --ja-avatar-size: 2.5rem;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: var(--ja-avatar-size);
+  block-size: var(--ja-avatar-size);
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius-pill);
+  background-color: var(--ja-fresh);
+  color: var(--ja-ink);
+  font-family: var(--ja-font-heading);
+  font-weight: var(--ja-font-weight-black);
+  font-size: calc(var(--ja-avatar-size) * 0.4);
+  text-transform: uppercase;
+  overflow: hidden;
+  box-shadow: var(--ja-shadow-xs);
+}
+.avatar > img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+.avatar-sm { --ja-avatar-size: 2rem; }
+.avatar-lg { --ja-avatar-size: 3.5rem; }
+.avatar-square { border-radius: var(--ja-radius-sm); }
+.avatar-group {
+  display: flex;
+}
+.avatar-group > .avatar + .avatar {
+  margin-inline-start: calc(var(--ja-avatar-size) * -0.3);
+}
+
+/* Stat tile — the dashboard workhorse ------------------------------------ */
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ja-space-1);
+  padding: var(--ja-space-4);
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius);
+  background-color: var(--ja-white);
+  box-shadow: var(--ja-shadow);
+}
+.stat-label {
+  font-family: var(--ja-font-heading);
+  font-size: var(--ja-font-size-xs);
+  font-weight: var(--ja-label-weight);
+  letter-spacing: var(--ja-label-tracking);
+  text-transform: uppercase;
+  color: var(--ja-text-muted);
+}
+.stat-value {
+  font-family: var(--ja-font-heading);
+  font-size: 2rem;
+  font-weight: var(--ja-font-weight-black);
+  line-height: 1;
+  letter-spacing: var(--ja-heading-tracking);
+  font-variant-numeric: tabular-nums;
+}
+.stat-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--ja-font-size-sm);
+  font-weight: var(--ja-font-weight-bold);
+}
+.stat-delta-up { color: var(--ja-success-emphasis); }
+.stat-delta-down { color: var(--ja-danger-emphasis); }

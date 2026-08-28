@@ -1,0 +1,188 @@
+/* =============================================================================
+   ja-ui — cards (paper cut-outs)
+   ============================================================================= */
+
+.card {
+  --ja-card-bg: var(--ja-white);
+  --ja-card-color: var(--ja-text);
+  --ja-card-radius: var(--ja-radius-lg);
+  --ja-card-padding-x: var(--ja-space-5);
+  --ja-card-padding-y: var(--ja-space-5);
+  --ja-card-gap: var(--ja-space-2);
+  --ja-card-shadow: var(--ja-shadow-lg);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-card-radius);
+  background-color: var(--ja-card-bg);
+  color: var(--ja-card-color);
+  box-shadow: var(--ja-card-shadow);
+  transition: box-shadow var(--ja-duration) var(--ja-ease),
+    translate var(--ja-duration) var(--ja-ease),
+    rotate var(--ja-duration) var(--ja-ease);
+}
+
+.card-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ja-card-gap);
+  padding: var(--ja-card-padding-y) var(--ja-card-padding-x);
+}
+
+.card-title {
+  font-family: var(--ja-font-heading);
+  font-size: var(--ja-font-size-xl);
+  font-weight: var(--ja-heading-weight);
+  line-height: var(--ja-line-height-tight);
+  letter-spacing: var(--ja-heading-tracking);
+  text-transform: var(--ja-heading-case);
+}
+.card-subtitle {
+  font-size: var(--ja-font-size-sm);
+  font-weight: var(--ja-font-weight-medium);
+  color: var(--ja-text-muted);
+}
+.card-text {
+  text-wrap: pretty;
+}
+.card-link {
+  font-weight: var(--ja-font-weight-bold);
+}
+
+.card-header,
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--ja-space-3);
+  padding: var(--ja-space-3) var(--ja-card-padding-x);
+  background-color: var(--ja-surface-sunken);
+  color: inherit;
+}
+.card-header {
+  border-block-end: var(--ja-border-width) solid var(--ja-border-color);
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
+  font-family: var(--ja-font-heading);
+  font-weight: var(--ja-font-weight-bold);
+  letter-spacing: var(--ja-label-tracking);
+  text-transform: var(--ja-label-case);
+  font-size: var(--ja-font-size-sm);
+  min-block-size: 3rem;
+}
+.card-footer {
+  border-block-start: var(--ja-border-width) solid var(--ja-border-color);
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
+  font-size: var(--ja-font-size-sm);
+}
+
+.card-header-tabs,
+.card-header-pills {
+  flex: 1 1 auto;
+  --ja-nav-border-width: 0;
+}
+
+.card-img,
+.card-img-top,
+.card-img-bottom {
+  inline-size: 100%;
+  object-fit: cover;
+}
+.card-img-top {
+  border-block-end: var(--ja-border-width) solid var(--ja-border-color);
+  border-start-start-radius: calc(var(--ja-card-radius) - var(--ja-border-width));
+  border-start-end-radius: calc(var(--ja-card-radius) - var(--ja-border-width));
+}
+.card-img-bottom {
+  border-block-start: var(--ja-border-width) solid var(--ja-border-color);
+  border-end-start-radius: calc(var(--ja-card-radius) - var(--ja-border-width));
+  border-end-end-radius: calc(var(--ja-card-radius) - var(--ja-border-width));
+}
+
+.card-img-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--ja-card-gap);
+  padding: var(--ja-card-padding-y) var(--ja-card-padding-x);
+  border-radius: inherit;
+  color: var(--ja-white);
+  background-color: color-mix(in srgb, var(--ja-ink) 45%, transparent);
+}
+
+/* An icon disc that sits half out of the card's top border. */
+.card-icon {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: var(--ja-card-padding-x);
+  translate: 0 -50%;
+  display: grid;
+  place-items: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius-pill);
+  background-color: var(--ja-primary);
+  color: var(--ja-primary-fg);
+  box-shadow: var(--ja-shadow-xs);
+}
+.card-icon > svg {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  stroke-width: 2.5;
+}
+.card:has(> .card-icon) > .card-body:first-child {
+  padding-block-start: var(--ja-space-6);
+}
+
+/* Interaction: the card lifts off the page and wiggles a degree. */
+.card-hover,
+a.card,
+button.card {
+  cursor: pointer;
+  text-align: inherit;
+  text-decoration: none;
+}
+.card-hover:hover,
+a.card:hover,
+button.card:hover {
+  box-shadow: var(--ja-shadow-xl);
+  translate: var(--ja-lift) var(--ja-lift);
+  rotate: -0.5deg;
+}
+.card-hover:active,
+a.card:active,
+button.card:active {
+  box-shadow: var(--ja-shadow);
+  translate: var(--ja-press) var(--ja-press);
+  rotate: 0deg;
+}
+
+.card-flush {
+  --ja-card-shadow: none;
+  --ja-card-bg: transparent;
+  border-color: transparent;
+}
+.card-blob {
+  border-radius: var(--ja-radius-blob);
+}
+
+.card-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ja-space-5);
+}
+@media (width >= 576px) {
+  .card-group {
+    flex-direction: row;
+  }
+  .card-group > .card {
+    flex: 1 0 0%;
+  }
+}

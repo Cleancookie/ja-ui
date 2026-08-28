@@ -1,0 +1,326 @@
+/* =============================================================================
+   ja-ui — buttons
+   The signature interaction: buttons lift toward you on hover and physically
+   press into the page on click, their hard shadow shrinking to meet them.
+   ============================================================================= */
+
+.btn {
+  --ja-btn-bg: var(--ja-white);
+  --ja-btn-color: var(--ja-text);
+  --ja-btn-border-color: var(--ja-border-color);
+  --ja-btn-hover-bg: var(--ja-surface-hover);
+  --ja-btn-hover-color: var(--ja-btn-color);
+  --ja-btn-active-bg: var(--ja-btn-hover-bg);
+  --ja-btn-active-color: var(--ja-btn-hover-color);
+  --ja-btn-height: var(--ja-control-height);
+  --ja-btn-padding-x: var(--ja-control-padding-x);
+  --ja-btn-font-size: var(--ja-font-size-sm);
+  --ja-btn-radius: var(--ja-btn-radius-base);
+  --ja-btn-shadow: var(--ja-shadow);
+  --ja-btn-shadow-hover: var(--ja-shadow-hover);
+  --ja-btn-shadow-active: var(--ja-shadow-active);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-block-size: var(--ja-btn-height);
+  padding-block: 0.25rem;
+  padding-inline: var(--ja-btn-padding-x);
+  border: var(--ja-border-width) solid var(--ja-btn-border-color);
+  border-radius: var(--ja-btn-radius);
+  background-color: var(--ja-btn-bg);
+  background-clip: padding-box;
+  color: var(--ja-btn-color);
+  font-family: inherit;
+  font-size: var(--ja-btn-font-size);
+  font-weight: var(--ja-label-weight);
+  letter-spacing: var(--ja-label-tracking);
+  text-transform: var(--ja-label-case);
+  line-height: var(--ja-line-height-tight);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: var(--ja-btn-shadow);
+  transition: background-color var(--ja-duration-fast) var(--ja-ease-out),
+    color var(--ja-duration-fast) var(--ja-ease-out),
+    box-shadow var(--ja-duration) var(--ja-ease),
+    translate var(--ja-duration) var(--ja-ease);
+}
+
+.btn > svg,
+.btn > .bi {
+  flex-shrink: 0;
+  inline-size: 1.15em;
+  block-size: 1.15em;
+  stroke-width: 2.5;
+}
+
+@media (hover: hover) {
+  .btn:hover {
+    background-color: var(--ja-btn-hover-bg);
+    color: var(--ja-btn-hover-color);
+    box-shadow: var(--ja-btn-shadow-hover);
+    translate: var(--ja-lift) var(--ja-lift);
+  }
+}
+
+.btn:focus-visible {
+  outline: var(--ja-ring-width) solid var(--ja-ring-color);
+  outline-offset: var(--ja-ring-offset);
+}
+
+/* The press. Covers its own shadow. */
+.btn:active,
+.btn.active,
+.btn.show,
+.btn[aria-pressed="true"] {
+  background-color: var(--ja-btn-active-bg);
+  color: var(--ja-btn-active-color);
+  box-shadow: var(--ja-btn-shadow-active);
+  translate: var(--ja-press) var(--ja-press);
+}
+
+.btn:disabled,
+.btn.disabled,
+fieldset:disabled .btn {
+  background-color: var(--ja-control-disabled-bg);
+  color: var(--ja-control-disabled-color);
+  border-color: var(--ja-slate-300);
+  box-shadow: none;
+  translate: none;
+  pointer-events: none;
+}
+
+/* Sizes ------------------------------------------------------------------- */
+.btn-sm {
+  --ja-btn-height: var(--ja-control-height-sm);
+  --ja-btn-padding-x: var(--ja-control-padding-x-sm);
+  --ja-btn-font-size: var(--ja-font-size-xs);
+  --ja-btn-shadow: var(--ja-shadow-xs);
+  --ja-btn-shadow-hover: var(--ja-shadow-sm);
+  --ja-btn-shadow-active: 0 0 0 0 var(--ja-shadow-color);
+}
+.btn-lg {
+  --ja-btn-height: var(--ja-control-height-lg);
+  --ja-btn-padding-x: var(--ja-control-padding-x-lg);
+  --ja-btn-font-size: var(--ja-font-size);
+  --ja-btn-shadow: var(--ja-shadow-lg);
+  --ja-btn-shadow-hover: var(--ja-shadow-xl);
+  --ja-btn-shadow-active: var(--ja-shadow);
+}
+
+/* Shapes ------------------------------------------------------------------ */
+.btn-square {
+  --ja-btn-radius: var(--ja-radius);
+}
+.btn-icon {
+  --ja-btn-padding-x: 0;
+  inline-size: var(--ja-btn-height);
+  aspect-ratio: 1;
+}
+.btn-block {
+  display: flex;
+  inline-size: 100%;
+}
+/* No shadow, no lift — for toolbars and dense tables. */
+.btn-flat {
+  --ja-btn-shadow: none;
+  --ja-btn-shadow-hover: none;
+  --ja-btn-shadow-active: none;
+  --ja-lift: 0px;
+  --ja-press: 0px;
+}
+.btn-ghost {
+  --ja-btn-bg: transparent;
+  --ja-btn-border-color: transparent;
+  --ja-btn-shadow: none;
+  --ja-btn-shadow-hover: none;
+  --ja-btn-shadow-active: none;
+  --ja-btn-hover-bg: var(--ja-surface-hover);
+}
+.btn-ghost:hover {
+  border-color: var(--ja-border-color);
+  box-shadow: var(--ja-shadow-xs);
+}
+
+/* Link button ------------------------------------------------------------- */
+.btn-link {
+  --ja-btn-bg: transparent;
+  --ja-btn-border-color: transparent;
+  --ja-btn-color: var(--ja-link-color);
+  --ja-btn-hover-bg: transparent;
+  --ja-btn-hover-color: var(--ja-link-hover-color);
+  --ja-btn-shadow: none;
+  --ja-btn-shadow-hover: none;
+  --ja-btn-shadow-active: none;
+  --ja-lift: 0px;
+  --ja-press: 0px;
+  text-decoration: underline;
+  text-decoration-thickness: var(--ja-link-decoration-thickness);
+  text-underline-offset: 0.2em;
+}
+
+/* Icon bubble inside a button — the "candy button" arrow ------------------ */
+.btn-bubble {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1.6em;
+  block-size: 1.6em;
+  border-radius: var(--ja-radius-pill);
+  background-color: var(--ja-white);
+  color: var(--ja-ink);
+}
+
+/* =============================================================================
+   Button group
+   ============================================================================= */
+
+.btn-group,
+.btn-group-vertical {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+.btn-group-vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.btn-group > .btn,
+.btn-group-vertical > .btn {
+  position: relative;
+  flex: 1 1 auto;
+  --ja-btn-radius: var(--ja-radius);
+  --ja-lift: 0px;
+  --ja-press: 0px;
+  --ja-btn-shadow-hover: var(--ja-btn-shadow);
+  --ja-btn-shadow-active: var(--ja-btn-shadow);
+}
+
+/* The whole group presses as one, so the shadow belongs to the group. */
+.btn-group > .btn:hover,
+.btn-group > .btn:focus-visible,
+.btn-group > .btn.active,
+.btn-group-vertical > .btn:hover,
+.btn-group-vertical > .btn:focus-visible,
+.btn-group-vertical > .btn.active {
+  z-index: 1;
+}
+
+.btn-group > :not(:first-child),
+.btn-group > .btn-group:not(:first-child) > .btn {
+  margin-inline-start: calc(var(--ja-border-width) * -1);
+}
+.btn-group > :not(:last-child):not(.dropdown-toggle-split),
+.btn-group > .btn-group:not(:last-child) > .btn {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+.btn-group > :not(:first-child),
+.btn-group > .btn-group:not(:first-child) > .btn {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+.btn-group-vertical > :not(:first-child),
+.btn-group-vertical > .btn-group:not(:first-child) > .btn {
+  margin-block-start: calc(var(--ja-border-width) * -1);
+}
+.btn-group-vertical > :not(:last-child):not(.dropdown-toggle),
+.btn-group-vertical > .btn-group:not(:last-child) > .btn {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+.btn-group-vertical > :not(:first-child),
+.btn-group-vertical > .btn-group:not(:first-child) > .btn {
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+}
+
+.btn-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--ja-space-3);
+}
+
+/* Toggle buttons: a real checkbox/radio, visually hidden ------------------ */
+.btn-check {
+  position: absolute;
+  clip-path: inset(50%);
+  pointer-events: none;
+}
+.btn-check:checked + .btn {
+  --ja-btn-bg: var(--ja-primary);
+  --ja-btn-color: var(--ja-primary-fg);
+  --ja-btn-hover-bg: var(--ja-primary-hover);
+  --ja-btn-hover-color: var(--ja-primary-fg);
+  box-shadow: var(--ja-btn-shadow-active);
+  translate: var(--ja-press) var(--ja-press);
+}
+.btn-check:focus-visible + .btn {
+  outline: var(--ja-ring-width) solid var(--ja-ring-color);
+  outline-offset: var(--ja-ring-offset);
+  z-index: 1;
+}
+.btn-check:disabled + .btn,
+.btn-check[disabled] + .btn {
+  background-color: var(--ja-control-disabled-bg);
+  color: var(--ja-control-disabled-color);
+  pointer-events: none;
+}
+
+/* =============================================================================
+   Close button
+   ============================================================================= */
+
+.btn-close {
+  --ja-btn-close-size: 1.75rem;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  inline-size: var(--ja-btn-close-size);
+  block-size: var(--ja-btn-close-size);
+  padding: 0;
+  border: var(--ja-border-width) solid transparent;
+  border-radius: var(--ja-radius-sm);
+  background-color: transparent;
+  color: currentcolor;
+  cursor: pointer;
+  transition: background-color var(--ja-duration-fast) var(--ja-ease-out),
+    border-color var(--ja-duration-fast) var(--ja-ease-out),
+    rotate var(--ja-duration) var(--ja-ease);
+}
+.btn-close::before {
+  content: "";
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  background-color: currentcolor;
+  mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M2.4 2.4a1.4 1.4 0 0 1 2 0L8 6l3.6-3.6a1.4 1.4 0 1 1 2 2L10 8l3.6 3.6a1.4 1.4 0 0 1-2 2L8 10l-3.6 3.6a1.4 1.4 0 0 1-2-2L6 8 2.4 4.4a1.4 1.4 0 0 1 0-2Z"/></svg>')
+    center / contain no-repeat;
+}
+.btn-close:hover {
+  border-color: var(--ja-border-color);
+  background-color: var(--ja-danger);
+  color: var(--ja-danger-fg);
+  rotate: 90deg;
+}
+.btn-close:focus-visible {
+  outline: var(--ja-ring-width) solid var(--ja-ring-color);
+  outline-offset: 1px;
+}
+.btn-close:disabled,
+.btn-close.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.btn-close-white {
+  color: var(--ja-white);
+}
+.btn-close-lg {
+  --ja-btn-close-size: 2.25rem;
+}

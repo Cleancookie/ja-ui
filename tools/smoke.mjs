@@ -5,9 +5,10 @@
  *
  *   npm run build && npm run smoke
  */
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { homedir } from 'node:os';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { join, resolve } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
 import { chromium } from 'playwright';
 
 const CSS = readFileSync('dist/ja-ui.css', 'utf8');
@@ -77,7 +78,35 @@ const check = (name, pass, detail = '') => {
   console.log(`${pass ? '  ✓' : '  ✗'} ${name}${detail && !pass ? ` — ${detail}` : ''}`);
 };
 
+/**
+ * A bundler is allowed to drop a side-effect-only import from a package whose
+ * `sideEffects` field says there are none — which would silently delete the
+ * autoInit() boot and leave every data-attribute component dead in any app
+ * built with Vite, webpack or Rollup. Prove the boot survives a real bundle.
+ */
+function checkSideEffectImportSurvives() {
+  const dir = mkdtempSync(join(tmpdir(), 'ja-ui-sideeffects-'));
+  try {
+    const entry = join(dir, 'consumer.js');
+    writeFileSync(entry, `import '${resolve('src/index.js')}';\n`);
+    const bundle = execFileSync(
+      join('node_modules', '.bin', 'esbuild'),
+      [entry, '--bundle', '--format=esm', '--target=es2022'],
+      { encoding: 'utf8' }
+    );
+    check(
+      'a side-effect-only import still boots the data attributes',
+      bundle.includes('data-ja-no-autoinit'),
+      "the autoInit boot was tree-shaken — check package.json's sideEffects field"
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 async function main() {
+  checkSideEffectImportSurvives();
+
   const browser = await chromium.launch({ executablePath: findChromium() });
   const page = await browser.newPage({ viewport: { width: 900, height: 700 } });
   await page.setContent(PAGE, { waitUntil: 'load' });

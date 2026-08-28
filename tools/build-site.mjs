@@ -1,19 +1,26 @@
 /**
- * Assemble the GitHub Pages site into `_site`.
+ * Assemble the GitHub Pages site into `docs/`, which is committed.
  *
  *   npm run site            build dist + Storybook, then assemble
- *   npm run site:serve      serve the assembled _site on http://localhost:6008
+ *   npm run site:serve      serve docs/ on http://localhost:6008
+ *
+ * Pages is set to "deploy from a branch: main /docs", so whatever is committed
+ * here is what is live — run this and commit the result as part of any change
+ * that should show up on the site.
  *
  * The layout is chosen so that nothing needs rewriting: the example pages ask
  * for `../dist/ja-ui.css`, and Storybook builds with relative URLs, so the
- * whole thing works from any base path — a project page under
- * /<repo>/ included.
+ * whole thing works from any base path — a project page under /<repo>/
+ * included.
  *
- *   _site/index.html      the landing page (site/index.html)
- *   _site/dist/           the built library
- *   _site/examples/       the standalone template pages
- *   _site/images/         the README screenshots, reused on the landing page
- *   _site/storybook/      the built Storybook
+ *   docs/index.html      the landing page (from site/)
+ *   docs/dist/           the built library
+ *   docs/examples/       the standalone template pages
+ *   docs/images/         the README screenshots — SOURCE, not generated here
+ *   docs/storybook/      the built Storybook
+ *
+ * Everything except `images/` is generated: `images/` is written by
+ * `npm run shots` and is the one thing in here the build must never delete.
  */
 import { createServer } from 'node:http';
 import {
@@ -21,13 +28,15 @@ import {
   createReadStream,
   existsSync,
   mkdirSync,
+  readdirSync,
   rmSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 
-const OUT = '_site';
+const OUT = 'docs';
+const KEEP = new Set(['images']);
 const PORT = 6008;
 
 const MIME = {
@@ -51,13 +60,14 @@ function build() {
     process.exit(1);
   }
 
-  rmSync(OUT, { recursive: true, force: true });
   mkdirSync(OUT, { recursive: true });
+  for (const entry of readdirSync(OUT)) {
+    if (!KEEP.has(entry)) rmSync(join(OUT, entry), { recursive: true, force: true });
+  }
 
   for (const [from, to] of [
     ['dist', 'dist'],
     ['examples', 'examples'],
-    ['docs/images', 'images'],
     ['storybook-static', 'storybook'],
     ['site', '.'],
   ]) {
@@ -69,12 +79,14 @@ function build() {
   // Stop Pages running the output through Jekyll, which eats underscore paths.
   writeFileSync(join(OUT, '.nojekyll'), '');
 
-  console.log(`  ${OUT}/ assembled — index, ${'examples'}, images and storybook/`);
+  const count = (dir) =>
+    readdirSync(dir, { recursive: true }).filter((f) => statSync(join(dir, f)).isFile()).length;
+  console.log(`  ${OUT}/ assembled — ${count(OUT)} files. Commit it to publish.`);
 }
 
 function serve() {
-  if (!existsSync(OUT)) {
-    console.error(`\n  ${OUT} missing — run 'npm run site' first.\n`);
+  if (!existsSync(join(OUT, 'index.html'))) {
+    console.error(`\n  ${OUT}/index.html missing — run 'npm run site' first.\n`);
     process.exit(1);
   }
   createServer((req, res) => {

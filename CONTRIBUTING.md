@@ -46,9 +46,17 @@ is out of date.
 
 ## The playground
 
-`npm run site` assembles `_site/` — the `site/` landing page, `examples/`, the README
-images and the built Storybook under `/storybook/` — and `npm run site:serve` previews it
-on :6008. Every push to `main` deploys it to GitHub Pages.
+The published site is the committed `docs/` folder: GitHub Pages serves it directly off
+`main` (Settings → Pages → deploy from a branch, `main` `/docs`). There is no deploy
+workflow — pushing is deploying.
+
+`npm run site` rebuilds it from `site/`, `examples/`, `dist/` and the built Storybook, and
+`npm run site:serve` previews it on :6008. **Anything that changes the CSS, the JS, the
+examples or the landing page needs `npm run site` and a commit of `docs/`**, or the site
+goes stale against the source.
+
+`docs/images/` is source, not build output — `npm run shots` writes it and the site build
+leaves it in place.
 
 Keep it base-path agnostic: the site is served from `/<repo>/`, so no absolute URLs
 (`/examples/…`) anywhere in the landing page, the example pages or the stories.

@@ -46,30 +46,64 @@ function demo({ items, config = {}, buttonLabel, hint, open = false, query = '' 
         <span class="text-muted">${hint}</span>
       </div>
       <p class="text-muted" data-result>Nothing run yet.</p>
-      <div class="command-palette"></div>
     </div>
   `;
 
   const result = root.querySelector('[data-result]');
-  const palette = new CommandPalette(root.querySelector('.command-palette'), {
+  const host = document.createElement('div');
+  host.className = 'command-palette';
+  document.body.append(host);
+
+  const palette = new CommandPalette(host, {
     items,
     onSelect: (item) => {
       result.textContent = `Ran: ${item.label}`;
     },
     ...config,
   });
+
+  let cleaned = false;
+  let observer = null;
+  let rafId = 0;
+  let wasConnected = root.isConnected;
+  const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    observer?.disconnect();
+    palette.dispose();
+    host.remove();
+  };
+  const cleanupRoot = document.getElementById('storybook-root') ?? document.body;
+  observer = new MutationObserver(() => {
+    if (cleaned) return;
+    if (root.isConnected) {
+      wasConnected = true;
+      return;
+    }
+    if (wasConnected) cleanup();
+  });
+  observer.observe(cleanupRoot, { childList: true, subtree: true });
+
   root.querySelector('[data-open]').addEventListener('click', () => palette.show());
 
   if (open) {
     // Wait for Storybook to insert the element — the virtual list measures itself.
-    requestAnimationFrame(() => {
+    const openWhenConnected = () => {
+      if (cleaned) return;
+      if (!root.isConnected) {
+        rafId = requestAnimationFrame(openWhenConnected);
+        return;
+      }
+      rafId = 0;
       palette.show();
       if (query) {
-        const input = root.querySelector('.command-palette-input');
+        const input = host.querySelector('.command-palette-input');
         input.value = query;
         input.dispatchEvent(new Event('input', { bubbles: true }));
       }
-    });
+    };
+    openWhenConnected();
   }
   return root;
 }

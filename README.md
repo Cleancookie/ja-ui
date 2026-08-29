@@ -196,9 +196,10 @@ the primary action, a dialog's `[autofocus]` button is its default action, and a
 `[command="close"]` button is quiet. Those rules live in the `ja.elements` layer, one
 below the variant classes, so `<button type="submit" class="danger">` still comes out red.
 
+![Every colour, in every treatment](site/images/buttons-treatment.png)
+
 | | |
 | --- | --- |
-| ![Outline buttons](site/images/buttons-outline.png) | ![Soft buttons](site/images/buttons-soft.png) |
 | ![Badges](site/images/badges.png) | ![Progress](site/images/progress.png) |
 | ![Forms](site/images/forms.png) | ![Checks and switches](site/images/checks.png) |
 | ![Table](site/images/table.png) | ![Tabs](site/images/tabs.png) |

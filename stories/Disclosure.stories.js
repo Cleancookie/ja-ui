@@ -87,16 +87,17 @@ export const Accordion = {
     docs: {
       description: {
         story:
-          'A run of adjacent `<details>` reads as one accordion with no wrapper and no class: ' +
-          '`details:has(+ details)` and `details + details` collapse the doubled border ' +
-          'between neighbours and round only the outer corners. The hard shadow is left on ' +
-          'every item deliberately — neighbours touch with no gap, so each downward shadow is ' +
-          'painted over by the item below and the run casts one continuous shadow.',
+          'A run of adjacent `<details>` is a run of cards, not one merged card. There is no ' +
+          '`details + details` border collapsing, deliberately: nothing in this library ships a ' +
+          'margin, so stacked content is spaced by the container `gap`, and `gap` is uniform and ' +
+          'unskippable — the cards can never touch. Merging them would cost a wrapper element or ' +
+          'a negative margin tied to whatever gap the parent happens to set, which is more than ' +
+          'the look is worth. Each panel keeps its own corners, border and hard shadow instead.',
       },
     },
   },
   render: () => html`
-    <div>
+    <section>
       <details open>
         <summary>Do I need the JavaScript?</summary>
         <div><p>Only for tabs, the theme toggle, the invoker fallback and the two non-native components.</p></div>
@@ -109,7 +110,7 @@ export const Accordion = {
         <summary>Is there a build step?</summary>
         <div><p>No. It is one stylesheet and one module.</p></div>
       </details>
-    </div>
+    </section>
   `,
 };
 
@@ -131,7 +132,7 @@ export const Exclusive = {
   render: () => {
     const name = uid('faq');
     return html`
-      <div>
+      <section>
         ${[
           ['Where do the tokens live?', 'In <code>src/styles/tokens.css</code> — every visual value in the library, both skins, all three theme states.'],
           ['How do variants avoid specificity fights?', 'Every variant class is a token remap and nothing else, and they live one cascade layer above the element rules.'],
@@ -146,7 +147,7 @@ export const Exclusive = {
             `
           )
           .join('')}
-      </div>
+      </section>
     `;
   },
 };
@@ -166,7 +167,7 @@ export const Tinted = {
   render: () =>
     stack([
       html`
-        <div>
+        <section>
           <details class="danger">
             <summary>Delete this workspace</summary>
             <div><p>This cannot be undone, and it takes the audit log with it.</p></div>
@@ -175,7 +176,7 @@ export const Tinted = {
             <summary>Everything is fine</summary>
             <div><p>Nothing to see here.</p></div>
           </details>
-        </div>
+        </section>
       `,
       note(
         'Reduced motion keeps the state change and drops the slide — the panel still opens, ' +

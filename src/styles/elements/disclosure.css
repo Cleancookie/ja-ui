@@ -238,39 +238,29 @@
      ------------------------------------------------------------------------ */
 
   /* ---------------------------------------------------------------------------
-     A run of adjacent <details> reads as one accordion
+     A run of adjacent <details> is a run of cards, NOT one merged card
 
-     Collapse the doubled border between neighbours and round only the outer
-     corners. :has() is safe to ship — it is in the unguarded column — and it is
-     what lets the first and last item in a run style themselves without a
-     wrapper element or a class.
+     This is deliberate, and it is the second thing people try to "fix", so the
+     reasoning is here rather than in a commit message.
 
-     The hard offset shadow is deliberately left on every item: neighbours touch
-     with no gap, so each one's downward shadow is painted over by the item
-     below it and only the trailing edge shows through. The run ends up casting
-     one continuous shadow, which is exactly the intent.
+     The tempting version collapses the doubled border between neighbours and
+     rounds only the outer corners, so the run reads as one card with dividers.
+     It needs the cards to TOUCH. They never do: nothing in this library ships a
+     margin, so stacked content is spaced by the container's `gap`, and `gap` is
+     uniform and unskippable — no child can opt out of it. A run inside
+     <article>, <section> or <aside> would come out squared off AND spaced
+     apart, which reads as a bug because it is one.
+
+     Every way out costs more than the look is worth: a wrapper element to
+     switch the gap off (a class or a <div> on markup that had neither), or a
+     negative margin that has to equal whatever gap the particular parent
+     happens to set, and therefore a --ja-gap that every container must
+     remember to publish and keep in sync.
+
+     So each <details> stays its own rounded, bordered, shadowed card with the
+     normal flow rhythm between them. That is a deliberate look rather than a
+     compromised one, it needs no markup and no arithmetic, and it is what the
+     element does on its own. A consumer who wants the merged look can write the
+     four rules themselves against their own known container.
      ------------------------------------------------------------------------ */
-  details:has(+ details) {
-    border-end-start-radius: 0;
-    border-end-end-radius: 0;
-  }
-
-  details + details {
-    border-start-start-radius: 0;
-    border-start-end-radius: 0;
-    /* The previous card's bottom border is the divider; a second one here
-       would draw it twice as thick. */
-    border-block-start-width: 0;
-  }
-
-  /* Its summary must square off with it. */
-  details + details > summary {
-    border-start-start-radius: 0;
-    border-start-end-radius: 0;
-  }
-
-  details:has(+ details) > summary {
-    border-end-start-radius: 0;
-    border-end-end-radius: 0;
-  }
 }

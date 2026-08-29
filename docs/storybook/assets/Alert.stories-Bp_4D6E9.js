@@ -1,4 +1,4 @@
-import{C as n,i as l,h as t}from"./helpers-TPxJnLu1.js";const d={title:"Components/Alert",tags:["autodocs"],parameters:{docs:{description:{component:'Alerts carry a solid accent block rather than a tinted left border. Add `.alert-dismissible` and a `.btn-close` with `data-ja-dismiss="alert"` to make one closable.'}}}},i=(e,o)=>t`
+import{C as n,i as l,h as t}from"./helpers-Bbgb7Gtr.js";const d={title:"Components/Alert",tags:["autodocs"],parameters:{docs:{description:{component:'Alerts carry a solid accent block rather than a tinted left border. Add `.alert-dismissible` and a `.btn-close` with `data-ja-dismiss="alert"` to make one closable.'}}}},i=(e,o)=>t`
   <div class="alert alert-${e}" role="alert">
     <div class="alert-body">${o}</div>
   </div>

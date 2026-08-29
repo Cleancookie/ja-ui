@@ -1,4 +1,4 @@
-import{C as o,h as a}from"./helpers-TPxJnLu1.js";const g={title:"Foundations/Design tokens",tags:["autodocs"],parameters:{docs:{description:{component:"Everything visual is a CSS custom property on `:root`. Change one and it cascades through every component. Use the toolbar to switch skin and theme."}}}},e={render:()=>a`
+import{C as o,h as a}from"./helpers-Bbgb7Gtr.js";const g={title:"Foundations/Design tokens",tags:["autodocs"],parameters:{docs:{description:{component:"Everything visual is a CSS custom property on `:root`. Change one and it cascades through every component. Use the toolbar to switch skin and theme."}}}},e={render:()=>a`
     <div class="d-flex flex-column gap-5">
       <div>
         <h3 class="text-label text-muted mb-3">Semantic colours</h3>

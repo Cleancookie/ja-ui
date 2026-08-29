@@ -2,6 +2,7 @@ import { Alert } from './alert.js';
 import { Button } from './button.js';
 import { Collapse } from './collapse.js';
 import { CommandPalette } from './command-palette.js';
+import { DataTable } from './datatable.js';
 import { Dropdown, initDropdownDismiss } from './dropdown.js';
 import { Modal } from './modal.js';
 import { Offcanvas } from './offcanvas.js';
@@ -45,7 +46,8 @@ let wired = false;
 /**
  * Wire up every `data-ja-toggle` / `data-ja-dismiss` attribute on the page
  * with a single delegated listener. Safe to call more than once, and safe to
- * call before the elements exist — nothing is scanned up front.
+ * call before most elements exist — only the components that need eager setup
+ * are scanned up front.
  *
  * Opt out entirely with `<body data-ja-no-autoinit>`.
  */
@@ -60,6 +62,9 @@ export function autoInit() {
   // pressed, so these are the one thing that is scanned up front.
   for (const element of document.querySelectorAll('.command-palette[data-ja-hotkey]')) {
     CommandPalette.getOrCreateInstance(element);
+  }
+  for (const element of document.querySelectorAll('[data-ja-datatable]')) {
+    DataTable.getOrCreateInstance(element);
   }
 
   document.addEventListener('click', (event) => {

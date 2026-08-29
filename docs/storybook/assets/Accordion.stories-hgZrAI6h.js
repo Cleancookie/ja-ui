@@ -1,4 +1,4 @@
-import{h as s,u as a}from"./helpers-TPxJnLu1.js";const p={title:"Components/Accordion",tags:["autodocs"],parameters:{docs:{description:{component:"Driven by the `Collapse` component. Give each toggle `data-ja-parent` to make opening one panel close its siblings."}}}},i=(e,r,c,d,t=!1)=>s`
+import{h as s,u as a}from"./helpers-Bbgb7Gtr.js";const p={title:"Components/Accordion",tags:["autodocs"],parameters:{docs:{description:{component:"Driven by the `Collapse` component. Give each toggle `data-ja-parent` to make opening one panel close its siblings."}}}},i=(e,r,c,d,t=!1)=>s`
   <div class="accordion-item">
     <h2 class="accordion-header">
       <button

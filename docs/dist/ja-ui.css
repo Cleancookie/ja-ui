@@ -3078,6 +3078,161 @@ button.card:active {
 .table-card > .table {
   border-radius: inherit;
 }
+.datatable {
+  --ja-datatable-column-width: 12rem;
+  --ja-datatable-row-height: 2.5rem;
+  --ja-datatable-header-height: 2.75rem;
+  --ja-datatable-gutter-width: 3.5rem;
+  --ja-datatable-max-auto-width: 32rem;
+  --ja-datatable-resize-handle-width: 0.625rem;
+  --ja-datatable-selected-bg: color-mix(in srgb, var(--ja-primary) 16%, var(--ja-surface));
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 0;
+  color: var(--ja-table-color);
+  font-variant-numeric: tabular-nums;
+}
+.datatable-shell {
+  position: relative;
+  overflow: hidden;
+  border: var(--ja-border-width) solid var(--ja-border-color);
+  border-radius: var(--ja-radius);
+  background-color: var(--ja-surface);
+  box-shadow: var(--ja-shadow);
+}
+.datatable-viewport {
+  position: relative;
+  overflow: auto;
+  block-size: min(32rem, 70vh);
+  background-color: var(--ja-table-bg);
+  scrollbar-gutter: stable both-edges;
+}
+.datatable-canvas,
+.datatable-header-layer,
+.datatable-gutter-layer {
+  position: relative;
+}
+.datatable-header-layer,
+.datatable-gutter-layer,
+.datatable-corner {
+  position: absolute;
+  inset-inline-start: 0;
+  z-index: 2;
+}
+.datatable-header-layer {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  overflow: hidden;
+}
+.datatable-gutter-layer {
+  inset-block-end: 0;
+  overflow: hidden;
+}
+.datatable-corner {
+  inset-block-start: 0;
+  z-index: 3;
+}
+.datatable-header-cell,
+.datatable-gutter-cell,
+.datatable-cell,
+.datatable-corner {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  min-inline-size: 0;
+  padding: var(--ja-table-padding-y) var(--ja-table-padding-x);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-inline-end: var(--ja-table-divider);
+  border-block-end: var(--ja-table-divider);
+  background-color: var(--ja-surface);
+}
+.datatable-header-cell,
+.datatable-corner {
+  block-size: var(--ja-datatable-header-height);
+  background-color: var(--ja-table-head-bg);
+  color: var(--ja-table-head-color);
+  font-family: var(--ja-font-heading);
+  font-size: var(--ja-font-size-xs);
+  font-weight: var(--ja-label-weight);
+  letter-spacing: var(--ja-label-tracking);
+  text-transform: uppercase;
+}
+.datatable-header-cell {
+  inset-block-start: 0;
+  user-select: none;
+}
+.datatable-gutter-cell {
+  inline-size: var(--ja-datatable-gutter-width);
+  block-size: var(--ja-datatable-row-height);
+  justify-content: flex-end;
+  background-color: color-mix(in srgb, var(--ja-ink-fill) 8%, var(--ja-surface));
+  color: var(--ja-text-muted);
+}
+.datatable-cell {
+  block-size: var(--ja-datatable-row-height);
+}
+.datatable-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.datatable-corner {
+  justify-content: center;
+  cursor: default;
+  user-select: none;
+}
+.datatable-corner[aria-pressed=true],
+.datatable-header-cell.is-selected,
+.datatable-gutter-cell.is-selected,
+.datatable-cell.is-selected {
+  background-color: var(--ja-datatable-selected-bg);
+}
+.datatable-corner-mark {
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+  border: var(--ja-border-width) solid currentColor;
+  border-radius: 0.25rem;
+  opacity: 0.8;
+}
+.datatable.is-table-selected .datatable-corner-mark {
+  background-color: currentColor;
+}
+.datatable-resize-handle {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: calc(var(--ja-datatable-resize-handle-width) * -0.5);
+  inline-size: var(--ja-datatable-resize-handle-width);
+  cursor: col-resize;
+}
+.datatable-header-cell:hover .datatable-resize-handle::before,
+.datatable.is-resizing .datatable-resize-handle::before,
+.datatable-corner:hover .datatable-resize-handle::before {
+  opacity: 1;
+}
+.datatable-resize-handle::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.35rem;
+  inset-inline-start: calc(50% - 1px);
+  inline-size: 2px;
+  border-radius: 999px;
+  background-color: currentColor;
+  opacity: 0.18;
+}
+.datatable-measurer {
+  position: absolute;
+  inset-inline-start: -100000px;
+  inset-block-start: -100000px;
+  visibility: hidden;
+  pointer-events: none;
+}
+.datatable-measure-cell {
+  position: static;
+  inline-size: max-content;
+  max-inline-size: none;
+}
 
 /* src/styles/components/breadcrumb-pagination.css */
 .breadcrumb {

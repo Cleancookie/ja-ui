@@ -1,4 +1,4 @@
-import{T as l}from"./iframe-R0HRiAX7.js";import{i as d,h as e}from"./helpers-TPxJnLu1.js";import"./preload-helper-PPVm8Dsz.js";const m={title:"Components/Overlays",tags:["autodocs"],parameters:{docs:{description:{component:"Modals, offcanvas drawers and toasts. All focus-trapped, Escape-closing and scroll-locking without any configuration."}}}},t={render:()=>e`
+import{T as l}from"./iframe-C8sUjQOJ.js";import{i as d,h as e}from"./helpers-Bbgb7Gtr.js";import"./preload-helper-PPVm8Dsz.js";const m={title:"Components/Overlays",tags:["autodocs"],parameters:{docs:{description:{component:"Modals, offcanvas drawers and toasts. All focus-trapped, Escape-closing and scroll-locking without any configuration."}}}},t={render:()=>e`
     <div class="d-flex flex-wrap gap-3">
       <button class="btn btn-primary" data-ja-toggle="modal" data-ja-target="#demo-modal">
         Open modal

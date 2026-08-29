@@ -1,4 +1,4 @@
-import{h as a}from"./helpers-TPxJnLu1.js";const g={title:"Components/Table",tags:["autodocs"],parameters:{docs:{description:{component:"Table headers are a solid block of ink. Wrap a table in `.table-card` for the full bordered, rounded, shadowed panel."}}}},b=[["INV-2041","Northwind Traders","Paid","£4,120.00"],["INV-2042","Contoso Ltd","Pending","£980.50"],["INV-2043","Fabrikam Inc","Overdue","£12,400.00"],["INV-2044","Adventure Works","Paid","£2,315.75"]],u={Paid:"success",Pending:"warning",Overdue:"danger"},h=()=>b.map(([r,p,i,m])=>a`
+import{h as a}from"./helpers-Bbgb7Gtr.js";const g={title:"Components/Table",tags:["autodocs"],parameters:{docs:{description:{component:"Table headers are a solid block of ink. Wrap a table in `.table-card` for the full bordered, rounded, shadowed panel."}}}},b=[["INV-2041","Northwind Traders","Paid","£4,120.00"],["INV-2042","Contoso Ltd","Pending","£980.50"],["INV-2043","Fabrikam Inc","Overdue","£12,400.00"],["INV-2044","Adventure Works","Paid","£2,315.75"]],u={Paid:"success",Pending:"warning",Overdue:"danger"},h=()=>b.map(([r,p,i,m])=>a`
       <tr>
         <td><code>${r}</code></td>
         <td>${p}</td>

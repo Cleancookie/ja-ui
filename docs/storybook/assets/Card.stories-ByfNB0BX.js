@@ -1,4 +1,4 @@
-import{h as s,i as c,s as d}from"./helpers-TPxJnLu1.js";const o={title:"Components/Card",tags:["autodocs"],parameters:{docs:{description:{component:"Cards are paper cut-outs: chunky border, hard shadow. `.card-hover` makes one lift and wiggle a degree when pointed at."}}}},e={render:()=>s`
+import{h as s,i as c,s as d}from"./helpers-Bbgb7Gtr.js";const o={title:"Components/Card",tags:["autodocs"],parameters:{docs:{description:{component:"Cards are paper cut-outs: chunky border, hard shadow. `.card-hover` makes one lift and wiggle a degree when pointed at."}}}},e={render:()=>s`
     <div class="card" style="max-inline-size: 20rem">
       <div class="card-body">
         <h5 class="card-title">Card title</h5>

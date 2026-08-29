@@ -97,6 +97,47 @@ export declare class CommandPalette extends Component<CommandPaletteConfig> {
   select(event?: Event | null): boolean;
 }
 
+export interface DataTableColumn {
+  label?: string;
+  name?: string;
+  title?: string;
+  key?: string | number;
+  field?: string | number;
+  width?: number;
+  maxWidth?: number;
+  [key: string]: unknown;
+}
+
+export interface DataTableConfig extends ComponentConfig {
+  columns?: DataTableColumn[] | string | null;
+  rows?: unknown[] | string | null;
+  columnCount?: number;
+  rowCount?: number;
+  defaultColumnWidth?: number;
+  minColumnWidth?: number;
+  maxAutoWidth?: number;
+  autoSizeSample?: number;
+  rowHeight?: number;
+  headerHeight?: number;
+  gutterWidth?: number;
+  overscan?: number;
+  selectable?: boolean;
+  getColumnLabel?: ((index: number, column?: DataTableColumn) => string) | null;
+  getCell?: ((rowIndex: number, columnIndex: number, row: unknown, column?: DataTableColumn) => unknown) | null;
+  getRow?: ((index: number) => unknown) | null;
+}
+
+export declare class DataTable extends Component<DataTableConfig> {
+  readonly rowCount: number;
+  readonly columnCount: number;
+  readonly selectedAll: boolean;
+  setData(config?: Partial<DataTableConfig>): this;
+  resizeColumn(index: number, width: number, options?: { silent?: boolean }): this;
+  autoSizeColumn(index: number): this;
+  autoSizeAll(): this;
+  selectAll(selected?: boolean): this;
+}
+
 export interface FuzzyMatch {
   score: number;
   /** Indices into the label, for highlighting. */
@@ -214,6 +255,12 @@ export interface JaUIEventMap {
   'ja:command-palette:filter': CustomEvent<{ query: string; count: number }>;
   'ja:command-palette:highlight': CustomEvent<{ item: CommandPaletteItem | null; index: number }>;
   'ja:command-palette:select': CustomEvent<{ item: CommandPaletteItem; index: number; query: string }>;
+  'ja:datatable:autosize': CustomEvent<{ columns: number }>;
+  'ja:datatable:autosized': CustomEvent<{ columns: number }>;
+  'ja:datatable:columnresize': CustomEvent<{ column: number; width: number }>;
+  'ja:datatable:columnresized': CustomEvent<{ column: number; width: number }>;
+  'ja:datatable:selectall': CustomEvent<{ selected: boolean }>;
+  'ja:datatable:selectallchanged': CustomEvent<{ selected: boolean }>;
   'ja:dropdown:show': CustomEvent;
   'ja:dropdown:shown': CustomEvent;
   'ja:dropdown:hide': CustomEvent;

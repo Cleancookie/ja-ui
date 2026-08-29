@@ -1,0 +1,137 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Getting Started/Introduction" />
+
+# Write plain HTML, get this
+
+ja-ui styles **semantic HTML**. Drop one stylesheet in, write ordinary markup, and the page
+is themed — chunky ink borders, hard offset shadows, a real focus ring, 44px touch targets,
+light and dark, two skins.
+
+There is no `.btn`. There is no `.card`. There is no `.modal`. A `<button>` is a button, an
+`<article>` is the card, a `<dialog>` is the modal and `<details>` is the accordion.
+
+```html
+<link rel="stylesheet" href="ja-ui.css" />
+<script type="module" src="ja-ui.js"></script>
+```
+
+That is the install. The `<script>` is optional: it carries four things the platform does
+not do for you — restoring a stored theme, the `command`/`commandfor` fallback, the tabs
+keyboard model, and the two components with no native equivalent.
+
+## Before and after
+
+Every line on the left is a class you had to learn, remember, and keep in sync with a
+framework upgrade. Every line on the right is markup you already know, and which already
+means the right thing to a screen reader.
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(22rem, 1fr))', gap: 'var(--ja-space-4)', alignItems: 'start' }}>
+
+**Bootstrap**
+
+```html
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Invoice 2041</h5>
+    <p class="card-text text-muted">Northwind Traders</p>
+    <button class="btn btn-primary btn-sm">Pay now</button>
+    <button class="btn btn-outline-secondary btn-sm">Later</button>
+  </div>
+</div>
+```
+
+**ja-ui**
+
+```html
+<article>
+  <h3>Invoice 2041</h3>
+  <p>Northwind Traders</p>
+  <button class="primary sm">Pay now</button>
+  <button class="secondary outline sm">Later</button>
+</article>
+```
+
+</div>
+
+Nine classes become three, and two of the three are pure intent — *this is the primary
+action*, *make it small* — rather than a description of what the element is.
+
+## What replaced what
+
+| Bootstrap | ja-ui now |
+| --- | --- |
+| `.btn .btn-primary` | `<button class="primary">` |
+| `.btn .btn-outline-danger` | `<button class="danger outline">` |
+| `.card` / `.card-body` | `<article>` |
+| `.modal` + JS | `<dialog>` + `showModal()` |
+| `.offcanvas` | `<dialog class="drawer end">` |
+| `.accordion` / `.collapse` | `<details>` / `<summary>` |
+| `.dropdown-menu` | `[popover]` + `popovertarget` |
+| `.nav-tabs` | `role="tablist"` + the APG keyboard model |
+| `.alert` | `.callout` |
+| `.progress-bar` | `<progress>` |
+| `.form-control` / `.form-label` | `<input>` / `<label>` |
+| `.breadcrumb` / `.pagination` | `<nav><ol>` + `aria-current="page"` |
+| `.list-group` | `<ul role="list" class="list">` |
+| `.table` | `<table>` |
+| `.row` `.col-6` `.d-flex` `.gap-3` `.p-4` | **gone** — write page CSS |
+
+## The whole class list
+
+That is not a summary. It is the complete inventory — anything not on this list does not
+exist in the library.
+
+| Axis | Classes |
+| --- | --- |
+| **Colour** | `primary` `secondary` `success` `info` `warning` `danger` `light` `dark` `pop` `fresh` `plain` |
+| **Treatment** | `outline` `soft` `ghost` |
+| **Size** | `sm` `lg` |
+| **Controls** | `a.button`, `icon` |
+| **Content** | `article.interactive` |
+| **Dialog** | `drawer` + `start` `end` `top` `bottom` |
+| **Navigation** | `sticky` `breadcrumb` `pagination` `list` `skip` |
+| **Feedback** | `callout` `badge` `toasts` `toast` `spinner` `skeleton` |
+| **Table** | `striped` `compact` `bordered` `numeric` |
+| **Typography** | `lead` `measure` |
+| **Accessibility** | `visually-hidden` |
+| **The two non-native components** | `command-palette`, `[data-ja-datatable]` |
+
+The colour and treatment axes compose — `class="danger outline"`, `class="primary lg"` —
+and every one of them is a **token remap only**, never a raw property. That is why a single
+`.danger` works identically on a `<button>`, an `a.button`, an `input[type=submit]`, a
+callout and a badge.
+
+## Intent that is already in your markup
+
+Some things need no class at all, because the HTML already said it:
+
+```html
+<button type="submit">Save</button>          <!-- the form's primary action -->
+<dialog><button autofocus>Confirm</button>   <!-- the dialog's default action -->
+<button commandfor="d" command="close">×     <!-- the quiet way out -->
+```
+
+Those rules live one cascade layer below the intent classes, so `class="danger"` still wins
+on a submit button without a single `:not()`.
+
+## Theming
+
+Three states, never a boolean — **system** (no attribute), `light`, `dark`:
+
+```html
+<html data-theme="dark" data-style="brutal">
+```
+
+Both attributes work on `<html>`, on `<body>`, or on **any subtree** — an
+`<aside data-theme="dark">` inside a light page is a first-class, supported thing. Use the
+**Theme** and **Skin** controls in the toolbar above to drive every story on this site.
+
+## Where to go next
+
+- **Foundations** — the tokens themselves: colour, type, space, radii, shadows, both skins.
+- **Elements** — one page per family of native elements. Each starts with the bare element,
+  with no attributes and no classes, so you can see what you get for free.
+- **Components** — the command palette and the data table, the only two things here that
+  are not a native element.
+- **Templates** — complete pages.

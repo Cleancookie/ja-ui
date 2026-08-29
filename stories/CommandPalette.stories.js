@@ -1,6 +1,16 @@
 import { CommandPalette } from '../src/index.js';
 import { html, icon } from './helpers.js';
 
+/**
+ * One of only two things in the library that is not a native element — hence
+ * `.command-palette`, one of only two component classes in the whole inventory.
+ * There is no HTML element for "a fuzzy-searchable, virtualised command list
+ * bound to a global shortcut", so this is a real JS component with a real
+ * stylesheet, and it is documented as such.
+ *
+ * The component itself is unchanged by the native-HTML rewrite; only the markup
+ * around it in these stories moved off the old utility classes.
+ */
 export default {
   title: 'Components/Command palette',
   tags: ['autodocs'],
@@ -11,7 +21,10 @@ export default {
           'A ctrl-P for your app. Fuzzy search in the spirit of fzf: type a few letters of ' +
           'anything and the list re-ranks, arrow keys or ctrl-J / ctrl-K move the selection, ' +
           'and one highlight block slides between rows. Rows are virtualised, so a list of a ' +
-          'hundred thousand entries stays as responsive as a list of ten.',
+          'hundred thousand entries stays as responsive as a list of ten. ' +
+          'Add `data-ja-hotkey` to a `.command-palette` element and auto-init constructs it ' +
+          'up front, because a palette bound to a global shortcut has to exist before the ' +
+          'shortcut is pressed.',
       },
     },
   },
@@ -40,12 +53,12 @@ const COMMANDS = [
 function demo({ items, config = {}, buttonLabel, hint, open = false, query = '' }) {
   const root = document.createElement('div');
   root.innerHTML = html`
-    <div class="d-flex flex-column gap-3">
-      <div class="d-flex flex-wrap align-items-center gap-3">
-        <button class="btn btn-primary" data-open>${icon('search', 16)} ${buttonLabel}</button>
-        <span class="text-muted">${hint}</span>
+    <div style="display:flex;flex-direction:column;gap:var(--ja-space-4)">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--ja-space-3)">
+        <button class="primary" data-open>${icon('search', 16)} ${buttonLabel}</button>
+        <span style="color:var(--ja-text-muted)">${hint}</span>
       </div>
-      <p class="text-muted" data-result>Nothing run yet.</p>
+      <p style="color:var(--ja-text-muted)" data-result>Nothing run yet.</p>
     </div>
   `;
 
@@ -143,7 +156,7 @@ export const Open = {
 };
 
 const FOLDERS = ['src', 'src/js', 'src/styles/components', 'stories', 'tools', 'docs', 'examples'];
-const NAMES = ['index', 'button', 'modal', 'palette', 'tokens', 'theme', 'grid', 'toast', 'reset', 'utils'];
+const NAMES = ['index', 'controls', 'dialog', 'palette', 'tokens', 'theme', 'variants', 'toast', 'reset', 'forms'];
 const EXTENSIONS = ['.js', '.css', '.md', '.json'];
 
 /** A ctrl-P file switcher — plain strings are valid items. */
@@ -161,7 +174,7 @@ export const FileSwitcher = {
       description: {
         story:
           'Items can be plain strings. Query terms are ANDed and matched as subsequences, so ' +
-          '`sj mod` finds `src/js/modal-12.js` — the same muscle memory as fzf.',
+          '`sj dia` finds `src/js/dialog-12.js` — the same muscle memory as fzf.',
       },
     },
   },
@@ -170,7 +183,7 @@ export const FileSwitcher = {
       items: FILES,
       config: { placeholder: 'Go to file…', emptyText: 'No file matches', groups: false },
       buttonLabel: 'Open 5,000 files',
-      hint: 'try “sj mod”',
+      hint: 'try “sj dia”',
     }),
 };
 

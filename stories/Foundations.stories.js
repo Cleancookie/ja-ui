@@ -1,162 +1,294 @@
-import { COLORS, html } from './helpers.js';
+import { COLORS, html, grid, note, row, section, stack } from './helpers.js';
 
+/**
+ * The token layer. Everything visual in ja-ui is a `--ja-*` custom property in
+ * `src/styles/tokens.css` — no element file contains a colour, a radius, a
+ * shadow or a duration literal. Override one on `:root`, on `<body>` or on any
+ * subtree and the whole library follows.
+ *
+ * There was never a Bootstrap class for any of this: `$primary`, `$spacer` and
+ * `$box-shadow` were Sass variables that had to be recompiled. These are live
+ * custom properties, so a theme swap is one attribute at runtime.
+ */
 export default {
-  title: 'Foundations/Design tokens',
+  title: 'Foundations/Tokens',
   tags: ['autodocs'],
   parameters: {
     docs: {
       description: {
         component:
-          'Everything visual is a CSS custom property on `:root`. Change one and it ' +
-          'cascades through every component. Use the toolbar to switch skin and theme.',
+          'Every visual value in the library is a `--ja-*` custom property. Two skins ' +
+          '(`data-style="brutal"` selects the second) and three theme states — system, ' +
+          '`light`, `dark` — are the same token block resolved differently. Both attributes ' +
+          'work on `<html>`, on `<body>`, or on any subtree, which is what the last two ' +
+          'stories on this page demonstrate. Use the toolbar to drive the whole site.',
       },
     },
   },
 };
 
-export const Colours = {
-  render: () => html`
-    <div class="d-flex flex-column gap-5">
-      <div>
-        <h3 class="text-label text-muted mb-3">Semantic colours</h3>
-        <div class="row g-3">
-          ${COLORS.map(
-            (c) => html`
-              <div class="col-6 col-md-3">
-                <div class="sticker overflow-hidden">
-                  <div class="bg-${c}" style="block-size: 4rem"></div>
-                  <div class="p-3 border-top">
-                    <strong class="d-block">${c}</strong>
-                    <code class="fs-xs">--ja-${c}</code>
-                  </div>
-                </div>
-              </div>
-            `
-          ).join('')}
-        </div>
-      </div>
-      <div>
-        <h3 class="text-label text-muted mb-3">Subtle fills</h3>
-        <div class="d-flex flex-wrap gap-3">
-          ${COLORS.map(
-            (c) => `<div class="sticker bg-${c}-subtle px-4 py-3"><strong>${c}</strong></div>`
-          ).join('')}
-        </div>
-      </div>
+/* A single swatch: the fill token above, its name and its paired ink below. */
+const swatch = (name) => html`
+  <div style="border:var(--ja-border);border-radius:var(--ja-radius);overflow:clip;background:var(--ja-surface)">
+    <div style="background:var(--ja-${name});color:var(--ja-${name}-fg);padding:var(--ja-space-4);font-weight:var(--ja-font-weight-bold)">
+      Aa
     </div>
-  `,
+    <div style="padding:var(--ja-space-3);border-block-start:var(--ja-border)">
+      <strong style="display:block">${name}</strong>
+      <code>--ja-${name}</code>
+    </div>
+  </div>
+`;
+
+export const Colour = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The ten colour variants, each a pair: the fill (`--ja-primary`) and the ink that ' +
+          'was authored to be legible on it in both themes and both skins ' +
+          '(`--ja-primary-fg`). A `.primary` class sets exactly those two tokens and nothing ' +
+          'else — that is the entire colour axis.',
+      },
+    },
+  },
+  render: () => grid(COLORS.map(swatch), '11rem'),
 };
 
-export const Typography = {
-  render: () => html`
-    <div class="d-flex flex-column gap-4">
-      <h1 class="display-3">Display 3</h1>
-      <h1>Heading 1</h1>
-      <h2>Heading 2</h2>
-      <h3>Heading 3</h3>
-      <h4>Heading 4</h4>
-      <h5>Heading 5</h5>
-      <h6>Heading 6</h6>
-      <p class="lead">A lead paragraph carries the summary of the page in a slightly larger, muted face.</p>
-      <p>
-        Body copy sits in Plus Jakarta Sans at 16px with generous line height. Inline
-        <code>code</code>, a <a href="#">link</a>, <strong>strong emphasis</strong> and
-        <mark>highlighted text</mark> all live here.
-      </p>
-      <blockquote class="blockquote">
-        Structure is not implied, it is enforced.
-        <footer class="blockquote-footer">The design brief</footer>
-      </blockquote>
-      <pre><code>npm install @cleancookie/ja-ui</code></pre>
-    </div>
-  `,
+const SURFACES = [
+  ['--ja-body-bg', 'the page'],
+  ['--ja-surface', 'cards, dialogs, controls'],
+  ['--ja-surface-raised', 'popovers, keycaps'],
+  ['--ja-surface-sunken', 'table feet, tracks, asides'],
+  ['--ja-ink-fill', 'table heads, code blocks, tooltips'],
+  ['--ja-focus-fill', 'a lit-up input'],
+];
+
+export const Surfaces = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Paper, and the ink on it. `--ja-ink-fill` is split out from `--ja-ink` so the dark ' +
+          'theme can dial the solid slab down instead of dropping a light block into the ' +
+          'middle of a dark page.',
+      },
+    },
+  },
+  render: () =>
+    stack([
+      grid(
+        SURFACES.map(
+          ([token, use]) => html`
+            <div style="background:var(${token});color:var(--ja-text);padding:var(--ja-space-4);border:var(--ja-border);border-radius:var(--ja-radius)">
+              <code>${token}</code>
+              <p style="font-size:var(--ja-font-size-sm)">${use}</p>
+            </div>
+          `
+        ),
+        '15rem'
+      ),
+      note(
+        'Ink comes in three weights: <code>--ja-text</code>, <code>--ja-text-muted</code> and ' +
+          '<code>--ja-text-subtle</code>. The brutal skin collapses all three to solid ink, ' +
+          'because neo-brutalism has no subtle greys — it is black, or it is a colour.'
+      ),
+    ]),
 };
+
+const TYPE_SCALE = [
+  ['--ja-font-size-xs', '0.75rem'],
+  ['--ja-font-size-sm', '0.875rem'],
+  ['--ja-font-size', '1rem'],
+  ['--ja-font-size-lg', '1.125rem'],
+  ['--ja-font-size-xl', '1.25rem'],
+];
+
+export const TypeScale = {
+  name: 'Type scale',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A major third (1.25). The heading sizes continue the same ratio upward with a ' +
+          '`calc()` on `--ja-font-size-xl` rather than five more hard-coded rem values — see ' +
+          'the Typography page for the rendered run.',
+      },
+    },
+  },
+  render: () =>
+    stack(
+      TYPE_SCALE.map(
+        ([token, value]) => html`
+          <p style="display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--ja-space-4);font-size:var(${token})">
+            <span>Just another UI</span>
+            <code style="font-size:var(--ja-font-size-xs)">${token}</code>
+            <small>${value}</small>
+          </p>
+        `
+      ),
+      3
+    ),
+};
+
+export const Space = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'An 8px rhythm with 4px half-steps. No element in the library ships a margin, so ' +
+          'this scale is spent almost entirely on `padding` and `gap` — `--ja-flow-space` is ' +
+          'the one every content container reads for its vertical rhythm.',
+      },
+    },
+  },
+  render: () =>
+    stack(
+      [0, 1, 2, 3, 4, 5, 6, 7, 8].map(
+        (step) => html`
+          <div style="display:flex;align-items:center;gap:var(--ja-space-3)">
+            <code style="inline-size:9rem;flex:none">--ja-space-${step}</code>
+            <div style="block-size:var(--ja-space-5);inline-size:var(--ja-space-${step});background:var(--ja-primary);border:var(--ja-border)"></div>
+          </div>
+        `
+      ),
+      2
+    ),
+};
+
+const RADII = [
+  '--ja-radius-xs',
+  '--ja-radius-sm',
+  '--ja-radius',
+  '--ja-radius-lg',
+  '--ja-radius-xl',
+  '--ja-radius-pill',
+  '--ja-radius-blob',
+];
+
+export const Radii = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`--ja-radius-blob` is the signature asymmetric speech-bubble corner. The brutal ' +
+          'skin zeroes every one of these except the pill: sharp or fully round, nothing in ' +
+          'between.',
+      },
+    },
+  },
+  render: () =>
+    grid(
+      RADII.map(
+        (token) => html`
+          <div style="display:flex;flex-direction:column;gap:var(--ja-space-2);align-items:center">
+            <div style="inline-size:100%;block-size:4.5rem;background:var(--ja-surface);border:var(--ja-border);border-radius:var(${token})"></div>
+            <code>${token}</code>
+          </div>
+        `
+      ),
+      '10rem'
+    ),
+};
+
+const SHADOWS = [
+  '--ja-shadow-xs',
+  '--ja-shadow-sm',
+  '--ja-shadow',
+  '--ja-shadow-lg',
+  '--ja-shadow-xl',
+  '--ja-shadow-2xl',
+];
 
 export const Elevation = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Every shadow in the library is a hard offset with **zero blur**. There is no soft ' +
+          'shadow anywhere, which is also why a focused input fills with ' +
+          '`--ja-focus-fill` instead of glowing. `--ja-shadow-hover` and ' +
+          '`--ja-shadow-active` sit exactly one `--ja-lift` either side of `--ja-shadow`, so ' +
+          'the far corner of a pressed button never moves.',
+      },
+    },
+  },
+  render: () =>
+    grid(
+      SHADOWS.map(
+        (token) => html`
+          <div style="background:var(--ja-surface);border:var(--ja-border);border-radius:var(--ja-radius);box-shadow:var(${token});padding:var(--ja-space-4)">
+            <code>${token}</code>
+          </div>
+        `
+      ),
+      '12rem',
+      6
+    ),
+};
+
+/* One compact specimen, rendered once per skin and once per theme state. */
+const specimen = html`
+  <article>
+    <header>
+      <h3>Invoice 2041</h3>
+    </header>
+    <p>Northwind Traders — due in four days.</p>
+    ${row([
+      '<button class="primary">Pay now</button>',
+      '<button class="secondary outline">Later</button>',
+      '<span class="badge success">Paid</span>',
+    ])}
+  </article>
+`;
+
+export const Skins = {
+  parameters: {
+    layout: 'padded',
+    docs: {
+      description: {
+        story:
+          '`data-style="brutal"` overrides **tokens only** — not one element rule changes ' +
+          'between the two skins. The selector is bare, so the attribute works on any ' +
+          'subtree: the right-hand panel below is a plain `<div data-style="brutal">` inside ' +
+          'this otherwise-default page.',
+      },
+    },
+  },
   render: () => html`
-    <div class="d-flex flex-wrap gap-5 p-4">
-      ${['xs', 'sm', '', 'lg', 'xl', '2xl']
-        .map(
-          (s) => html`
-            <div class="sticker p-4 shadow${s ? `-${s}` : ''}" style="inline-size: 9rem">
-              <code class="fs-xs">shadow${s ? `-${s}` : ''}</code>
-            </div>
-          `
-        )
-        .join('')}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:var(--ja-space-5)">
+      ${section('Playful geometric (default)', specimen)}
+      <div data-style="brutal">${section('Neo-brutalism', specimen)}</div>
     </div>
   `,
 };
 
-export const Patterns = {
+export const ThemeStates = {
+  name: 'Theme states',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Three states, never a boolean — a boolean breaks the person who toggled once and ' +
+          'later changed their OS preference. The first panel has **no attribute** and ' +
+          'follows the operating system; the other two are forced. Each is a subtree, which ' +
+          'is a supported, first-class thing: `<aside data-theme="dark">` inside a light page ' +
+          'works from the same single token block, because a custom property resolves its ' +
+          '`light-dark()` against the *using* element.',
+      },
+    },
+  },
   render: () => html`
-    <div class="row g-4">
-      ${['pattern-dots', 'pattern-grid', 'pattern-stripes', 'pattern-cross']
-        .map(
-          (p) => html`
-            <div class="col-6 col-md-3">
-              <div class="sticker ${p}" style="block-size: 8rem"></div>
-              <code class="fs-xs">${p}</code>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:var(--ja-space-5)">
+      ${['(no attribute — follows the OS)', 'light', 'dark']
+        .map((label, index) => {
+          const attribute = index === 0 ? '' : ` data-theme="${label}"`;
+          return html`
+            <div${attribute} style="background:var(--ja-body-bg);color:var(--ja-body-color);padding:var(--ja-space-4);border:var(--ja-border);border-radius:var(--ja-radius)">
+              ${section(label, specimen)}
             </div>
-          `
-        )
-        .join('')}
-    </div>
-  `,
-};
-
-export const Decoration = {
-  render: () => html`
-    <div class="d-flex flex-column gap-5">
-      <div class="d-flex flex-wrap align-items-center gap-4">
-        <span class="text-highlight fs-4">Highlighted</span>
-        <span class="display-6 text-outline">OUTLINE</span>
-        <span class="fs-3 fw-black text-shadow-hard">HARD SHADOW</span>
-      </div>
-      <div class="d-flex flex-wrap gap-4">
-        <div class="sticker sticker-lift p-4 rotate-n2">Rotated -2°</div>
-        <div class="sticker sticker-lift p-4 rotate-1">Rotated 1°</div>
-        <div class="sticker sticker-lift p-4 rounded-blob">Blob corner</div>
-      </div>
-      <div class="marquee">
-        <div><span>ZERO DEPENDENCIES</span><span>★</span><span>BOOTSTRAP CLASS NAMES</span><span>★</span><span>CSS VARIABLES</span><span>★</span></div>
-        <div aria-hidden="true"><span>ZERO DEPENDENCIES</span><span>★</span><span>BOOTSTRAP CLASS NAMES</span><span>★</span><span>CSS VARIABLES</span><span>★</span></div>
-      </div>
-      <div class="squiggle"></div>
-      <div class="d-flex align-items-center gap-3">
-        <span class="avatar">AL</span>
-        <span class="avatar bg-pop">JB</span>
-        <span class="avatar avatar-lg bg-primary text-white">KR</span>
-        <div class="avatar-group">
-          <span class="avatar avatar-sm">A</span>
-          <span class="avatar avatar-sm bg-pop">B</span>
-          <span class="avatar avatar-sm bg-fresh">C</span>
-        </div>
-      </div>
-    </div>
-  `,
-};
-
-export const Stats = {
-  render: () => html`
-    <div class="row g-4">
-      ${[
-        ['Monthly revenue', '£48,120', 'up', '+12.4%'],
-        ['Active users', '2,840', 'up', '+3.1%'],
-        ['Failed jobs', '17', 'down', '-42%'],
-        ['Avg. response', '184ms', 'up', '+8ms'],
-      ]
-        .map(
-          ([label, value, dir, delta]) => html`
-            <div class="col-6 col-lg-3">
-              <div class="stat">
-                <span class="stat-label">${label}</span>
-                <span class="stat-value">${value}</span>
-                <span class="stat-delta stat-delta-${dir}">${dir === 'up' ? '▲' : '▼'} ${delta}</span>
-              </div>
-            </div>
-          `
-        )
+          `;
+        })
         .join('')}
     </div>
   `,

@@ -10,14 +10,7 @@ const preview = {
     backgrounds: { disable: true },
     options: {
       storySort: {
-        order: [
-          'Getting Started',
-          'Foundations',
-          'Components',
-          'Forms',
-          'Layout',
-          'Templates',
-        ],
+        order: ['Getting Started', 'Foundations', 'Elements', 'Components', 'Templates'],
       },
     },
   },

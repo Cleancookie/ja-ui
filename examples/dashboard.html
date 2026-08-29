@@ -1,338 +1,564 @@
 <!doctype html>
-<html lang="en" data-ja-theme="light">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <title>Dashboard · ja-ui</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" />
     <link rel="stylesheet" href="../dist/ja-ui.css" />
     <script src="../dist/ja-ui.iife.js" defer></script>
+
+    <style>
+      /* =====================================================================
+         Page layout. The library ships no grid and no utilities, so every
+         line here is this page's own — written against the --ja-* tokens so
+         it retheme with the library, and hung off ids and elements so no
+         class outside the library's inventory is invented.
+         ===================================================================== */
+
+      body {
+        min-block-size: 100dvh;
+        /* Backgrounds are never flat: one gradient, no image, no request. */
+        background-image: radial-gradient(var(--ja-pattern-color) 1px, transparent 1px);
+        background-size: var(--ja-pattern-size) var(--ja-pattern-size);
+      }
+
+      /* nav > ul is already a flex row; it only needs to take the slack. */
+      #primary-links {
+        flex: 1 1 auto;
+      }
+
+      #header-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--ja-space-2);
+      }
+
+      /* Without anchor positioning a popover falls back to "under the nearest
+         positioned ancestor". This is that ancestor. */
+      #account {
+        position: relative;
+      }
+
+      /* --- The shell: sidebar + content ---------------------------------- */
+      #shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+        gap: var(--ja-space-5);
+        padding: var(--ja-space-5);
+      }
+
+      @media (min-width: 64rem) {
+        #shell {
+          grid-template-columns: 16rem minmax(0, 1fr);
+        }
+
+        #shell > aside {
+          position: sticky;
+          inset-block-start: 6rem;
+        }
+      }
+
+      #shell > aside nav > ul {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--ja-space-1);
+      }
+
+      #shell > aside h2 {
+        font-size: var(--ja-font-size-sm);
+        font-weight: var(--ja-label-weight);
+        letter-spacing: var(--ja-label-tracking);
+        text-transform: var(--ja-label-case);
+        color: var(--ja-text-muted);
+      }
+
+      /* The content column is the query container, so the panels below react
+         to the column they are in rather than to the viewport. */
+      #main {
+        container-type: inline-size;
+        scroll-margin-block-start: 6rem;
+      }
+
+      #page-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--ja-space-4);
+      }
+
+      #page-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--ja-space-2);
+      }
+
+      /* --- Stat row ------------------------------------------------------- */
+      #stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+        gap: var(--ja-space-4);
+      }
+
+      #stats h3 {
+        font-size: var(--ja-font-size-sm);
+        font-weight: var(--ja-label-weight);
+        letter-spacing: var(--ja-label-tracking);
+        text-transform: var(--ja-label-case);
+        color: var(--ja-text-muted);
+      }
+
+      #stats strong {
+        display: block;
+        font-family: var(--ja-font-heading);
+        font-size: 2.25rem;
+        font-weight: var(--ja-heading-weight);
+        letter-spacing: var(--ja-heading-tracking);
+        line-height: var(--ja-line-height-tight);
+        font-variant-numeric: tabular-nums;
+      }
+
+      #stats small {
+        color: var(--ja-text-muted);
+      }
+
+      /* --- Chart + activity ------------------------------------------------ */
+      #panels {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--ja-space-4);
+      }
+
+      @container (min-width: 52rem) {
+        #panels {
+          grid-template-columns: 2fr minmax(0, 1fr);
+        }
+      }
+
+      #panels > article > header {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      #chart {
+        display: flex;
+        align-items: flex-end;
+        gap: var(--ja-space-2);
+        block-size: 12rem;
+      }
+
+      #chart > div {
+        flex: 1 1 0;
+        background-color: var(--ja-primary);
+        border: var(--ja-border);
+        border-block-end: 0;
+        border-start-start-radius: var(--ja-radius-sm);
+        border-start-end-radius: var(--ja-radius-sm);
+      }
+
+      #chart > div:last-child {
+        background-color: var(--ja-pop);
+      }
+
+      #chart-scale {
+        display: flex;
+        gap: var(--ja-space-2);
+        font-size: var(--ja-font-size-xs);
+        font-weight: var(--ja-label-weight);
+        letter-spacing: var(--ja-label-tracking);
+        color: var(--ja-text-muted);
+      }
+
+      #chart-scale > span {
+        flex: 1 1 0;
+        text-align: center;
+      }
+
+      #activity strong {
+        display: block;
+      }
+
+      #activity small {
+        color: var(--ja-text-muted);
+      }
+
+      /* --- Table ----------------------------------------------------------- */
+      #invoices-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ja-space-3);
+      }
+
+      #table-foot {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ja-space-3);
+      }
+
+      #table-foot > p {
+        color: var(--ja-text-muted);
+        font-size: var(--ja-font-size-sm);
+      }
+
+      /* --- Dialog ---------------------------------------------------------- */
+      #deploy-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+        gap: var(--ja-space-4);
+      }
+
+      #deploy-fields > p:first-child,
+      #deploy-fields > label:last-child {
+        grid-column: 1 / -1;
+      }
+    </style>
   </head>
-  <body class="pattern-dots">
-    <a class="visually-hidden-focusable btn btn-primary m-3" href="#main">Skip to content</a>
 
-    <nav class="navbar navbar-expand-lg sticky-top bg-white">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">ja&nbsp;ui</a>
-        <button class="navbar-toggler" data-ja-toggle="offcanvas" data-ja-target="#sidebar" aria-label="Open navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="d-none d-lg-flex align-items-center gap-3 flex-grow-1">
-          <div class="input-group" style="max-inline-size: 22rem">
-            <span class="input-group-text">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-            </span>
-            <input class="form-control" placeholder="Search customers, invoices…" aria-label="Search" />
-          </div>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <button class="btn btn-ghost btn-icon position-relative" aria-label="Notifications">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-            <span class="badge badge-dot bg-danger position-absolute top-0 end-0"></span>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header>
+      <nav class="sticky" aria-label="Primary">
+        <a href="dashboard.html">ja&nbsp;ui</a>
+
+        <ul role="list" id="primary-links">
+          <li><a href="dashboard.html" aria-current="page">Overview</a></li>
+          <li><a href="cms.html">Content</a></li>
+          <li><a href="signin.html">Sign in</a></li>
+        </ul>
+
+        <div id="header-actions">
+          <button type="button" class="ghost icon" data-ja-theme-toggle>
+            <span aria-hidden="true">◐</span>
+            <span class="visually-hidden">Switch between light and dark</span>
           </button>
-          <div class="dropdown">
-            <button class="btn btn-ghost d-flex align-items-center gap-2" data-ja-toggle="dropdown" aria-expanded="false">
-              <span class="avatar avatar-sm">AL</span>
-              <span class="d-none d-sm-inline">Alex</span>
+
+          <div id="account">
+            <button type="button" class="outline sm" popovertarget="account-menu">
+              <span aria-hidden="true">AL</span>
+              <span class="visually-hidden">Your account</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><h6 class="dropdown-header">Signed in as alex</h6></li>
-              <li><a class="dropdown-item" href="#">Profile</a></li>
-              <li><a class="dropdown-item" href="#">Preferences</a></li>
-              <li><hr class="dropdown-divider" /></li>
-              <li><a class="dropdown-item" href="#">Sign out</a></li>
-            </ul>
+
+            <div popover id="account-menu">
+              <ul role="list">
+                <li><a href="#main">Profile</a></li>
+                <li><a href="#main">Preferences</a></li>
+                <li><a href="#main">API keys</a></li>
+                <li><hr /></li>
+                <li><a href="signin.html">Sign out</a></li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
 
-    <div class="container-fluid">
-      <div class="row g-0">
-        <!-- Sidebar -->
-        <aside class="col-lg-2 d-none d-lg-block border-end bg-white" style="min-block-size: calc(100vh - 4.5rem)">
-          <nav class="nav flex-column gap-1 p-3">
-            <a class="nav-link active" href="#">Overview</a>
-            <a class="nav-link" href="#">Customers</a>
-            <a class="nav-link" href="#">Invoices</a>
-            <a class="nav-link" href="#">Products</a>
-            <a class="nav-link" href="#">Reports</a>
-            <hr class="my-3" />
-            <span class="text-label text-muted px-4 pb-2">Settings</span>
-            <a class="nav-link" href="#">Team</a>
-            <a class="nav-link" href="#">Billing</a>
-            <a class="nav-link" href="#">API keys</a>
-          </nav>
-        </aside>
+    <div id="shell">
+      <aside>
+        <nav aria-label="Workspace sections">
+          <ul role="list">
+            <li><a href="dashboard.html" aria-current="page">Overview</a></li>
+            <li><a href="#invoices">Invoices</a></li>
+            <li><a href="#activity">Activity</a></li>
+            <li><a href="#release-notes">Releases</a></li>
+          </ul>
+        </nav>
 
-        <!-- Main -->
-        <main id="main" class="col-lg-10 p-4 p-xl-5 d-flex flex-column gap-5">
-          <header class="d-flex flex-wrap align-items-end justify-content-between gap-3">
-            <div>
-              <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                  <li class="breadcrumb-item"><a href="#">Home</a></li>
-                  <li class="breadcrumb-item active" aria-current="page">Overview</li>
-                </ol>
-              </nav>
-              <h1 class="mt-2">Good afternoon, Alex</h1>
-              <p class="lead">Here is how the last 30 days went.</p>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-outline-secondary">Export CSV</button>
-              <button class="btn btn-primary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                New invoice
-              </button>
-            </div>
-          </header>
+        <hr />
 
-          <!-- Stats -->
-          <section class="row g-4">
-            <div class="col-6 col-xl-3">
-              <div class="stat h-100">
-                <span class="stat-label">Revenue</span>
-                <span class="stat-value">£48,120</span>
-                <span class="stat-delta stat-delta-up">▲ 12.4% vs last month</span>
-              </div>
-            </div>
-            <div class="col-6 col-xl-3">
-              <div class="stat h-100">
-                <span class="stat-label">Active customers</span>
-                <span class="stat-value">2,840</span>
-                <span class="stat-delta stat-delta-up">▲ 3.1%</span>
-              </div>
-            </div>
-            <div class="col-6 col-xl-3">
-              <div class="stat h-100">
-                <span class="stat-label">Overdue invoices</span>
-                <span class="stat-value">17</span>
-                <span class="stat-delta stat-delta-down">▼ 42%</span>
-              </div>
-            </div>
-            <div class="col-6 col-xl-3">
-              <div class="stat h-100">
-                <span class="stat-label">Avg. response</span>
-                <span class="stat-value">184<span class="fs-5">ms</span></span>
-                <span class="stat-delta stat-delta-down">▲ 8ms</span>
-              </div>
-            </div>
-          </section>
+        <h2 id="settings-heading">Settings</h2>
+        <nav aria-labelledby="settings-heading">
+          <ul role="list">
+            <li><a href="#main">Team</a></li>
+            <li><a href="#main">Billing</a></li>
+            <li><a href="#main">Webhooks</a></li>
+          </ul>
+        </nav>
+      </aside>
 
-          <div class="row g-4">
-            <!-- Chart-ish panel -->
-            <div class="col-xl-8">
-              <div class="card h-100">
-                <div class="card-header justify-content-between">
-                  <span>Revenue by week</span>
-                  <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-secondary btn-sm active">30d</button>
-                    <button class="btn btn-outline-secondary btn-sm">90d</button>
-                    <button class="btn btn-outline-secondary btn-sm">1y</button>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div class="d-flex align-items-end justify-content-between gap-2 flex-grow-1" style="min-block-size: 14rem" role="img" aria-label="Bar chart of weekly revenue, trending upward">
-                    <div class="sticker bg-primary-subtle w-100" style="block-size: 38%"></div>
-                    <div class="sticker bg-primary-subtle w-100" style="block-size: 52%"></div>
-                    <div class="sticker bg-primary-subtle w-100" style="block-size: 44%"></div>
-                    <div class="sticker bg-primary-subtle w-100" style="block-size: 68%"></div>
-                    <div class="sticker bg-primary-subtle w-100" style="block-size: 61%"></div>
-                    <div class="sticker bg-primary w-100" style="block-size: 86%"></div>
-                    <div class="sticker bg-pop w-100" style="block-size: 100%"></div>
-                  </div>
-                  <div class="d-flex justify-content-between text-label text-muted mt-3">
-                    <span>W22</span><span>W23</span><span>W24</span><span>W25</span><span>W26</span><span>W27</span><span>W28</span>
-                  </div>
-                </div>
-              </div>
+      <main id="main">
+        <nav aria-label="Breadcrumb">
+          <ol>
+            <li><a href="dashboard.html">Home</a></li>
+            <li><a href="dashboard.html">Workspace</a></li>
+            <li><a href="dashboard.html" aria-current="page">Overview</a></li>
+          </ol>
+        </nav>
+
+        <div id="page-head">
+          <hgroup>
+            <h1>Good afternoon, Alex</h1>
+            <p>Here is how the last 30 days went.</p>
+          </hgroup>
+
+          <div id="page-actions">
+            <button type="button" class="outline">Export CSV</button>
+            <button type="button" id="toast-demo" class="success">Ping me</button>
+            <button type="button" class="primary" commandfor="new-deployment" command="show-modal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              New deployment
+            </button>
+          </div>
+        </div>
+
+        <section id="stats" aria-labelledby="stats-heading">
+          <h2 id="stats-heading" class="visually-hidden">Key numbers</h2>
+
+          <article>
+            <h3 id="stat-revenue">Revenue</h3>
+            <p><strong>£48,120</strong></p>
+            <progress aria-labelledby="stat-revenue" value="74" max="100"></progress>
+            <p><small>74% of the £65,000 month target</small></p>
+          </article>
+
+          <article>
+            <h3 id="stat-customers">Active customers</h3>
+            <p><strong>2,840</strong></p>
+            <progress aria-labelledby="stat-customers" value="61" max="100"></progress>
+            <p><small>61% of seats taken</small></p>
+          </article>
+
+          <article>
+            <h3 id="stat-overdue">Overdue invoices</h3>
+            <p><strong>17</strong></p>
+            <progress aria-labelledby="stat-overdue" value="12" max="100"></progress>
+            <p><small>12% of open invoices</small></p>
+          </article>
+
+          <article>
+            <h3 id="stat-uptime">Uptime</h3>
+            <p><strong>99.4%</strong></p>
+            <progress aria-labelledby="stat-uptime" value="99" max="100"></progress>
+            <p><small>Rolling 30 days</small></p>
+          </article>
+        </section>
+
+        <div id="panels">
+          <article>
+            <header>
+              <h2>Revenue by week</h2>
+              <span class="badge info">Last 7 weeks</span>
+            </header>
+
+            <div id="chart" role="img" aria-label="Bar chart of weekly revenue for weeks 22 to 28, rising from £24,000 to £61,000">
+              <div style="block-size: 38%"></div>
+              <div style="block-size: 52%"></div>
+              <div style="block-size: 44%"></div>
+              <div style="block-size: 68%"></div>
+              <div style="block-size: 61%"></div>
+              <div style="block-size: 86%"></div>
+              <div style="block-size: 100%"></div>
             </div>
 
-            <!-- Activity -->
-            <div class="col-xl-4">
-              <div class="card h-100">
-                <div class="card-header">Recent activity</div>
-                <div class="list-group list-group-flush">
-                  <div class="list-group-item">
-                    <span class="avatar avatar-sm bg-fresh">JB</span>
-                    <div class="flex-grow-1">
-                      <strong class="d-block">Jaz approved INV-2041</strong>
-                      <span class="text-muted fs-sm">4 minutes ago</span>
-                    </div>
-                  </div>
-                  <div class="list-group-item">
-                    <span class="avatar avatar-sm bg-pop">KR</span>
-                    <div class="flex-grow-1">
-                      <strong class="d-block">Kem added 3 products</strong>
-                      <span class="text-muted fs-sm">1 hour ago</span>
-                    </div>
-                  </div>
-                  <div class="list-group-item">
-                    <span class="avatar avatar-sm">AL</span>
-                    <div class="flex-grow-1">
-                      <strong class="d-block">You changed billing settings</strong>
-                      <span class="text-muted fs-sm">Yesterday</span>
-                    </div>
-                  </div>
-                  <div class="list-group-item">
-                    <span class="avatar avatar-sm bg-danger">!</span>
-                    <div class="flex-grow-1">
-                      <strong class="d-block">Payment failed for Fabrikam</strong>
-                      <span class="text-muted fs-sm">Yesterday</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="card-footer justify-content-center">
-                  <a href="#" class="fw-bold">View everything</a>
-                </div>
-              </div>
-            </div>
+            <p id="chart-scale" aria-hidden="true">
+              <span>W22</span><span>W23</span><span>W24</span><span>W25</span><span>W26</span><span>W27</span><span>W28</span>
+            </p>
+          </article>
+
+          <article id="activity">
+            <header>
+              <h2>Recent activity</h2>
+            </header>
+
+            <ul role="list">
+              <li>
+                <strong>Jaz approved INV-2041</strong>
+                <small>4 minutes ago</small>
+              </li>
+              <li>
+                <strong>Kem added 3 products</strong>
+                <small>1 hour ago</small>
+              </li>
+              <li>
+                <strong>You changed billing settings</strong>
+                <small>Yesterday</small>
+              </li>
+              <li>
+                <strong>Payment failed for Fabrikam</strong>
+                <small>Yesterday</small>
+              </li>
+            </ul>
+
+            <footer><a href="#main">View everything</a></footer>
+          </article>
+        </div>
+
+        <section id="invoices" aria-labelledby="invoices-heading">
+          <div id="invoices-head">
+            <h2 id="invoices-heading">Latest invoices</h2>
+
+            <button type="button" class="soft" commandfor="new-deployment" command="show-modal">
+              Quick create
+            </button>
           </div>
 
-          <!-- Table -->
-          <section class="d-flex flex-column gap-3">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-              <h2>Latest invoices</h2>
-              <div class="d-flex gap-2">
-                <div class="dropdown">
-                  <button class="btn btn-outline-secondary dropdown-toggle" data-ja-toggle="dropdown">Status</button>
-                  <ul class="dropdown-menu">
-                    <li><a class="dropdown-item active" href="#">All</a></li>
-                    <li><a class="dropdown-item" href="#">Paid</a></li>
-                    <li><a class="dropdown-item" href="#">Pending</a></li>
-                    <li><a class="dropdown-item" href="#">Overdue</a></li>
-                  </ul>
-                </div>
-                <button class="btn btn-soft-primary" data-ja-toggle="modal" data-ja-target="#invoice-modal">Quick create</button>
-              </div>
-            </div>
+          <div role="region" aria-labelledby="invoices-heading" tabindex="0">
+            <table class="striped">
+              <caption>
+                Every invoice issued in the last fortnight.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Reference</th>
+                  <th scope="col">Client</th>
+                  <th scope="col">Issued</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" class="numeric">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row"><code>INV-2041</code></th>
+                  <td>Northwind Traders</td>
+                  <td><time datetime="2026-08-12">12 Aug 2026</time></td>
+                  <td><span class="badge success">Paid</span></td>
+                  <td class="numeric">£4,120.00</td>
+                </tr>
+                <tr>
+                  <th scope="row"><code>INV-2042</code></th>
+                  <td>Contoso Ltd</td>
+                  <td><time datetime="2026-08-14">14 Aug 2026</time></td>
+                  <td><span class="badge warning">Pending</span></td>
+                  <td class="numeric">£980.50</td>
+                </tr>
+                <tr>
+                  <th scope="row"><code>INV-2043</code></th>
+                  <td>Fabrikam Inc</td>
+                  <td><time datetime="2026-08-02">02 Aug 2026</time></td>
+                  <td><span class="badge danger">Overdue</span></td>
+                  <td class="numeric">£12,400.00</td>
+                </tr>
+                <tr>
+                  <th scope="row"><code>INV-2044</code></th>
+                  <td>Adventure Works</td>
+                  <td><time datetime="2026-08-18">18 Aug 2026</time></td>
+                  <td><span class="badge success">Paid</span></td>
+                  <td class="numeric">£2,315.75</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-            <div class="table-card">
-              <div class="table-responsive">
-                <table class="table table-hover">
-                  <thead>
-                    <tr>
-                      <th>Reference</th>
-                      <th>Client</th>
-                      <th>Issued</th>
-                      <th>Status</th>
-                      <th class="text-end">Total</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><code>INV-2041</code></td>
-                      <td><div class="d-flex align-items-center gap-2"><span class="avatar avatar-sm">NT</span> Northwind Traders</div></td>
-                      <td>12 Aug 2026</td>
-                      <td><span class="badge bg-success-subtle">Paid</span></td>
-                      <td class="text-end fw-bold">£4,120.00</td>
-                      <td class="text-end"><button class="btn btn-ghost btn-sm">Open</button></td>
-                    </tr>
-                    <tr>
-                      <td><code>INV-2042</code></td>
-                      <td><div class="d-flex align-items-center gap-2"><span class="avatar avatar-sm bg-pop">CL</span> Contoso Ltd</div></td>
-                      <td>14 Aug 2026</td>
-                      <td><span class="badge bg-warning-subtle">Pending</span></td>
-                      <td class="text-end fw-bold">£980.50</td>
-                      <td class="text-end"><button class="btn btn-ghost btn-sm">Open</button></td>
-                    </tr>
-                    <tr>
-                      <td><code>INV-2043</code></td>
-                      <td><div class="d-flex align-items-center gap-2"><span class="avatar avatar-sm bg-danger">FI</span> Fabrikam Inc</div></td>
-                      <td>02 Aug 2026</td>
-                      <td><span class="badge bg-danger-subtle">Overdue</span></td>
-                      <td class="text-end fw-bold">£12,400.00</td>
-                      <td class="text-end"><button class="btn btn-ghost btn-sm">Open</button></td>
-                    </tr>
-                    <tr>
-                      <td><code>INV-2044</code></td>
-                      <td><div class="d-flex align-items-center gap-2"><span class="avatar avatar-sm bg-fresh">AW</span> Adventure Works</div></td>
-                      <td>18 Aug 2026</td>
-                      <td><span class="badge bg-success-subtle">Paid</span></td>
-                      <td class="text-end fw-bold">£2,315.75</td>
-                      <td class="text-end"><button class="btn btn-ghost btn-sm">Open</button></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+          <div id="table-foot">
+            <p>Showing 4 of 128 invoices</p>
 
-            <nav class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-              <span class="text-muted fs-sm">Showing 4 of 128 invoices</span>
-              <ul class="pagination pagination-sm">
-                <li class="page-item disabled"><a class="page-link">Previous</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+            <nav aria-label="Pagination">
+              <ul role="list">
+                <li><a href="#invoices" aria-disabled="true">Previous</a></li>
+                <li><a href="#invoices" aria-current="page">1</a></li>
+                <li><a href="#invoices">2</a></li>
+                <li><a href="#invoices">3</a></li>
+                <li><a href="#invoices">Next</a></li>
               </ul>
             </nav>
-          </section>
-        </main>
-      </div>
+          </div>
+        </section>
+
+        <section id="release-notes" aria-labelledby="release-notes-heading">
+          <h2 id="release-notes-heading">This week's release</h2>
+
+          <details name="release" open>
+            <summary>What shipped in 4.2.0</summary>
+            <p>
+              Invoice reminders now respect the workspace timezone, and the CSV export
+              includes the tax column that everyone kept asking for.
+            </p>
+          </details>
+
+          <details name="release">
+            <summary>Known issues</summary>
+            <p>
+              Bulk archive is capped at 500 rows per run. The cap lifts in 4.3.0, which
+              is currently in the staging environment.
+            </p>
+          </details>
+
+          <details name="release">
+            <summary>How to roll back</summary>
+            <p>
+              Every deployment keeps its predecessor warm for 24 hours. Open the
+              deployment, press <kbd>R</kbd>, and confirm — traffic swaps in about eight
+              seconds.
+            </p>
+          </details>
+        </section>
+      </main>
     </div>
 
-    <!-- Mobile sidebar -->
-    <div class="offcanvas offcanvas-start" id="sidebar" tabindex="-1">
-      <div class="offcanvas-header">
-        <h5 class="offcanvas-title">Menu</h5>
-        <button class="btn-close" data-ja-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body">
-        <nav class="nav flex-column gap-1">
-          <a class="nav-link active" href="#">Overview</a>
-          <a class="nav-link" href="#">Customers</a>
-          <a class="nav-link" href="#">Invoices</a>
-          <a class="nav-link" href="#">Products</a>
-          <a class="nav-link" href="#">Reports</a>
-        </nav>
-      </div>
-    </div>
+    <dialog id="new-deployment" aria-labelledby="new-deployment-title">
+      <form method="dialog">
+        <header>
+          <h2 id="new-deployment-title">New deployment</h2>
+          <button type="button" class="ghost icon" commandfor="new-deployment" command="close">
+            <span aria-hidden="true">×</span>
+            <span class="visually-hidden">Close</span>
+          </button>
+        </header>
 
-    <!-- Quick create -->
-    <div class="modal fade" id="invoice-modal" tabindex="-1" aria-labelledby="invoice-modal-title">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="invoice-modal-title">New invoice</h5>
-            <button class="btn-close" data-ja-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label" for="m-client">Client</label>
-              <select class="form-select" id="m-client">
-                <option>Northwind Traders</option>
-                <option>Contoso Ltd</option>
-                <option>Fabrikam Inc</option>
-              </select>
-            </div>
-            <div class="row g-3">
-              <div class="col-6 form-group">
-                <label class="form-label" for="m-amount">Amount</label>
-                <div class="input-group">
-                  <span class="input-group-text">£</span>
-                  <input class="form-control" id="m-amount" value="0.00" />
-                </div>
-              </div>
-              <div class="col-6 form-group">
-                <label class="form-label" for="m-due">Due</label>
-                <input type="date" class="form-control" id="m-due" />
-              </div>
-            </div>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" role="switch" id="m-send" checked />
-              <label class="form-check-label" for="m-send">Email it as soon as it's created</label>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-ghost" data-ja-dismiss="modal">Cancel</button>
-            <button class="btn btn-primary">Create invoice</button>
-          </div>
+        <div id="deploy-fields">
+          <p>
+            <label for="deploy-branch">Branch</label>
+            <select id="deploy-branch" name="branch">
+              <option>main</option>
+              <option>release/4.3.0</option>
+              <option>hotfix/invoice-tax</option>
+            </select>
+          </p>
+
+          <p>
+            <label for="deploy-env">Environment</label>
+            <select id="deploy-env" name="environment">
+              <option>Production</option>
+              <option>Staging</option>
+            </select>
+          </p>
+
+          <p>
+            <label for="deploy-at">Run at</label>
+            <input type="datetime-local" id="deploy-at" name="at" value="2026-08-29T18:30" />
+          </p>
+
+          <label>
+            <input type="checkbox" role="switch" name="notify" checked />
+            Post to #deploys when it finishes
+          </label>
         </div>
-      </div>
-    </div>
+
+        <footer>
+          <button type="button" class="ghost" commandfor="new-deployment" command="close">
+            Cancel
+          </button>
+          <button type="submit" value="deploy" autofocus>Queue deployment</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <script>
+      // Everything on this page is the platform: <dialog>, <details> and
+      // [popover] need no wiring at all. These two lines are the only page
+      // script, and they exist to demonstrate the toast API.
+      document.getElementById('toast-demo').addEventListener('click', () => {
+        JaUI.toast('Deployment queued.', { variant: 'success' });
+      });
+
+      document.getElementById('new-deployment').addEventListener('close', (event) => {
+        if (event.target.returnValue === 'deploy') {
+          JaUI.toast('Deployment queued.', { variant: 'success' });
+        }
+      });
+    </script>
   </body>
 </html>

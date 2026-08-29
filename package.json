@@ -68,7 +68,8 @@
     "smoke": "node tools/smoke.mjs",
     "perf": "node tools/perf.mjs",
     "prepublishOnly": "npm run build",
-    "lint:css": "node tools/lint-css.mjs"
+    "lint:css": "node tools/lint-css.mjs",
+    "check:examples": "node tools/check-examples.mjs"
   },
   "devDependencies": {
     "@storybook/addon-a11y": "^9.1.10",

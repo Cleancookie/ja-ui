@@ -1,250 +1,529 @@
 <!doctype html>
-<html lang="en" data-ja-theme="light">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <title>Content manager · ja-ui</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" />
     <link rel="stylesheet" href="../dist/ja-ui.css" />
     <script src="../dist/ja-ui.iife.js" defer></script>
+
+    <style>
+      /* =====================================================================
+         This page's layout. No utilities, no grid system — element and id
+         selectors, modern CSS, and the --ja-* tokens for every value so the
+         page follows the library's theme and skin.
+         ===================================================================== */
+
+      body {
+        min-block-size: 100dvh;
+      }
+
+      #primary-links {
+        flex: 1 1 auto;
+      }
+
+      #header-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--ja-space-2);
+      }
+
+      /* --- Shell ---------------------------------------------------------- */
+      #shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+        gap: var(--ja-space-5);
+        padding: var(--ja-space-5);
+      }
+
+      @media (min-width: 64rem) {
+        #shell {
+          grid-template-columns: 15rem minmax(0, 1fr);
+        }
+
+        #shell > aside {
+          position: sticky;
+          inset-block-start: 6rem;
+        }
+      }
+
+      #shell > aside h2 {
+        font-size: var(--ja-font-size-sm);
+        font-weight: var(--ja-label-weight);
+        letter-spacing: var(--ja-label-tracking);
+        text-transform: var(--ja-label-case);
+        color: var(--ja-text-muted);
+      }
+
+      #shell > aside nav > ul {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--ja-space-1);
+      }
+
+      #tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--ja-space-2);
+        /* The marker goes, so role="list" is in the markup — see the list-group
+           note in the library: Safari drops the list role otherwise. */
+        list-style: none;
+        padding-inline-start: 0;
+      }
+
+      #main {
+        scroll-margin-block-start: 6rem;
+      }
+
+      #page-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--ja-space-4);
+      }
+
+      #page-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--ja-space-2);
+      }
+
+      /* --- The tabbed editor ---------------------------------------------- */
+      /* Each panel lays its own fields out; the form's gap keeps the panel,
+         the field groups and the action row apart. */
+      #editor [role="tabpanel"] {
+        display: grid;
+        gap: var(--ja-space-4);
+      }
+
+      @media (min-width: 48rem) {
+        #panel-metadata {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      #editor-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: var(--ja-space-2);
+      }
+
+      #editor textarea {
+        block-size: auto;
+        min-block-size: 10lh;
+        padding-block: var(--ja-space-3);
+        resize: vertical;
+      }
+
+      #editor small {
+        color: var(--ja-text-muted);
+      }
+
+      /* --- The page list --------------------------------------------------- */
+      #pages > li > a {
+        justify-content: space-between;
+        padding-block: var(--ja-space-2);
+      }
+
+      #pages > li > a > span:first-child {
+        display: grid;
+        gap: var(--ja-space-1);
+      }
+
+      #pages code {
+        font-size: var(--ja-font-size-xs);
+      }
+
+      #list-foot {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ja-space-3);
+      }
+
+      #list-foot > p {
+        color: var(--ja-text-muted);
+        font-size: var(--ja-font-size-sm);
+      }
+
+      /* --- The settings drawer --------------------------------------------- */
+      #page-settings form > div {
+        display: grid;
+        gap: var(--ja-space-4);
+        align-content: start;
+      }
+    </style>
   </head>
+
   <body>
-    <nav class="navbar navbar-expand-lg bg-white sticky-top">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">ja&nbsp;cms</a>
-        <ul class="nav nav-pills d-none d-lg-flex">
-          <li class="nav-item"><a class="nav-link active" href="#">Content</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">Media</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">Taxonomy</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">Settings</a></li>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header>
+      <nav class="sticky" aria-label="Primary">
+        <a href="cms.html">ja&nbsp;cms</a>
+
+        <ul role="list" id="primary-links">
+          <li><a href="cms.html" aria-current="page">Content</a></li>
+          <li><a href="dashboard.html">Dashboard</a></li>
+          <li><a href="signin.html">Sign in</a></li>
         </ul>
-        <div class="d-flex align-items-center gap-2">
-          <span class="badge bg-warning-subtle">3 drafts</span>
-          <button class="btn btn-primary btn-sm" data-ja-toggle="offcanvas" data-ja-target="#editor">New article</button>
-          <span class="avatar avatar-sm">AL</span>
+
+        <div id="header-actions">
+          <span class="badge warning">3<span class="visually-hidden"> unpublished drafts</span></span>
+
+          <button type="button" class="outline sm" commandfor="page-settings" command="show-modal">
+            Page settings
+          </button>
+
+          <button type="button" class="ghost icon" data-ja-theme-toggle>
+            <span aria-hidden="true">◐</span>
+            <span class="visually-hidden">Switch between light and dark</span>
+          </button>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
 
-    <div class="container-fluid p-4 p-xl-5">
-      <div class="row g-5">
-        <!-- Filters -->
-        <aside class="col-lg-3 col-xl-2">
-          <div class="d-flex flex-column gap-4">
-            <div class="form-group">
-              <label class="form-label" for="cms-search">Search</label>
-              <input class="form-control form-control-sm" id="cms-search" placeholder="Title or slug" />
-            </div>
-            <div class="d-flex flex-column gap-2">
-              <span class="text-label text-muted">Status</span>
-              <div class="form-check"><input class="form-check-input" type="checkbox" id="st-pub" checked /><label class="form-check-label" for="st-pub">Published <span class="text-muted">(42)</span></label></div>
-              <div class="form-check"><input class="form-check-input" type="checkbox" id="st-draft" checked /><label class="form-check-label" for="st-draft">Draft <span class="text-muted">(3)</span></label></div>
-              <div class="form-check"><input class="form-check-input" type="checkbox" id="st-arch" /><label class="form-check-label" for="st-arch">Archived <span class="text-muted">(17)</span></label></div>
-            </div>
-            <div class="d-flex flex-column gap-2">
-              <span class="text-label text-muted">Collections</span>
-              <div class="list-group list-group-flush">
-                <a class="list-group-item list-group-item-action active" href="#">All articles</a>
-                <a class="list-group-item list-group-item-action" href="#">Engineering</a>
-                <a class="list-group-item list-group-item-action" href="#">Release notes</a>
-                <a class="list-group-item list-group-item-action" href="#">Handbook</a>
-              </div>
-            </div>
-            <div class="d-flex flex-column gap-2">
-              <span class="text-label text-muted">Tags</span>
-              <div class="d-flex flex-wrap gap-2">
-                <span class="badge bg-primary-subtle">css</span>
-                <span class="badge bg-pop-subtle">design</span>
-                <span class="badge bg-fresh-subtle">tooling</span>
-                <span class="badge bg-info-subtle">a11y</span>
-              </div>
-            </div>
+    <div id="shell">
+      <aside>
+        <h2 id="collections-heading">Collections</h2>
+        <nav aria-labelledby="collections-heading">
+          <ul role="list">
+            <li><a href="cms.html" aria-current="page">All articles</a></li>
+            <li><a href="#pages">Engineering</a></li>
+            <li><a href="#pages">Release notes</a></li>
+            <li><a href="#pages">Handbook</a></li>
+          </ul>
+        </nav>
+
+        <hr />
+
+        <h2 id="tags-heading">Tags</h2>
+        <ul role="list" id="tags" aria-labelledby="tags-heading">
+          <li><span class="badge primary">css</span></li>
+          <li><span class="badge pop">design</span></li>
+          <li><span class="badge fresh">tooling</span></li>
+          <li><span class="badge info">a11y</span></li>
+        </ul>
+      </aside>
+
+      <main id="main">
+        <nav aria-label="Breadcrumb">
+          <ol>
+            <li><a href="cms.html">Home</a></li>
+            <li><a href="cms.html">Content</a></li>
+            <li><a href="cms.html">Articles</a></li>
+            <li><a href="cms.html" aria-current="page">Design tokens in practice</a></li>
+          </ol>
+        </nav>
+
+        <div id="page-head">
+          <hgroup>
+            <h1>Design tokens in practice</h1>
+            <p>Draft · last autosaved 12 seconds ago</p>
+          </hgroup>
+
+          <div id="page-actions">
+            <button type="button" class="outline">Preview</button>
+            <button type="button" commandfor="page-settings" command="show-modal">
+              Page settings
+            </button>
           </div>
-        </aside>
+        </div>
 
-        <!-- Content list -->
-        <main class="col-lg-9 col-xl-10 d-flex flex-column gap-4">
-          <header class="d-flex flex-wrap align-items-end justify-content-between gap-3">
-            <div>
-              <h1>Articles</h1>
-              <p class="lead">45 items · last published 2 hours ago</p>
-            </div>
-            <div class="btn-group">
-              <button class="btn btn-outline-secondary active">List</button>
-              <button class="btn btn-outline-secondary">Board</button>
-            </div>
-          </header>
+        <div class="callout warning" id="unsaved" role="status">
+          <p>
+            <strong>Unsaved changes.</strong> Three fields have moved since the last
+            autosave. Publishing writes them all.
+          </p>
+          <button type="button" id="dismiss-unsaved">
+            <span aria-hidden="true">×</span>
+            <span class="visually-hidden">Dismiss the unsaved changes notice</span>
+          </button>
+        </div>
 
-          <div class="alert alert-info" role="alert">
-            <span class="alert-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
-            </span>
-            <div class="alert-body">
-              <strong>Scheduled publish.</strong> "Design tokens in practice" goes live at 09:00 tomorrow.
-            </div>
-          </div>
-
-          <div class="table-card">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th style="inline-size: 3rem"><input class="form-check-input" type="checkbox" aria-label="Select all" /></th>
-                    <th>Title</th>
-                    <th>Author</th>
-                    <th>Collection</th>
-                    <th>Status</th>
-                    <th>Updated</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><input class="form-check-input" type="checkbox" aria-label="Select row" /></td>
-                    <td>
-                      <strong class="d-block">Design tokens in practice</strong>
-                      <code class="fs-xs">/design-tokens-in-practice</code>
-                    </td>
-                    <td><span class="avatar avatar-sm">AL</span></td>
-                    <td><span class="badge bg-primary-subtle">Engineering</span></td>
-                    <td><span class="badge bg-warning-subtle">Scheduled</span></td>
-                    <td class="text-muted">2h ago</td>
-                    <td class="text-end">
-                      <div class="dropdown">
-                        <button class="btn btn-ghost btn-sm dropdown-toggle dropdown-toggle-no-caret" data-ja-toggle="dropdown" aria-label="Row actions">···</button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                          <li><a class="dropdown-item" href="#">Edit</a></li>
-                          <li><a class="dropdown-item" href="#">Duplicate</a></li>
-                          <li><a class="dropdown-item" href="#">Unschedule</a></li>
-                          <li><hr class="dropdown-divider" /></li>
-                          <li><a class="dropdown-item" href="#">Delete</a></li>
-                        </ul>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><input class="form-check-input" type="checkbox" aria-label="Select row" /></td>
-                    <td>
-                      <strong class="d-block">Why we stopped using a CSS framework</strong>
-                      <code class="fs-xs">/why-we-stopped</code>
-                    </td>
-                    <td><span class="avatar avatar-sm bg-pop">JB</span></td>
-                    <td><span class="badge bg-fresh-subtle">Handbook</span></td>
-                    <td><span class="badge bg-success-subtle">Published</span></td>
-                    <td class="text-muted">Yesterday</td>
-                    <td class="text-end"><button class="btn btn-ghost btn-sm">Edit</button></td>
-                  </tr>
-                  <tr>
-                    <td><input class="form-check-input" type="checkbox" aria-label="Select row" /></td>
-                    <td>
-                      <strong class="d-block">Release 1.0 — everything that changed</strong>
-                      <code class="fs-xs">/release-1-0</code>
-                    </td>
-                    <td><span class="avatar avatar-sm bg-fresh">KR</span></td>
-                    <td><span class="badge bg-info-subtle">Release notes</span></td>
-                    <td><span class="badge bg-secondary-subtle">Draft</span></td>
-                    <td class="text-muted">3 days ago</td>
-                    <td class="text-end"><button class="btn btn-ghost btn-sm">Edit</button></td>
-                  </tr>
-                  <tr>
-                    <td><input class="form-check-input" type="checkbox" aria-label="Select row" /></td>
-                    <td>
-                      <strong class="d-block">Accessible focus states without the glow</strong>
-                      <code class="fs-xs">/accessible-focus</code>
-                    </td>
-                    <td><span class="avatar avatar-sm">AL</span></td>
-                    <td><span class="badge bg-primary-subtle">Engineering</span></td>
-                    <td><span class="badge bg-success-subtle">Published</span></td>
-                    <td class="text-muted">Last week</td>
-                    <td class="text-end"><button class="btn btn-ghost btn-sm">Edit</button></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+        <article id="editor">
+          <div role="tablist" aria-label="Editor sections">
+            <button
+              type="button"
+              role="tab"
+              id="tab-content"
+              aria-controls="panel-content"
+              aria-selected="true"
+              tabindex="0"
+            >
+              Content
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-metadata"
+              aria-controls="panel-metadata"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              Metadata
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-settings"
+              aria-controls="panel-settings"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              Settings
+            </button>
           </div>
 
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-2">
-              <span class="text-muted fs-sm">Bulk action</span>
-              <select class="form-select form-select-sm" style="inline-size: auto" aria-label="Bulk action">
-                <option>Publish</option>
-                <option>Archive</option>
-                <option>Delete</option>
-              </select>
-              <button class="btn btn-outline-secondary btn-sm">Apply</button>
+          <form id="editor-form">
+            <div role="tabpanel" id="panel-content" aria-labelledby="tab-content" tabindex="0">
+              <p>
+                <label for="field-title">Title</label>
+                <input
+                  id="field-title"
+                  name="title"
+                  type="text"
+                  value="Design tokens in practice"
+                  autocomplete="off"
+                />
+              </p>
+
+              <p>
+                <label for="field-slug">Slug</label>
+                <input
+                  id="field-slug"
+                  name="slug"
+                  type="text"
+                  value="design-tokens-in-practice"
+                  autocomplete="off"
+                />
+              </p>
+
+              <p>
+                <label for="field-body">Body</label>
+                <textarea id="field-body" name="body" rows="8">
+A token is a decision with a name. Once the decision has a name, the whole library can change its mind at once.</textarea
+                >
+                <small>Markdown is supported. Autosaved every 30 seconds.</small>
+              </p>
             </div>
-            <ul class="pagination pagination-sm pagination-pills">
-              <li class="page-item active"><a class="page-link" href="#">1</a></li>
-              <li class="page-item"><a class="page-link" href="#">2</a></li>
-              <li class="page-item"><a class="page-link" href="#">3</a></li>
-              <li class="page-item"><a class="page-link" href="#">Next</a></li>
-            </ul>
+
+            <div
+              role="tabpanel"
+              id="panel-metadata"
+              aria-labelledby="tab-metadata"
+              tabindex="0"
+              hidden
+            >
+              <p>
+                <label for="field-collection">Collection</label>
+                <select id="field-collection" name="collection">
+                  <option selected>Engineering</option>
+                  <option>Release notes</option>
+                  <option>Handbook</option>
+                </select>
+              </p>
+
+              <p>
+                <label for="field-author">Author</label>
+                <input id="field-author" name="author" type="text" value="Alex Law" />
+              </p>
+
+              <p>
+                <label for="field-publish">Publish at</label>
+                <input
+                  id="field-publish"
+                  name="publish-at"
+                  type="datetime-local"
+                  value="2026-08-30T09:00"
+                />
+              </p>
+
+              <p>
+                <label for="field-summary">Summary</label>
+                <input
+                  id="field-summary"
+                  name="summary"
+                  type="text"
+                  maxlength="160"
+                  value="What a design token is, and what it is not."
+                />
+                <small>160 characters maximum — this is the search result text.</small>
+              </p>
+            </div>
+
+            <div
+              role="tabpanel"
+              id="panel-settings"
+              aria-labelledby="tab-settings"
+              tabindex="0"
+              hidden
+            >
+              <label>
+                <input type="checkbox" role="switch" name="published" />
+                Publish this article
+              </label>
+
+              <label>
+                <input type="checkbox" name="comments" checked />
+                Allow comments
+              </label>
+
+              <label>
+                <input type="checkbox" name="sitemap" checked />
+                Include in the sitemap
+              </label>
+
+              <label>
+                <input type="checkbox" name="featured" />
+                Feature on the homepage
+              </label>
+            </div>
+
+            <div id="editor-actions">
+              <button type="button" class="ghost">Discard</button>
+              <button type="button" class="outline">Save draft</button>
+              <button type="submit">Publish</button>
+            </div>
+          </form>
+        </article>
+
+        <section aria-labelledby="pages-heading">
+          <h2 id="pages-heading">Pages in this collection</h2>
+
+          <ul role="list" class="list" id="pages">
+            <li>
+              <a href="cms.html">
+                <span>
+                  <strong>Design tokens in practice</strong>
+                  <code>/design-tokens-in-practice</code>
+                </span>
+                <span class="badge warning">Scheduled</span>
+              </a>
+            </li>
+            <li>
+              <a href="cms.html">
+                <span>
+                  <strong>Why we stopped using a CSS framework</strong>
+                  <code>/why-we-stopped</code>
+                </span>
+                <span class="badge success">Published</span>
+              </a>
+            </li>
+            <li>
+              <a href="cms.html">
+                <span>
+                  <strong>Release 1.0 — everything that changed</strong>
+                  <code>/release-1-0</code>
+                </span>
+                <span class="badge secondary">Draft</span>
+              </a>
+            </li>
+            <li>
+              <a href="cms.html">
+                <span>
+                  <strong>Accessible focus states without the glow</strong>
+                  <code>/accessible-focus</code>
+                </span>
+                <span class="badge success">Published</span>
+              </a>
+            </li>
+          </ul>
+
+          <div id="list-foot">
+            <p>4 of 45 articles</p>
+
+            <nav aria-label="Pagination">
+              <ul role="list">
+                <li><a href="#pages" aria-disabled="true">Previous</a></li>
+                <li><a href="#pages" aria-current="page">1</a></li>
+                <li><a href="#pages">2</a></li>
+                <li><a href="#pages">3</a></li>
+                <li><a href="#pages">Next</a></li>
+              </ul>
+            </nav>
           </div>
-        </main>
-      </div>
+        </section>
+      </main>
     </div>
 
-    <!-- Editor drawer -->
-    <div class="offcanvas offcanvas-end" id="editor" tabindex="-1" style="--ja-offcanvas-width: 32rem">
-      <div class="offcanvas-header">
-        <h2 class="offcanvas-title">New article</h2>
-        <button class="btn-close" data-ja-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body gap-4">
-        <ul class="nav nav-tabs" role="tablist">
-          <li class="nav-item"><button class="nav-link active" data-ja-toggle="tab" data-ja-target="#ed-content" role="tab">Content</button></li>
-          <li class="nav-item"><button class="nav-link" data-ja-toggle="tab" data-ja-target="#ed-meta" role="tab">Metadata</button></li>
-          <li class="nav-item"><button class="nav-link" data-ja-toggle="tab" data-ja-target="#ed-seo" role="tab">SEO</button></li>
-        </ul>
-        <div class="tab-content">
-          <div class="tab-pane fade active show d-flex flex-column gap-4" id="ed-content" role="tabpanel">
-            <div class="form-group">
-              <label class="form-label" for="ed-title">Title</label>
-              <input class="form-control form-control-lg" id="ed-title" placeholder="Something worth reading" />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="ed-slug">Slug</label>
-              <div class="input-group">
-                <span class="input-group-text">/blog/</span>
-                <input class="form-control" id="ed-slug" placeholder="something-worth-reading" />
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="ed-body">Body</label>
-              <textarea class="form-control" id="ed-body" rows="10" placeholder="Markdown supported"></textarea>
-              <span class="form-text">Autosaved 12 seconds ago.</span>
-            </div>
-          </div>
-          <div class="tab-pane fade d-flex flex-column gap-4" id="ed-meta" role="tabpanel">
-            <div class="form-group">
-              <label class="form-label" for="ed-collection">Collection</label>
-              <select class="form-select" id="ed-collection"><option>Engineering</option><option>Handbook</option></select>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="ed-publish">Publish at</label>
-              <input type="datetime-local" class="form-control" id="ed-publish" />
-            </div>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" role="switch" id="ed-feature" />
-              <label class="form-check-label" for="ed-feature">Feature on the homepage</label>
-            </div>
-          </div>
-          <div class="tab-pane fade d-flex flex-column gap-4" id="ed-seo" role="tabpanel">
-            <div class="form-group">
-              <label class="form-label" for="ed-desc">Meta description</label>
-              <textarea class="form-control" id="ed-desc" rows="3" maxlength="160"></textarea>
-              <span class="form-text">160 characters maximum.</span>
-            </div>
-          </div>
+    <dialog class="drawer end" id="page-settings" aria-labelledby="page-settings-title">
+      <form method="dialog">
+        <header>
+          <h2 id="page-settings-title">Page settings</h2>
+          <button type="button" class="ghost icon" commandfor="page-settings" command="close">
+            <span aria-hidden="true">×</span>
+            <span class="visually-hidden">Close</span>
+          </button>
+        </header>
+
+        <div>
+          <p>
+            <label for="setting-template">Template</label>
+            <select id="setting-template" name="template">
+              <option selected>Article</option>
+              <option>Long read</option>
+              <option>Changelog</option>
+            </select>
+          </p>
+
+          <p>
+            <label for="setting-canonical">Canonical URL</label>
+            <input
+              id="setting-canonical"
+              name="canonical"
+              type="url"
+              value="https://example.com/design-tokens-in-practice"
+            />
+          </p>
+
+          <label>
+            <input type="checkbox" role="switch" name="indexable" checked />
+            Let search engines index this page
+          </label>
+
+          <label>
+            <input type="checkbox" name="toc" checked />
+            Show a table of contents
+          </label>
         </div>
-        <div class="d-flex gap-2 mt-auto">
-          <button class="btn btn-ghost flex-grow-1" data-ja-dismiss="offcanvas">Discard</button>
-          <button class="btn btn-outline-secondary flex-grow-1">Save draft</button>
-          <button class="btn btn-primary flex-grow-1">Publish</button>
-        </div>
-      </div>
-    </div>
+
+        <footer>
+          <button type="button" class="ghost" commandfor="page-settings" command="close">
+            Cancel
+          </button>
+          <button type="submit" value="apply" autofocus>Apply</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <script>
+      // The tabs, the drawer and the switches are all driven by the library or
+      // by the platform. These three handlers only exist so that the page
+      // behaves like the real thing when you click it.
+      document.getElementById('dismiss-unsaved').addEventListener('click', () => {
+        document.getElementById('unsaved').remove();
+      });
+
+      document.getElementById('editor-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        JaUI.toast('Article published.', { variant: 'success' });
+      });
+
+      document.getElementById('page-settings').addEventListener('close', (event) => {
+        if (event.target.returnValue === 'apply') {
+          JaUI.toast('Page settings applied.', { variant: 'info' });
+        }
+      });
+    </script>
   </body>
 </html>

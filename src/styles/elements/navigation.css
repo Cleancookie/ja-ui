@@ -111,11 +111,29 @@
   /* Sticky is opt-in. A navbar that pins itself is a decision about the page,
      and pages own their layout in this library — so it is a class, and it is
      the only place in this file that touches the stacking order. <dialog> and
-     [popover] live in the top layer and pass straight over it. */
-  body > header > nav.sticky {
+     [popover] live in the top layer and pass straight over it.
+
+     The rule has to lift to the <header>, not just the <nav>: a sticky element
+     can never travel outside its parent's box, and `body > header` is normally
+     exactly as tall as the navbar inside it, so sticking the <nav> alone pins
+     it to a box it already fills and it scrolls away regardless. Sticking the
+     header and letting the nav sit in it is what actually works. */
+  body > header:has(> nav.sticky) {
     position: sticky;
     inset-block-start: 0;
     z-index: var(--ja-z-sticky);
+  }
+
+  /* When the page header's whole job is to carry the navbar, the nav owns the
+     chrome — surface, padding and the rule underneath. content.css gives
+     `body > header` its own padding and border for the case where the header
+     holds a title instead, and left alone the two would stack: two rules under
+     the bar, and the bar inset from the edges of a header that is already the
+     full width. Hand it over. */
+  body > header:has(> nav) {
+    padding: 0;
+    gap: 0;
+    border-block-end: 0;
   }
 
   /* The brand: the first direct child of the navbar that is not a list. */

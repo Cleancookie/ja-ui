@@ -1,65 +1,226 @@
 <!doctype html>
-<html lang="en" data-ja-theme="light">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <title>Sign in · ja-ui</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" />
     <link rel="stylesheet" href="../dist/ja-ui.css" />
     <script src="../dist/ja-ui.iife.js" defer></script>
+
+    <style>
+      /* =====================================================================
+         One centred card. Everything below is this page's own layout, written
+         against the --ja-* tokens; the card, the fields, the button and the
+         dividers are plain elements the library already styles.
+         ===================================================================== */
+
+      body {
+        min-block-size: 100dvh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        /* A grid, not a flat wash — one gradient pair, no image, no request. */
+        background-image:
+          linear-gradient(var(--ja-pattern-color) var(--ja-border-width), transparent 0),
+          linear-gradient(90deg, var(--ja-pattern-color) var(--ja-border-width), transparent 0);
+        background-size: var(--ja-pattern-size) var(--ja-pattern-size);
+      }
+
+      /* No nav links on a sign-in page, so the header is a plain row: the
+         wordmark and the one control that belongs to the whole page. */
+      body > header {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ja-space-3);
+        background-color: var(--ja-surface);
+      }
+
+      body > header > strong {
+        font-family: var(--ja-font-heading);
+        font-size: var(--ja-font-size-xl);
+        font-weight: var(--ja-heading-weight);
+        letter-spacing: var(--ja-heading-tracking);
+        text-transform: var(--ja-heading-case);
+      }
+
+      /* main is a flex column by default; here it is one centred cell. */
+      #main {
+        display: grid;
+        place-items: center;
+        padding: var(--ja-space-5);
+      }
+
+      #card {
+        position: relative;
+        inline-size: 100%;
+        max-inline-size: 26rem;
+        box-shadow: var(--ja-shadow-xl);
+      }
+
+      /* Two decorative shapes behind the card. aria-hidden, because they say
+         nothing — they are the house style, not information. */
+      #card > span[aria-hidden] {
+        position: absolute;
+        z-index: -1;
+        border: var(--ja-border);
+        box-shadow: var(--ja-shadow);
+      }
+
+      #card > span:nth-of-type(1) {
+        inset-block-start: -3rem;
+        inset-inline-start: -3rem;
+        inline-size: 9rem;
+        block-size: 9rem;
+        border-radius: var(--ja-radius-pill);
+        background-color: var(--ja-pop);
+      }
+
+      #card > span:nth-of-type(2) {
+        inset-block-end: -2.5rem;
+        inset-inline-end: -2.5rem;
+        inline-size: 6rem;
+        block-size: 6rem;
+        rotate: 8deg;
+        border-radius: var(--ja-radius-sm);
+        background-color: var(--ja-fresh);
+      }
+
+      #card > hgroup {
+        text-align: center;
+        align-items: center;
+      }
+
+      /* The password field puts its label and the reminder link on one row. */
+      #password-field {
+        grid-template-columns: 1fr auto;
+      }
+
+      #password-field > input {
+        grid-column: 1 / -1;
+      }
+
+      #password-field > small {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+      }
+
+      /* A grid form left-aligns its buttons; the primary action here is the
+         width of the card. */
+      #signin-form > button[type="submit"] {
+        justify-self: stretch;
+      }
+
+      #divider {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: var(--ja-space-3);
+      }
+
+      #divider > span {
+        font-size: var(--ja-font-size-sm);
+        font-weight: var(--ja-label-weight);
+        letter-spacing: var(--ja-label-tracking);
+        text-transform: var(--ja-label-case);
+        color: var(--ja-text-muted);
+      }
+
+      #sso {
+        display: grid;
+        gap: var(--ja-space-2);
+      }
+
+      #card > footer {
+        text-align: center;
+      }
+    </style>
   </head>
-  <body class="pattern-grid">
-    <main class="container d-flex align-items-center justify-content-center" style="min-block-size: 100dvh">
-      <div class="position-relative" style="inline-size: 100%; max-inline-size: 26rem">
-        <div class="shape shape-circle bg-pop" style="inline-size: 9rem; block-size: 9rem; inset-block-start: -3rem; inset-inline-start: -3rem"></div>
-        <div class="shape shape-square bg-fresh rotate-6" style="inline-size: 6rem; block-size: 6rem; inset-block-end: -2rem; inset-inline-end: -2rem"></div>
 
-        <form class="card shadow-xl position-relative">
-          <div class="card-body p-5 gap-4">
-            <div class="d-flex flex-column align-items-center gap-3 text-center">
-              <span class="navbar-brand">ja&nbsp;ui</span>
-              <h1 class="h3">Welcome back</h1>
-              <p class="text-muted">Sign in to the internal tools console.</p>
-            </div>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
 
-            <div class="form-group">
-              <label class="form-label" for="si-email">Email</label>
-              <input type="email" class="form-control" id="si-email" placeholder="you@company.com" autocomplete="username" required />
-            </div>
+    <header>
+      <strong>ja&nbsp;ui</strong>
 
-            <div class="form-group">
-              <div class="d-flex justify-content-between align-items-center">
-                <label class="form-label" for="si-password">Password</label>
-                <a href="#" class="fs-sm">Forgot?</a>
-              </div>
-              <input type="password" class="form-control" id="si-password" autocomplete="current-password" required />
-            </div>
+      <button type="button" class="ghost icon" data-ja-theme-toggle>
+        <span aria-hidden="true">◐</span>
+        <span class="visually-hidden">Switch between light and dark</span>
+      </button>
+    </header>
 
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="si-remember" checked />
-              <label class="form-check-label" for="si-remember">Keep me signed in</label>
-            </div>
+    <main id="main">
+      <article id="card">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
 
-            <button class="btn btn-primary btn-lg btn-block" type="submit">Sign in</button>
+        <hgroup>
+          <h1>Welcome back</h1>
+          <p>Sign in to the internal tools console.</p>
+        </hgroup>
 
-            <div class="d-flex align-items-center gap-3">
-              <hr class="flex-grow-1" />
-              <span class="text-label text-muted">or</span>
-              <hr class="flex-grow-1" />
-            </div>
-
-            <div class="d-flex flex-column gap-2">
-              <button class="btn btn-outline-secondary btn-block" type="button">Continue with SSO</button>
-              <button class="btn btn-outline-secondary btn-block" type="button">Continue with GitHub</button>
-            </div>
+        <form id="signin-form">
+          <div>
+            <label for="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="you@company.com"
+              autocomplete="username"
+              required
+            />
           </div>
-          <div class="card-footer justify-content-center">
-            <span class="text-muted">No account? <a href="#" class="fw-bold">Request access</a></span>
+
+          <div id="password-field">
+            <label for="password">Password</label>
+            <small><a href="signin.html">Forgot?</a></small>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              minlength="8"
+              required
+            />
           </div>
+
+          <label>
+            <input type="checkbox" name="remember" checked />
+            Keep me signed in
+          </label>
+
+          <button type="submit">Sign in</button>
         </form>
-      </div>
+
+        <div id="divider">
+          <hr />
+          <span>or</span>
+          <hr />
+        </div>
+
+        <div id="sso">
+          <button type="button" class="outline">Continue with SSO</button>
+          <button type="button" class="outline">Continue with GitHub</button>
+        </div>
+
+        <footer>No account? <a href="signin.html">Request access</a></footer>
+      </article>
     </main>
+
+    <script>
+      // The browser blocks the submit while a field is empty or malformed, and
+      // :user-invalid paints it — that is the demo. This only stops the page
+      // reloading once the form is actually valid.
+      document.getElementById('signin-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        JaUI.toast('Signed in. Welcome back.', { variant: 'success' });
+      });
+    </script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-import{s as p,r as i,C as d,h as l}from"./helpers-TPxJnLu1.js";const c={title:"Components/Feedback",tags:["autodocs"]},s={render:()=>l`
+import{s as p,r as i,C as d,h as l}from"./helpers-Bbgb7Gtr.js";const c={title:"Components/Feedback",tags:["autodocs"]},s={render:()=>l`
     <div class="d-flex flex-column gap-4" style="max-inline-size: 32rem">
       <div class="progress" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
         <div class="progress-bar" style="inline-size: 25%">25%</div>

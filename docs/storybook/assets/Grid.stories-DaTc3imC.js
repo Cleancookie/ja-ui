@@ -1,4 +1,4 @@
-import{h as a}from"./helpers-TPxJnLu1.js";const o={title:"Layout/Grid",tags:["autodocs"],parameters:{docs:{description:{component:"A 12-column flexbox grid using real `gap` for gutters — no negative margins, no floats. Same `.row` / `.col-*` / `.g-*` classes as Bootstrap."}}}},s=c=>`<div class="sticker bg-primary-subtle p-3 text-center fw-bold">${c}</div>`,l={render:()=>a`
+import{h as a}from"./helpers-Bbgb7Gtr.js";const o={title:"Layout/Grid",tags:["autodocs"],parameters:{docs:{description:{component:"A 12-column flexbox grid using real `gap` for gutters — no negative margins, no floats. Same `.row` / `.col-*` / `.g-*` classes as Bootstrap."}}}},s=c=>`<div class="sticker bg-primary-subtle p-3 text-center fw-bold">${c}</div>`,l={render:()=>a`
     <div class="d-flex flex-column gap-4">
       <div class="row">
         ${[1,2,3].map(()=>`<div class="col">${s("col")}</div>`).join("")}

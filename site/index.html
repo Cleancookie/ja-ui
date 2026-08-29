@@ -120,12 +120,46 @@ import { Modal, CommandPalette } from '@cleancookie/ja-ui';</code></pre>
 
     <footer class="container py-6 d-flex flex-wrap align-items-center justify-content-between gap-3">
       <span class="text-muted">MIT licensed</span>
+      <!-- Stamped by tools/build-site.mjs; the placeholders are replaced at build time. -->
+      <a
+        class="badge bg-white text-muted font-monospace"
+        id="build-stamp"
+        data-built="__BUILD_TIME__"
+        href="https://github.com/Cleancookie/ja-ui/commit/__BUILD_SHA__"
+        >built __BUILD_TIME__ · __BUILD_SHA_SHORT__</a
+      >
       <a href="https://github.com/Cleancookie/ja-ui">github.com/Cleancookie/ja-ui</a>
     </footer>
 
     <div class="command-palette" id="palette"></div>
 
     <script>
+      // Show the build stamp as "built 6 minutes ago" — the absolute time is one hover away.
+      {
+        const stamp = document.querySelector('#build-stamp');
+        const built = new Date(stamp.dataset.built);
+        const sha = stamp.textContent.split('·').pop().trim();
+        const UNITS = [
+          ['year', 31536000],
+          ['month', 2592000],
+          ['day', 86400],
+          ['hour', 3600],
+          ['minute', 60],
+          ['second', 1],
+        ];
+        const ago = (seconds) => {
+          const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+          const [unit, size] = UNITS.find(([, s]) => seconds >= s) ?? UNITS.at(-1);
+          return rtf.format(-Math.floor(seconds / size), unit);
+        };
+        const render = () => {
+          stamp.textContent = `built ${ago((Date.now() - built) / 1000)} · ${sha}`;
+        };
+        stamp.title = `Built ${built.toUTCString()} from ${sha}`;
+        render();
+        setInterval(render, 30_000);
+      }
+
       const TEMPLATES = [
         ['dashboard', 'Admin dashboard', 'Stats, tables, filters and a sidebar.'],
         ['cms', 'Content manager', 'Lists, editors, tabs and toasts.'],

@@ -13,18 +13,20 @@
  * whole thing works from any base path — a project page under /<repo>/
  * included.
  *
- *   docs/index.html      the landing page (from site/)
+ *   docs/index.html      the landing page (from site/), stamped with build time + sha
  *   docs/images/         the screenshots (from site/images/ — SOURCE, committed)
  *   docs/dist/           the built library
  *   docs/examples/       the standalone template pages
  *   docs/storybook/      the built Storybook
  */
 import { createServer } from 'node:http';
+import { execFileSync } from 'node:child_process';
 import {
   cpSync,
   createReadStream,
   existsSync,
   mkdirSync,
+  readFileSync,
   readdirSync,
   rmSync,
   statSync,
@@ -46,6 +48,31 @@ const MIME = {
   '.woff2': 'font/woff2',
   '.map': 'application/json',
 };
+
+/**
+ * The commit this build came from. GITHUB_SHA is what the Pages workflow checks
+ * out; falls back to the local HEAD, and to 'local' outside a git checkout.
+ */
+function buildSha() {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  } catch {
+    return 'local';
+  }
+}
+
+/** Replace the build placeholders in the landing page with when and what this is. */
+function stamp() {
+  const page = join(OUT, 'index.html');
+  const sha = buildSha();
+  const html = readFileSync(page, 'utf8')
+    .replaceAll('__BUILD_TIME__', new Date().toISOString())
+    .replaceAll('__BUILD_SHA_SHORT__', sha.slice(0, 7))
+    .replaceAll('__BUILD_SHA__', sha);
+  writeFileSync(page, html);
+  return sha.slice(0, 7);
+}
 
 function build() {
   const missing = ['dist', 'storybook-static'].filter((dir) => !existsSync(dir));
@@ -73,9 +100,11 @@ function build() {
   // Stop Pages running the output through Jekyll, which eats underscore paths.
   writeFileSync(join(OUT, '.nojekyll'), '');
 
+  const sha = stamp();
+
   const count = (dir) =>
     readdirSync(dir, { recursive: true }).filter((f) => statSync(join(dir, f)).isFile()).length;
-  console.log(`  ${OUT}/ assembled — ${count(OUT)} files.`);
+  console.log(`  ${OUT}/ assembled — ${count(OUT)} files, stamped ${sha}.`);
 }
 
 function serve() {

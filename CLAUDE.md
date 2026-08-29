@@ -6,9 +6,9 @@ hooks, generated CSS is not hand-edited).
 
 ## Commit messages
 
-**Every commit message must start with one of these emoji.** The release workflow reads
-them to decide the semver bump, so an unprefixed or wrongly prefixed commit either
-blocks or mis-versions a release.
+**Every commit message must start with one of these emoji.** They record the semver
+bump each change carries, so that whenever the package is first released the version
+can be read straight off the log. An unprefixed commit loses that.
 
 | Emoji | Meaning | Bump |
 | --- | --- | --- |
@@ -23,8 +23,8 @@ Rules:
 - The emoji is the first character of the subject line, followed by a single space.
 - One emoji per commit. If a change is both a feature and a fix, split it, or pick the
   higher bump.
-- The bump for a release is the **highest** bump across the commits since the last tag:
-  one 🔥 makes the whole release major.
+- The bump for a release is the **highest** bump across the commits since the last
+  release: one 🔥 makes the whole release major.
 - Subject line in the imperative, lower case after the emoji, no trailing full stop.
   Body optional; wrap at 80.
 - Breaking changes take 🔥 *and* a `BREAKING CHANGE:` paragraph in the body explaining
@@ -66,8 +66,13 @@ and the built Storybook (`storybook-static/`).
 
 ## Shipping a change — the routine
 
-Every change follows the same path. Do all of it; a half-done release leaves the
-published site stale against the package.
+Every change follows the same path. Do all of it; a half-done change leaves the
+published site stale against `src/`.
+
+The package is **not published anywhere yet** — there are no tags, no GitHub releases
+and no npm package, and nothing else consumes ja-ui. So there is no version-bump or
+publish step. Keep the commit emoji anyway: it is what the first release will be
+versioned from.
 
 1. **Branch, build, prove it.** `npm run build && npm run smoke`, and add a story for
    anything visual. CI runs the same, and fails if `src/styles/generated` is out of date
@@ -79,17 +84,9 @@ published site stale against the package.
 3. **Commit with an emoji prefix** — see [Commit messages](#commit-messages). It is what
    the version bump is read from, so it is not optional.
 4. **Merge to `main`.** Squash or fast-forward; keep the emoji on the resulting commit.
-5. **Bump the version.** The bump is the *highest* among the commit emoji since the last
-   release: 🔥 major, ✨ or 🛠️ minor, 🐛 or 📝 patch. `npm version <major|minor|patch>`
-   writes `package.json` and makes the `vX.Y.Z` tag in one step. Push with
-   `git push --follow-tags`.
-6. **Publish a GitHub release** on that tag (`gh release create vX.Y.Z --generate-notes`).
-   That is what fires `.github/workflows/publish.yml`, which builds and pushes the
-   package to the GitHub npm registry. No release, no publish.
-7. **Close the issue** it came from, referencing the release —
-   `gh issue close <n> --comment "..."`. A `Closes #n` line in the merge commit does this
-   for you when the branch merges through a PR.
-8. **Check the published site.** Pages rebuilds on push to `main`; confirm the change is
+5. **Close the issue** it came from — `gh issue close <n> --comment "..."`. A `Closes #n`
+   line in the merge commit does this for you when the branch merges through a PR.
+6. **Check the published site.** Pages rebuilds on push to `main`; confirm the change is
    actually live at the playground URL rather than assuming it.
 
 ## Anything else

@@ -1,7 +1,7 @@
 {
   "name": "@cleancookie/ja-ui",
   "version": "0.1.0",
-  "description": "Just Another UI \u2014 a zero-dependency, Bootstrap 5-compatible component library with a modern CSS-variable theme.",
+  "description": "Just Another UI — a zero-dependency, Bootstrap 5-compatible component library with a modern CSS-variable theme.",
   "keywords": [
     "css",
     "ui",
@@ -66,6 +66,7 @@
     "build:types": "node -e \"fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('src/index.d.ts','dist/ja-ui.d.ts')\"",
     "build": "npm run gen && npm run clean && npm run build:css && npm run build:css:min && npm run build:js && npm run build:js:min && npm run build:iife && npm run build:types && npm run lint:css",
     "smoke": "node tools/smoke.mjs",
+    "perf": "node tools/perf.mjs",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {

@@ -21,4 +21,6 @@ jobs:
         run: npm run smoke
       - name: Drive the example pages in a real browser
         run: npm run check:examples
+      - name: Check every token pair against WCAG AA
+        run: npm run check:contrast
       - run: npm run build-storybook

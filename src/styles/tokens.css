@@ -155,8 +155,13 @@
        In dark, every accent is mid-tone, so filled surfaces take dark ink on
        top rather than white.
        -------------------------------------------------------------------- */
-    --ja-primary: var(--ja-violet);
-    --ja-secondary: var(--ja-slate-500);
+    /* One step darker than --ja-violet. White on #8b5cf6 is 4.23:1, which
+       misses AA for the 14px bold label on a filled button — and the filled
+       primary button is the most common piece of text in the whole library. */
+    --ja-primary: #7c3aed;
+    --ja-primary: light-dark(#7c3aed, #c678dd);
+    --ja-secondary: #64748b;
+    --ja-secondary: light-dark(#64748b, #9da5b4);
     --ja-success: var(--ja-mint);
     --ja-info: #38bdf8;
     --ja-info: light-dark(#38bdf8, #56b6c2);
@@ -208,7 +213,10 @@
     --ja-surface-active: light-dark(rgb(30 41 59 / 12%), rgb(255 255 255 / 11%));
 
     --ja-text: var(--ja-ink);
-    --ja-text-muted: var(--ja-slate-500);
+    /* One step lighter than slate-500 in dark, where #828997 on a raised
+       surface is 3.72:1 and misses AA for small print. */
+    --ja-text-muted: #64748b;
+    --ja-text-muted: light-dark(#64748b, #9da5b4);
     --ja-text-subtle: var(--ja-slate-400);
     --ja-text-inverse: #fffdf5;
     --ja-text-inverse: light-dark(#fffdf5, #21252b);
@@ -232,6 +240,21 @@
     --ja-ink-fill: light-dark(#1e293b, #21252b);
     --ja-ink-fill-fg: #fffdf5;
     --ja-ink-fill-fg: light-dark(#fffdf5, #abb2bf);
+
+    /* How much of the raw accent survives in `.outline` / `.soft` / `.ghost`
+       text. The rest is the page's own text colour, which darkens the accent on
+       a light page and lightens it on a dark one. It is a token because it is
+       the single dial that decides whether coloured 14px labels clear WCAG AA —
+       `npm run check:contrast` is what sets it. */
+    --ja-accent-ink-mix: 45%;
+
+    /* How much accent `.soft` washes into the surface. Lower in dark, where the
+       accents are bright mid-tones and the same 15% lifts the fill far enough
+       to cost the label its contrast. */
+    --ja-soft-tint: 15%;
+    --ja-soft-tint: light-dark(15%, 9%);
+    --ja-soft-tint-hover: 24%;
+    --ja-soft-tint-hover: light-dark(24%, 16%);
 
     --ja-link-color: #4c3ba8;
     --ja-link-color: light-dark(#4c3ba8, #61afef);

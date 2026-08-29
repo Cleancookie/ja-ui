@@ -130,9 +130,18 @@
   .ghost {
     --ja-accent-ink: color-mix(
       in oklab,
-      var(--ja-accent, var(--ja-text)) 70%,
+      var(--ja-accent, var(--ja-text)) var(--ja-accent-ink-mix),
       var(--ja-text)
     );
+  }
+
+  /* `.light` and `.dark` are surface colours, not accents. Mixing a near-white
+     towards the text on a light page lands on a grey that fails contrast at
+     any ratio, so these two hand their ink straight to the page's text colour
+     and keep their identity in the fill and the border instead. */
+  .light,
+  .dark {
+    --ja-accent-ink: var(--ja-text);
   }
 
   /* Outline — the border does the talking. */
@@ -159,14 +168,14 @@
   .soft {
     --ja-btn-bg: color-mix(
       in oklab,
-      var(--ja-accent, var(--ja-text)) 15%,
+      var(--ja-accent, var(--ja-text)) var(--ja-soft-tint),
       var(--ja-surface)
     );
     --ja-btn-fg: var(--ja-accent-ink);
     --ja-btn-border-color: var(--ja-accent, var(--ja-border-color));
     --ja-btn-bg-hover: color-mix(
       in oklab,
-      var(--ja-accent, var(--ja-text)) 24%,
+      var(--ja-accent, var(--ja-text)) var(--ja-soft-tint-hover),
       var(--ja-surface)
     );
   }

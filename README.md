@@ -39,30 +39,41 @@ deliberate visual identity, so a prototype is already production-presentable.
 
 ## Install
 
+ja-ui is not published to a registry yet — take the built files. They are two:
+a stylesheet, and an optional script for the interactive components.
+
+Grab them from the playground build:
+
 ```bash
-npm install @cleancookie/ja-ui
+curl -O https://cleancookie.github.io/ja-ui/dist/ja-ui.min.css
+curl -O https://cleancookie.github.io/ja-ui/dist/ja-ui.iife.js
 ```
 
-The package lives on the GitHub registry, so tell npm where to find the scope once
-(in `.npmrc`, alongside a token with `read:packages`):
+…or build them yourself, which is what you want if you are changing anything:
 
-```ini
-@cleancookie:registry=https://npm.pkg.github.com
+```bash
+git clone git@github.com:Cleancookie/ja-ui.git
+cd ja-ui && npm install && npm run build   # writes dist/
 ```
 
 ## Use
 
-```js
-import '@cleancookie/ja-ui/css';   // the styles
-import '@cleancookie/ja-ui';        // optional — only for interactive components
-```
-
-…or straight from HTML, no bundler involved:
+Drop the two files in and write markup — no bundler involved:
 
 ```html
-<link rel="stylesheet" href="node_modules/@cleancookie/ja-ui/dist/ja-ui.css" />
-<script src="node_modules/@cleancookie/ja-ui/dist/ja-ui.iife.js" defer></script>
+<link rel="stylesheet" href="ja-ui.min.css" />
+<script src="ja-ui.iife.js" defer></script>
 ```
+
+With a bundler, point imports at the built files (or at the checkout):
+
+```js
+import './vendor/ja-ui/ja-ui.css';   // the styles
+import './vendor/ja-ui/ja-ui.js';    // optional — only for interactive components
+```
+
+The JavaScript examples below write the specifier as `ja-ui` for readability — point it
+at wherever you put the files, or at an alias.
 
 Then write markup you already know:
 
@@ -265,7 +276,7 @@ Dark follows `prefers-color-scheme` on its own. Force it with `data-ja-theme="li
 on `<html>`, or from JavaScript:
 
 ```js
-import { setTheme, toggleTheme, setStyle } from '@cleancookie/ja-ui';
+import { setTheme, toggleTheme, setStyle } from 'ja-ui';
 
 toggleTheme();          // light <-> dark, remembered in localStorage
 setTheme('system');     // back to following the OS
@@ -287,7 +298,7 @@ alone — the script wires them up with one delegated listener:
 Or drive them directly:
 
 ```js
-import { Modal, Toast, Collapse } from '@cleancookie/ja-ui';
+import { Modal, Toast, Collapse } from 'ja-ui';
 
 const modal = Modal.getOrCreateInstance('#confirm', { backdrop: 'static' });
 modal.show();
@@ -320,7 +331,7 @@ The one component with no Bootstrap equivalent. It is built for desktop-shaped a
 global shortcut, fuzzy search over everything you can do, Enter to run it.
 
 ```js
-import { CommandPalette } from '@cleancookie/ja-ui';
+import { CommandPalette } from 'ja-ui';
 
 const palette = new CommandPalette('#palette', {
   hotkey: 'mod+k',                       // ⌘K on macOS, ctrl-K everywhere else
@@ -358,7 +369,7 @@ dragging its edge resizes it, and a double-click auto-sizes it up to a cap so a 
 does not blow the whole sheet open.
 
 ```js
-import { DataTable } from '@cleancookie/ja-ui';
+import { DataTable } from 'ja-ui';
 
 new DataTable('#orders', {
   columnCount: 1000,

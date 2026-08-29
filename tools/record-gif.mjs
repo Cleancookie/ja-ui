@@ -68,9 +68,9 @@ const CLIPS = [
     name: 'interaction-buttons',
     size: { width: 620, height: 200 },
     html: document_(`
-      <div class="d-flex gap-4">
-        <button class="btn btn-primary btn-lg" id="a">Save changes</button>
-        <button class="btn btn-outline-secondary btn-lg" id="b">Cancel</button>
+      <div style="display:flex; gap:1.5rem">
+        <button class="primary lg" id="a">Save changes</button>
+        <button class="outline lg" id="b">Cancel</button>
       </div>
     `),
     steps: [
@@ -88,15 +88,15 @@ const CLIPS = [
     name: 'interaction-cards',
     size: { width: 700, height: 280 },
     html: document_(`
-      <div class="d-flex gap-4">
-        <div class="card card-hover" style="inline-size: 15rem" id="a">
-          <div class="card-body"><h5 class="card-title">Deployments</h5>
-          <p class="card-text text-muted">Hover: the card lifts and tilts.</p></div>
-        </div>
-        <div class="card card-hover" style="inline-size: 15rem" id="b">
-          <div class="card-body"><h5 class="card-title">Audit log</h5>
-          <p class="card-text text-muted">Click: it presses back down.</p></div>
-        </div>
+      <div style="display:flex; gap:1.5rem">
+        <article class="interactive" style="inline-size: 15rem" id="a">
+          <h3>Deployments</h3>
+          <p>Hover: the card lifts.</p>
+        </article>
+        <article class="interactive" style="inline-size: 15rem" id="b">
+          <h3>Audit log</h3>
+          <p>Click: it presses back down.</p>
+        </article>
       </div>
     `),
     steps: [
@@ -114,17 +114,17 @@ const CLIPS = [
     name: 'interaction-theme',
     size: { width: 660, height: 340 },
     html: document_(`
-      <div class="d-flex flex-column gap-3" style="inline-size: 28rem">
-        <div class="d-flex gap-2 align-items-center">
-          <button class="btn btn-primary">Primary</button>
-          <button class="btn btn-soft-pop">Soft</button>
-          <span class="badge bg-success">Live</span>
+      <div style="display:flex; flex-direction:column; gap:0.75rem; inline-size: 28rem">
+        <div style="display:flex; gap:0.5rem; align-items:center">
+          <button class="primary">Primary</button>
+          <button class="pop soft">Soft</button>
+          <span class="badge success">Live</span>
         </div>
-        <div class="card"><div class="card-body">
-          <h5 class="card-title">One markup, four looks</h5>
-          <p class="card-text text-muted">Light and dark, in both skins.</p>
-          <div class="progress"><div class="progress-bar" style="inline-size:64%"></div></div>
-        </div></div>
+        <article>
+          <h3>One markup, four looks</h3>
+          <p>Light and dark, in both skins.</p>
+          <progress value="0.64"></progress>
+        </article>
       </div>
     `),
     steps: [
@@ -149,9 +149,9 @@ async function main() {
     for (const step of clip.steps) {
       if (step.theme) {
         await page.evaluate(([theme, skin]) => {
-          document.documentElement.dataset.jaTheme = theme;
-          if (skin) document.documentElement.dataset.jaStyle = skin;
-          else delete document.documentElement.dataset.jaStyle;
+          document.documentElement.dataset.theme = theme;
+          if (skin) document.documentElement.dataset.style = skin;
+          else delete document.documentElement.dataset.style;
         }, step.theme);
       }
       if (step.hover) await page.hover(step.hover);

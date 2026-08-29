@@ -5,9 +5,9 @@ export default {
     docs: {
       description: {
         component:
-          'Complete pages built only from ja-ui classes. Each one is a standalone HTML ' +
-          'file in `examples/` — open it directly, or copy it as a starting point. ' +
-          'Run `npm run build` first so the pages can find `dist/ja-ui.css`.',
+          'Complete pages built on ja-ui. Each one is a standalone HTML file in ' +
+          '`examples/` — open it directly, or copy it as a starting point. Run ' +
+          '`npm run build` first so the pages can find `dist/ja-ui.css`.',
       },
     },
   },

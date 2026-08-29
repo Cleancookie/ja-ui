@@ -1,25 +1,28 @@
 /**
  * ja-ui — Just Another UI
  *
- *   import '@cleancookie/ja-ui/css';
- *   import { Modal } from '@cleancookie/ja-ui';
+ * Drop the stylesheet in and write plain semantic HTML. The CSS is the library;
+ * this file is only the small remainder that the web platform does not do for
+ * you. Zero runtime dependencies.
  *
- * Everything here is optional: the CSS works on its own, and the JS is only
- * needed for the interactive components. Zero runtime dependencies.
+ *   <link rel="stylesheet" href="ja-ui.css">
+ *   <script type="module" src="ja-ui.js"></script>
  */
 
 export { Component } from './js/base.js';
-export { Alert } from './js/alert.js';
-export { Button } from './js/button.js';
-export { Collapse } from './js/collapse.js';
+
+/* The two components with no native equivalent. */
 export { CommandPalette } from './js/command-palette.js';
 export { DataTable } from './js/datatable.js';
 export { fuzzyMatch, fuzzyFilter, parseQuery } from './js/fuzzy.js';
-export { Dropdown } from './js/dropdown.js';
-export { Modal } from './js/modal.js';
-export { Offcanvas } from './js/offcanvas.js';
-export { Tab } from './js/tab.js';
-export { Toast } from './js/toast.js';
+
+/* The keyboard model for the one pattern HTML has no element for. */
+export { initTabs, selectTab } from './js/tabs.js';
+
+/* Transient messages, and the invoker-command fallback. */
+export { toast, dismissToast } from './js/toast.js';
+export { initInvokers, hasNativeInvokers } from './js/invoker.js';
+
 export {
   getTheme,
   getResolvedTheme,
@@ -29,11 +32,11 @@ export {
   setStyle,
   restoreTheme,
 } from './js/theme.js';
+
 export { autoInit, resetAutoInit } from './js/autoinit.js';
 
 import { autoInit } from './js/autoinit.js';
 
-/** Wire up data attributes as soon as the DOM is ready, unless opted out. */
 function boot() {
   if (typeof document === 'undefined') return;
   if (document.body?.hasAttribute('data-ja-no-autoinit')) return;

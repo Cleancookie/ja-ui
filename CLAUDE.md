@@ -1,14 +1,26 @@
 # ja-ui — instructions for AI agents
 
-Read `CONTRIBUTING.md` first: it holds the ground rules (zero runtime dependencies, no
-component margins, every visual value a token, Bootstrap class names with `data-ja-*`
-hooks, generated CSS is not hand-edited).
+Read [`ARCHITECTURE.md`](ARCHITECTURE.md) first, then [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+ja-ui styles **plain semantic HTML5**. There is no `.btn`, no `.card`, no `.modal`. A
+`<button>` is a button, `<dialog>` is the modal, `<details>` is the accordion, `[popover]`
+is the dropdown. The ground rules that are easiest to break by accident:
+
+- **The platform first.** Before writing a component, find the element that already does
+  it. A new JS module is an admission that the platform has no answer.
+- **Variants are bare single-word classes** (`.primary`, `.danger`, `.outline`, `.sm`) and
+  they only ever remap tokens — never write a raw `background:` in a variant rule.
+- **No `!important`, anywhere.** It inverts cascade-layer order and would make the library
+  beat the consumer's own CSS. If a rule is losing, it is in the wrong layer.
+- **No element ships a margin**, and there are no utility classes or grid to fall back on.
+- **Every colour is declared twice** — a plain fallback, then the `light-dark()` version.
+- Select on ARIA *state*, never on ARIA *naming*, and never use ARIA to pick a colour.
 
 ## Commit messages
 
-**Every commit message must start with one of these emoji.** They record the semver
-bump each change carries, so that whenever the package is first released the version
-can be read straight off the log. An unprefixed commit loses that.
+**Every commit message must start with one of these emoji.** They record the semver bump
+each change carries, so that whenever the package is first released the version can be
+read straight off the log. An unprefixed commit loses that.
 
 | Emoji | Meaning | Bump |
 | --- | --- | --- |
@@ -35,9 +47,9 @@ Examples:
 ```
 ✨ add a toast component
 🐛 stop the command palette double-binding on re-init
-🛠️ regenerate colour variants from the token set
+🛠️ retune the press physics
 📝 document the dark theme override
-🔥 rename data-ja-modal to data-ja-dialog
+🔥 drop the utility classes and the grid
 ```
 
 ## The published site
@@ -74,8 +86,7 @@ publish step. Keep the commit emoji anyway: it is what the first release will be
 versioned from.
 
 1. **Branch, build, prove it.** `npm run build && npm run smoke`, and add a story for
-   anything visual. CI runs the same, and fails if `src/styles/generated` is out of date
-   (`npm run gen` and commit the result).
+   anything visual. CI runs the same.
 2. **Preview the site if anything user-visible changed** — CSS, JS, examples or the
    landing page. `npm run site && npm run site:serve`. Nothing to commit: the Pages
    workflow rebuilds and deploys from source on merge. See
@@ -90,4 +101,5 @@ versioned from.
 
 ## Anything else
 
-Follow the layout and the component checklist in `CONTRIBUTING.md`.
+Follow the layout and the component checklist in `CONTRIBUTING.md`, and the mapping table
+and feature-gating table in `ARCHITECTURE.md`.

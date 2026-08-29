@@ -1,159 +1,516 @@
 <!doctype html>
-<html lang="en" data-ja-theme="light">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <title>Pricing · ja-ui</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" />
     <link rel="stylesheet" href="../dist/ja-ui.css" />
     <script src="../dist/ja-ui.iife.js" defer></script>
-  </head>
-  <body class="pattern-dots">
-    <nav class="navbar navbar-expand-md bg-white">
-      <div class="container">
-        <a class="navbar-brand" href="marketing.html">ja&nbsp;ui</a>
-        <div class="d-flex gap-2">
-          <a class="btn btn-ghost" href="signin.html">Sign in</a>
-          <a class="btn btn-primary" href="#">Start free</a>
-        </div>
-      </div>
-    </nav>
 
-    <header class="container py-7 text-center d-flex flex-column align-items-center gap-4">
-      <span class="badge badge-lg bg-fresh rotate-n2">No card required</span>
-      <h1 class="display-3">Pick a plan,<br />change it whenever</h1>
-      <p class="lead" style="max-inline-size: 36rem">
-        Every plan includes the whole component library. You're paying for seats and
-        support, not for features being held hostage.
-      </p>
-      <div class="btn-group">
-        <input type="radio" class="btn-check" name="billing" id="bill-month" checked />
-        <label class="btn btn-outline-secondary" for="bill-month">Monthly</label>
-        <input type="radio" class="btn-check" name="billing" id="bill-year" />
-        <label class="btn btn-outline-secondary" for="bill-year">Yearly · save 20%</label>
-      </div>
+    <!-- =====================================================================
+         Page-owned layout. Tokens for every colour and every gap, so the whole
+         page follows the library's theme and skin without knowing either.
+         ================================================================== -->
+    <style>
+      :root {
+        --page: 68rem;
+        --gutter: var(--ja-space-5);
+      }
+
+      /* --- Navbar ---------------------------------------------------------- */
+      body > header {
+        position: sticky;
+        inset-block-start: 0;
+        z-index: var(--ja-z-sticky);
+        padding: 0;
+        gap: 0;
+        border-block-end: 0;
+      }
+
+      body > header > nav {
+        inline-size: 100%;
+        padding-inline: max(var(--gutter), (100% - var(--page)) / 2);
+      }
+
+      #nav-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--ja-space-2);
+      }
+
+      /* --- Page rhythm ------------------------------------------------------ */
+      main {
+        gap: 0;
+        background-image: radial-gradient(
+          var(--ja-pattern-color) 1px,
+          transparent 1px
+        );
+        background-size: var(--ja-pattern-size) var(--ja-pattern-size);
+      }
+
+      main > section {
+        padding-block: var(--ja-space-7);
+        padding-inline: max(var(--gutter), (100% - var(--page)) / 2);
+        gap: var(--ja-space-5);
+      }
+
+      /* --- Intro and the billing switch ------------------------------------- */
+      #intro {
+        align-items: center;
+        text-align: center;
+        padding-block-start: var(--ja-space-8);
+      }
+
+      #intro hgroup {
+        align-items: center;
+        max-inline-size: var(--ja-measure);
+      }
+
+      #intro h1 {
+        font-size: clamp(2.25rem, 6vw, 3.25rem);
+      }
+
+      #billing {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: var(--ja-space-2) var(--ja-space-4);
+        inline-size: auto;
+      }
+
+      /* --- Plans ------------------------------------------------------------ */
+      #plans > ul {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+        align-items: stretch;
+        gap: var(--ja-space-5);
+        padding-inline-start: 0;
+        list-style: none;
+      }
+
+      #plans > ul > li {
+        display: grid;
+      }
+
+      /* Four rows — header, price, features, action — so the buttons line up
+         across all three cards without a single auto margin. */
+      #plans article {
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        gap: var(--ja-space-4);
+      }
+
+      #plans article > header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--ja-space-2);
+      }
+
+      /* The middle plan is the recommended one. The badge says so in words;
+         this only makes it look the part. */
+      #plans > ul > li:nth-child(2) article {
+        border-color: var(--ja-primary);
+        box-shadow: var(--ja-shadow-xl);
+      }
+
+      /* The price line is the only bare <p> in a plan card. */
+      #plans article > p {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: var(--ja-space-2);
+      }
+
+      #plans article > p > strong {
+        font-family: var(--ja-heading-family);
+        font-size: calc(var(--ja-font-size-xl) * 1.9);
+        line-height: var(--ja-line-height-tight);
+        letter-spacing: var(--ja-heading-tracking);
+      }
+
+      #plans article > p > small {
+        font-size: var(--ja-font-size-sm);
+      }
+
+      /* --- Comparison table -------------------------------------------------- */
+      #compare td {
+        text-align: center;
+      }
+
+      #compare thead th + th {
+        text-align: center;
+      }
+
+      /* --- Closing panel ----------------------------------------------------- */
+      #closing article {
+        align-items: center;
+        text-align: center;
+        padding: var(--ja-space-7);
+        background-color: var(--ja-ink-fill);
+        color: var(--ja-ink-fill-fg);
+        box-shadow: var(--ja-shadow-xl);
+      }
+
+      #closing p {
+        color: inherit;
+        max-inline-size: var(--ja-measure);
+      }
+
+      #closing div {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--ja-space-3);
+      }
+
+      /* --- The sales dialog --------------------------------------------------- */
+      #sales form > div {
+        display: grid;
+        gap: var(--ja-space-4);
+      }
+
+      /* --- Footer -------------------------------------------------------------- */
+      body > footer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ja-space-4);
+        padding-block: var(--ja-space-6);
+        padding-inline: max(var(--gutter), (100% - var(--page)) / 2);
+      }
+
+      body > footer nav > ul {
+        padding-inline-start: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header>
+      <nav class="sticky" aria-label="Primary">
+        <a href="marketing.html">ja&nbsp;ui</a>
+
+        <ul role="list">
+          <li><a href="marketing.html">Product</a></li>
+          <li><a href="pricing.html" aria-current="page">Pricing</a></li>
+          <li><a href="shop.html">Demo</a></li>
+        </ul>
+
+        <div id="nav-actions">
+          <button
+            type="button"
+            class="ghost icon"
+            data-ja-theme-toggle
+            aria-label="Switch between the light and dark theme"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+            </svg>
+          </button>
+          <button type="button" commandfor="sales" command="show-modal">
+            Talk to sales
+          </button>
+        </div>
+      </nav>
     </header>
 
-    <main class="container pb-7">
-      <div class="row g-5 align-items-center">
-        <!-- Starter -->
-        <div class="col-lg-4">
-          <div class="card h-100">
-            <div class="card-body p-5 gap-4">
-              <div class="d-flex flex-column gap-1">
-                <span class="text-label text-muted">Starter</span>
-                <div class="d-flex align-items-baseline gap-2">
-                  <span class="display-5">£0</span>
-                  <span class="text-muted">/ month</span>
-                </div>
-                <p class="text-muted">For one person and a weekend project.</p>
-              </div>
-              <ul class="list-check">
-                <li>Every component</li>
-                <li>Both visual skins</li>
+    <main id="main">
+      <!-- ================================================================ -->
+      <section id="intro">
+        <hgroup>
+          <h1>Pick a plan, change it whenever</h1>
+          <p>
+            Every plan includes the whole library. You are paying for seats and
+            for support, not for features held hostage.
+          </p>
+        </hgroup>
+
+        <fieldset id="billing">
+          <legend>Billing period</legend>
+          <input type="radio" name="billing" id="bill-month" value="month" checked />
+          <label for="bill-month">Monthly</label>
+          <input type="radio" name="billing" id="bill-year" value="year" />
+          <label for="bill-year">Yearly, save 20%</label>
+        </fieldset>
+      </section>
+
+      <!-- ================================================================ -->
+      <section id="plans" aria-labelledby="plans-heading">
+        <h2 id="plans-heading" class="visually-hidden">Plans</h2>
+
+        <ul role="list">
+          <li>
+            <article>
+              <header>
+                <h3>Starter</h3>
+              </header>
+              <p>
+                <strong data-month="£0" data-year="£0">£0</strong>
+                <small>per month, for one person</small>
+              </p>
+              <ul>
+                <li>Every element, both skins</li>
+                <li>Light, dark and system themes</li>
                 <li>Community support</li>
                 <li>1 seat</li>
               </ul>
-              <a class="btn btn-outline-secondary btn-block mt-auto" href="#">Get started</a>
-            </div>
-          </div>
-        </div>
+              <a class="button outline" href="marketing.html">Get started</a>
+            </article>
+          </li>
 
-        <!-- Team (featured) -->
-        <div class="col-lg-4">
-          <div class="card shadow-2xl position-relative">
-            <span class="badge badge-sticker badge-lg bg-pop">Most popular</span>
-            <div class="card-header bg-primary text-white justify-content-center py-3">Team</div>
-            <div class="card-body p-5 py-6 gap-4">
-              <div class="d-flex flex-column gap-1">
-                <div class="d-flex align-items-baseline gap-2">
-                  <span class="display-4">£29</span>
-                  <span class="text-muted">/ month</span>
-                </div>
-                <p class="text-muted">For the internal tools everyone actually uses.</p>
-              </div>
-              <ul class="list-check">
+          <li>
+            <article>
+              <header>
+                <h3>Team</h3>
+                <span class="badge pop"
+                  >Most popular<span class="visually-hidden">
+                    — the recommended plan</span
+                  ></span
+                >
+              </header>
+              <p>
+                <strong data-month="£29" data-year="£23">£29</strong>
+                <small>per month, up to 20 seats</small>
+              </p>
+              <ul>
                 <li>Everything in Starter</li>
-                <li>Up to 20 seats</li>
                 <li>Private theme registry</li>
                 <li>Priority issue triage</li>
-                <li>Figma token export</li>
+                <li>Design token export</li>
               </ul>
-              <a class="btn btn-primary btn-lg btn-block mt-auto" href="#">
-                Start 14-day trial
-                <span class="btn-bubble">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                </span>
-              </a>
-            </div>
-          </div>
-        </div>
+              <a class="button primary" href="marketing.html"
+                >Start a 14-day trial</a
+              >
+            </article>
+          </li>
 
-        <!-- Enterprise -->
-        <div class="col-lg-4">
-          <div class="card h-100">
-            <div class="card-body p-5 gap-4">
-              <div class="d-flex flex-column gap-1">
-                <span class="text-label text-muted">Enterprise</span>
-                <div class="d-flex align-items-baseline gap-2">
-                  <span class="display-5">£99</span>
-                  <span class="text-muted">/ month</span>
-                </div>
-                <p class="text-muted">For the org with forty admin panels.</p>
-              </div>
-              <ul class="list-check">
+          <li>
+            <article>
+              <header>
+                <h3>Enterprise</h3>
+              </header>
+              <p>
+                <strong data-month="£99" data-year="£79">£99</strong>
+                <small>per month, unlimited seats</small>
+              </p>
+              <ul>
                 <li>Everything in Team</li>
-                <li>Unlimited seats</li>
-                <li>SSO &amp; audit log</li>
+                <li>SSO and audit log</li>
                 <li>Design system review</li>
                 <li>Same-day support</li>
               </ul>
-              <a class="btn btn-outline-secondary btn-block mt-auto" href="#">Talk to us</a>
-            </div>
-          </div>
-        </div>
-      </div>
+              <button type="button" class="outline" commandfor="sales" command="show-modal">
+                Talk to sales
+              </button>
+            </article>
+          </li>
+        </ul>
+      </section>
 
-      <!-- Comparison -->
-      <section class="mt-7 d-flex flex-column gap-4">
-        <h2 class="text-center">Compare the plans</h2>
-        <div class="table-card">
-          <div class="table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Feature</th>
-                  <th class="text-center">Starter</th>
-                  <th class="text-center">Team</th>
-                  <th class="text-center">Enterprise</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>Components</td><td class="text-center">All</td><td class="text-center">All</td><td class="text-center">All</td></tr>
-                <tr><td>Seats</td><td class="text-center">1</td><td class="text-center">20</td><td class="text-center">Unlimited</td></tr>
-                <tr><td>Private themes</td><td class="text-center">—</td><td class="text-center">✓</td><td class="text-center">✓</td></tr>
-                <tr><td>SSO</td><td class="text-center">—</td><td class="text-center">—</td><td class="text-center">✓</td></tr>
-                <tr><td>Support</td><td class="text-center">Community</td><td class="text-center">Priority</td><td class="text-center">Same day</td></tr>
-              </tbody>
-            </table>
-          </div>
+      <!-- ================================================================ -->
+      <section id="compare">
+        <div role="region" aria-labelledby="compare-caption" tabindex="0">
+          <table class="striped">
+            <caption id="compare-caption">Compare the plans</caption>
+            <thead>
+              <tr>
+                <th scope="col">Feature</th>
+                <th scope="col">Starter</th>
+                <th scope="col">Team</th>
+                <th scope="col">Enterprise</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Elements and variants</th>
+                <td>All</td>
+                <td>All</td>
+                <td>All</td>
+              </tr>
+              <tr>
+                <th scope="row">Seats</th>
+                <td class="numeric">1</td>
+                <td class="numeric">20</td>
+                <td>Unlimited</td>
+              </tr>
+              <tr>
+                <th scope="row">Private themes</th>
+                <td><span aria-hidden="true">—</span><span class="visually-hidden">Not included</span></td>
+                <td><span aria-hidden="true">✓</span><span class="visually-hidden">Included</span></td>
+                <td><span aria-hidden="true">✓</span><span class="visually-hidden">Included</span></td>
+              </tr>
+              <tr>
+                <th scope="row">SSO and audit log</th>
+                <td><span aria-hidden="true">—</span><span class="visually-hidden">Not included</span></td>
+                <td><span aria-hidden="true">—</span><span class="visually-hidden">Not included</span></td>
+                <td><span aria-hidden="true">✓</span><span class="visually-hidden">Included</span></td>
+              </tr>
+              <tr>
+                <th scope="row">Support</th>
+                <td>Community</td>
+                <td>Priority</td>
+                <td>Same day</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
-      <section class="mt-7">
-        <div class="card text-bg-dark p-5 text-center">
-          <div class="d-flex flex-column align-items-center gap-3">
-            <h2>Still deciding?</h2>
-            <p class="lead" style="max-inline-size: 32rem; color: inherit; opacity: .85">
-              The whole library is MIT licensed. Use it for free forever and pay us only
-              when you want a human to answer the phone.
-            </p>
-            <a class="btn btn-lg btn-pop" href="#">Read the licence</a>
+      <!-- ================================================================ -->
+      <section id="faq" aria-labelledby="faq-heading">
+        <h2 id="faq-heading">Billing questions</h2>
+
+        <details name="faq" open>
+          <summary><h3>Can I change plan later?</h3></summary>
+          <p class="measure">
+            Any time, in both directions. Changes are prorated to the day, and
+            downgrading never deletes anything — the extra seats simply stop
+            being billable.
+          </p>
+        </details>
+
+        <details name="faq">
+          <summary><h3>What counts as a seat?</h3></summary>
+          <p class="measure">
+            One person who can publish a theme. Everybody who only reads the
+            docs or uses an app you built is free, and always will be.
+          </p>
+        </details>
+
+        <details name="faq">
+          <summary><h3>Do you offer invoicing?</h3></summary>
+          <p class="measure">
+            On the Enterprise plan, yes — annual invoicing with purchase order
+            numbers and net-30 terms. Ask for it in the sales form.
+          </p>
+        </details>
+
+        <details name="faq">
+          <summary><h3>Is there a free tier for open source?</h3></summary>
+          <p class="measure">
+            The library is MIT licensed, so an open source project already has
+            everything. Email us and we will move you onto Team for nothing.
+          </p>
+        </details>
+      </section>
+
+      <!-- ================================================================ -->
+      <section id="closing" aria-labelledby="closing-heading">
+        <article>
+          <h2 id="closing-heading">Still deciding?</h2>
+          <p class="lead">
+            The library itself is MIT licensed. Use it free forever and pay us
+            only when you want a human to answer the phone.
+          </p>
+          <div>
+            <a class="button pop lg" href="marketing.html">Read the licence</a>
+            <button type="button" class="light lg" commandfor="sales" command="show-modal">
+              Talk to sales
+            </button>
           </div>
-        </div>
+        </article>
       </section>
     </main>
+
+    <footer>
+      <small>ja&nbsp;ui · Just Another UI · MIT licensed</small>
+      <nav aria-label="Footer">
+        <ul role="list">
+          <li><a href="marketing.html">Product</a></li>
+          <li><a href="shop.html">Demo</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </nav>
+    </footer>
+
+    <!-- ===================================================================
+         The modal is a <dialog>. `commandfor`/`command` open and close it with
+         no script of ours; ja-ui only ships the fallback for engines that have
+         not implemented invoker commands yet. `method="dialog"` means the form
+         closes the dialog on submit — still validated, still no listener.
+         ================================================================ -->
+    <dialog id="sales">
+      <form method="dialog">
+        <header>
+          <h2>Talk to sales</h2>
+          <button type="button" class="icon" commandfor="sales" command="close" aria-label="Close">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </header>
+
+        <div>
+          <p>Tell us roughly what you are building and we will reply the same day.</p>
+
+          <div>
+            <label for="sales-name">Your name</label>
+            <input id="sales-name" name="name" autocomplete="name" required autofocus />
+          </div>
+
+          <div>
+            <label for="sales-email">Work email</label>
+            <input type="email" id="sales-email" name="email" autocomplete="email" required />
+          </div>
+
+          <div>
+            <label for="sales-size">Team size</label>
+            <select id="sales-size" name="size">
+              <option>1–10 people</option>
+              <option selected>11–50 people</option>
+              <option>51–200 people</option>
+              <option>More than 200</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="sales-notes">What are you building?</label>
+            <textarea id="sales-notes" name="notes" rows="3"></textarea>
+          </div>
+        </div>
+
+        <footer>
+          <button type="submit" formnovalidate value="cancel">Cancel</button>
+          <button type="submit" value="send">Send it</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <script>
+      // The billing switch. Two radios, one listener, no state to hold.
+      const prices = document.querySelectorAll('#plans strong[data-month]');
+      document.getElementById('billing').addEventListener('change', (event) => {
+        const period = event.target.value;
+        for (const price of prices) price.textContent = price.dataset[period];
+      });
+    </script>
   </body>
 </html>

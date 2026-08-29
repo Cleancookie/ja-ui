@@ -1,299 +1,625 @@
 <!doctype html>
-<html lang="en" data-ja-theme="light">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <title>Marketing · ja-ui</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" />
     <link rel="stylesheet" href="../dist/ja-ui.css" />
     <script src="../dist/ja-ui.iife.js" defer></script>
-  </head>
-  <body>
-    <nav class="navbar navbar-expand-md sticky-top bg-white">
-      <div class="container">
-        <a class="navbar-brand" href="#">ja&nbsp;ui</a>
-        <button class="navbar-toggler" data-ja-toggle="collapse" data-ja-target="#marketing-nav" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="marketing-nav">
-          <ul class="navbar-nav mx-auto">
-            <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
-            <li class="nav-item"><a class="nav-link" href="#how">How it works</a></li>
-            <li class="nav-item"><a class="nav-link" href="pricing.html">Pricing</a></li>
-            <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
-          </ul>
-          <div class="d-flex gap-2">
-            <a class="btn btn-ghost" href="signin.html">Sign in</a>
-            <a class="btn btn-primary" href="#">Start free</a>
-          </div>
-        </div>
-      </div>
-    </nav>
 
-    <!-- Hero -->
-    <header class="position-relative overflow-hidden pattern-dots py-7">
-      <div class="shape shape-circle bg-pop" style="inline-size: 20rem; block-size: 20rem; inset-block-start: 1rem; inset-inline-start: -7rem"></div>
-      <div class="shape shape-blob bg-fresh" style="inline-size: 11rem; block-size: 11rem; inset-block-end: 2rem; inset-inline-end: 4%; rotate: -8deg"></div>
-      <div class="container position-relative">
-        <div class="row g-5 align-items-center">
-          <div class="col-lg-7 d-flex flex-column gap-4 align-items-start">
-            <span class="badge badge-lg bg-pop rotate-n2">Version 1.0 is out</span>
-            <h1 class="display-2">
-              Ship internal tools that<br />
-              <span class="text-highlight rotate-1 d-inline-block">don't look internal</span>
-            </h1>
-            <p class="lead" style="max-inline-size: 34rem">
-              A component library with Bootstrap's class names and none of Bootstrap's
-              beige. Drop in one stylesheet and every button, table and form already has
-              a point of view.
-            </p>
-            <div class="d-flex flex-wrap gap-3">
-              <a class="btn btn-primary btn-lg" href="#">
-                Start building
-                <span class="btn-bubble">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                </span>
-              </a>
-              <a class="btn btn-outline-secondary btn-lg" href="dashboard.html">See a live demo</a>
+    <!-- =====================================================================
+         The page owns its layout. ja-ui ships no grid and no utilities, so
+         everything below is this page's own CSS — written against the --ja-*
+         tokens so it rethemes with the library, and unlayered so it beats
+         ja-ui's cascade layers with no !important anywhere.
+         ================================================================== -->
+    <style>
+      :root {
+        /* The one measurement this page invents. Everything else is a token. */
+        --page: 72rem;
+        --gutter: var(--ja-space-5);
+      }
+
+      /* --- The navbar -----------------------------------------------------
+         `nav.sticky` sticks inside its containing block, and that block is
+         <header> — so the header is what actually has to pin. It gives up its
+         own padding and border to the nav, which already ships both. */
+      body > header {
+        position: sticky;
+        inset-block-start: 0;
+        z-index: var(--ja-z-sticky);
+        padding: 0;
+        gap: 0;
+        border-block-end: 0;
+      }
+
+      body > header > nav {
+        inline-size: 100%;
+        padding-inline: max(var(--gutter), (100% - var(--page)) / 2);
+      }
+
+      #nav-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--ja-space-2);
+      }
+
+      /* The popover's no-anchor-positioning fallback pins to the nearest
+         positioned ancestor. Where anchor positioning exists, ja-ui's own
+         @supports block takes over and this is simply ignored. */
+      #nav-product {
+        position: relative;
+      }
+
+      /* --- Page rhythm ----------------------------------------------------
+         Sections are full-bleed; the padding trick centres their contents at
+         --page without a wrapper element and without a single margin. */
+      main {
+        gap: 0;
+      }
+
+      main > section {
+        padding-block: var(--ja-space-8);
+        padding-inline: max(var(--gutter), (100% - var(--page)) / 2);
+        gap: var(--ja-space-6);
+      }
+
+      /* --- Hero ----------------------------------------------------------- */
+      #hero {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+        align-items: center;
+        gap: var(--ja-space-7);
+        background-image: radial-gradient(
+          var(--ja-pattern-color) 1px,
+          transparent 1px
+        );
+        background-size: var(--ja-pattern-size) var(--ja-pattern-size);
+      }
+
+      #hero > div {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        gap: var(--ja-space-4);
+      }
+
+      #hero h1 {
+        font-size: clamp(2.5rem, 7vw, 4rem);
+      }
+
+      #hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--ja-space-3);
+      }
+
+      #hero progress {
+        block-size: var(--ja-space-5);
+      }
+
+      /* --- Feature grid ---------------------------------------------------- */
+      #features > ul {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+        gap: var(--ja-space-5);
+        padding-inline-start: 0;
+        list-style: none;
+      }
+
+      #features > ul > li {
+        display: grid;
+        /* Each card is its own query container, so a card that ends up wide
+           re-lays-itself-out without knowing anything about the viewport. */
+        container-type: inline-size;
+      }
+
+      #features svg {
+        inline-size: var(--ja-space-6);
+        block-size: var(--ja-space-6);
+        flex: none;
+      }
+
+      @container (min-width: 26rem) {
+        #features article {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          align-content: start;
+          column-gap: var(--ja-space-4);
+        }
+
+        #features article > svg {
+          grid-row: 1 / span 2;
+        }
+      }
+
+      /* --- How it works: the ink band -------------------------------------- */
+      #how {
+        background-color: var(--ja-ink-fill);
+        color: var(--ja-ink-fill-fg);
+      }
+
+      #how > ol {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+        gap: var(--ja-space-5);
+        padding-inline-start: 0;
+        list-style: none;
+      }
+
+      #how > ol > li {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        gap: var(--ja-space-3);
+      }
+
+      #how pre {
+        inline-size: 100%;
+      }
+
+      /* --- Testimonial ----------------------------------------------------- */
+      #testimonial {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+        align-items: center;
+        gap: var(--ja-space-7);
+      }
+
+      #stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+        gap: var(--ja-space-4);
+      }
+
+      #stats > div {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ja-space-1);
+        /* The library rules a line under each dl row; in a stat grid that
+           reads as an unfinished table. */
+        padding-block-end: 0;
+        border-block-end: 0;
+      }
+
+      #stats dd {
+        font-family: var(--ja-heading-family);
+        font-size: calc(var(--ja-font-size-xl) * 1.6);
+        font-weight: var(--ja-heading-weight);
+        line-height: var(--ja-line-height-tight);
+      }
+
+      #testimonial blockquote p {
+        font-size: var(--ja-font-size-xl);
+      }
+
+      #testimonial blockquote footer {
+        color: var(--ja-text-muted);
+        font-size: var(--ja-font-size-sm);
+      }
+
+      /* --- Closing call to action ------------------------------------------ */
+      #cta > article {
+        align-items: center;
+        text-align: center;
+        padding: var(--ja-space-7);
+        background-color: var(--ja-primary);
+        color: var(--ja-primary-fg);
+        box-shadow: var(--ja-shadow-xl);
+      }
+
+      /* .lead is quiet grey by design; on a filled panel it has to borrow the
+         panel's own ink instead. */
+      #cta p {
+        color: inherit;
+      }
+
+      #cta-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--ja-space-3);
+      }
+
+      /* --- Footer ---------------------------------------------------------- */
+      body > footer {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+        gap: var(--ja-space-6);
+        padding-block: var(--ja-space-7);
+        padding-inline: max(var(--gutter), (100% - var(--page)) / 2);
+      }
+
+      body > footer nav > ul {
+        flex-direction: column;
+        align-items: start;
+        gap: var(--ja-space-1);
+        padding-inline-start: 0;
+      }
+
+      body > footer h2 {
+        font-size: var(--ja-font-size-sm);
+        font-weight: var(--ja-label-weight);
+        letter-spacing: var(--ja-label-tracking);
+        text-transform: var(--ja-label-case);
+      }
+
+      #colophon {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ja-space-2);
+        align-items: start;
+      }
+    </style>
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header>
+      <nav class="sticky" aria-label="Primary">
+        <a href="marketing.html">ja&nbsp;ui</a>
+
+        <ul role="list">
+          <li><a href="#features">Features</a></li>
+          <li id="nav-product">
+            <button type="button" class="ghost" popovertarget="product-menu">
+              Product
+              <svg
+                viewBox="0 0 24 24"
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            <div popover id="product-menu">
+              <ul role="list">
+                <li><a href="#features">Components</a></li>
+                <li><a href="#how">How it works</a></li>
+                <li><a href="shop.html">Shop demo</a></li>
+                <li><a href="pricing.html">Pricing</a></li>
+              </ul>
             </div>
-            <div class="d-flex align-items-center gap-3">
-              <div class="avatar-group">
-                <span class="avatar avatar-sm">AL</span>
-                <span class="avatar avatar-sm bg-pop">JB</span>
-                <span class="avatar avatar-sm bg-fresh">KR</span>
-                <span class="avatar avatar-sm bg-primary text-white">+9</span>
-              </div>
-              <span class="text-muted fs-sm"><strong class="text-body">1,200+</strong> internal apps built this year</span>
-            </div>
-          </div>
-          <div class="col-lg-5">
-            <div class="card shadow-2xl rotate-2">
-              <div class="card-header bg-pop">Deploy status</div>
-              <div class="card-body gap-3">
-                <div class="d-flex justify-content-between align-items-center">
-                  <strong>acme-production</strong>
-                  <span class="badge bg-success">Live</span>
-                </div>
-                <div class="progress progress-lg"><div class="progress-bar" style="inline-size: 82%">82%</div></div>
-                <ul class="list-check">
-                  <li>Zero runtime dependencies</li>
-                  <li>Accessible by default</li>
-                  <li>Dark mode included</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          </li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+
+        <div id="nav-actions">
+          <button
+            type="button"
+            id="skin-toggle"
+            class="pop sm"
+            aria-pressed="false"
+          >
+            Try the brutal skin
+          </button>
+          <button
+            type="button"
+            class="ghost icon"
+            data-ja-theme-toggle
+            aria-label="Switch between the light and dark theme"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+            </svg>
+          </button>
+          <a class="button primary" href="pricing.html">Start free</a>
         </div>
-      </div>
+      </nav>
     </header>
 
-    <div class="marquee">
-      <div>
-        <span>ZERO DEPENDENCIES</span><span>★</span><span>BOOTSTRAP CLASS NAMES</span><span>★</span>
-        <span>CSS VARIABLES ONLY</span><span>★</span><span>DARK MODE</span><span>★</span>
-      </div>
-      <div aria-hidden="true">
-        <span>ZERO DEPENDENCIES</span><span>★</span><span>BOOTSTRAP CLASS NAMES</span><span>★</span>
-        <span>CSS VARIABLES ONLY</span><span>★</span><span>DARK MODE</span><span>★</span>
-      </div>
-    </div>
-
-    <!-- Features -->
-    <section class="container py-7 d-flex flex-column gap-5" id="features">
-      <div class="text-center d-flex flex-column gap-3 align-items-center">
-        <span class="text-label text-muted">Why bother</span>
-        <h2 class="display-5">Everything you'd have built anyway</h2>
-        <p class="lead" style="max-inline-size: 40rem">
-          Prototype at the speed of HTML, then ship the prototype. Accessibility,
-          keyboard handling and dark mode come along for free.
-        </p>
-      </div>
-      <div class="row g-5">
-        <div class="col-md-4">
-          <div class="card card-hover h-100">
-            <div class="card-body pt-5 gap-3">
-              <span class="card-icon bg-primary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m13 2-9 12h7l-1 8 9-12h-7z"/></svg>
-              </span>
-              <h3 class="card-title">Nothing to configure</h3>
-              <p class="card-text text-muted">
-                One stylesheet, one optional script. No build step, no plugin ecosystem,
-                no config file that grows a personality of its own.
-              </p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card card-hover h-100">
-            <div class="card-body pt-5 gap-3">
-              <span class="card-icon bg-pop">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg>
-              </span>
-              <h3 class="card-title">Retheme in one file</h3>
-              <p class="card-text text-muted">
-                Every colour, radius, shadow and control height is a custom property.
-                Override the handful you care about and the rest follows.
-              </p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card card-hover h-100">
-            <div class="card-body pt-5 gap-3">
-              <span class="card-icon bg-fresh">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>
-              </span>
-              <h3 class="card-title">Accessible without trying</h3>
-              <p class="card-text text-muted">
-                44px touch targets, focus rings you can actually see, focus traps in
-                dialogs, reduced-motion handling. You just write the markup.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- How it works -->
-    <section class="bg-ink text-white py-7" id="how">
-      <div class="container d-flex flex-column gap-5">
-        <div class="d-flex flex-column gap-3">
-          <span class="text-label" style="color: var(--ja-pop)">Three steps</span>
-          <h2 class="display-5">From npm install to shipped</h2>
-        </div>
-        <div class="row g-4">
-          <div class="col-md-4">
-            <div class="d-flex flex-column gap-3">
-              <span class="badge badge-lg bg-pop">01</span>
-              <h3>Install it</h3>
-              <pre class="bg-white text-ink"><code>npm i @cleancookie/ja-ui</code></pre>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="d-flex flex-column gap-3">
-              <span class="badge badge-lg bg-fresh">02</span>
-              <h3>Import the CSS</h3>
-              <pre class="bg-white text-ink"><code>import '@cleancookie/ja-ui/css'</code></pre>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="d-flex flex-column gap-3">
-              <span class="badge badge-lg bg-primary">03</span>
-              <h3>Write HTML</h3>
-              <pre class="bg-white text-ink"><code>&lt;button class="btn btn-primary"&gt;</code></pre>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Testimonial -->
-    <section class="container py-7">
-      <div class="row g-5 align-items-center">
-        <div class="col-lg-6">
-          <blockquote class="blockquote rotate-n1">
-            <p>
-              We replaced 4,000 lines of bespoke CSS with one stylesheet and the internal
-              tools finally look like someone owns them.
-            </p>
-            <footer class="blockquote-footer mt-3">Platform lead, a company with too many admin panels</footer>
-          </blockquote>
-        </div>
-        <div class="col-lg-6">
-          <div class="row g-4">
-            <div class="col-6"><div class="stat"><span class="stat-label">CSS shipped</span><span class="stat-value">30<span class="fs-5">kb</span></span><span class="text-muted fs-sm">gzipped</span></div></div>
-            <div class="col-6"><div class="stat"><span class="stat-label">JS shipped</span><span class="stat-value">5<span class="fs-5">kb</span></span><span class="text-muted fs-sm">gzipped</span></div></div>
-            <div class="col-6"><div class="stat"><span class="stat-label">Dependencies</span><span class="stat-value">0</span><span class="text-muted fs-sm">on purpose</span></div></div>
-            <div class="col-6"><div class="stat"><span class="stat-label">Components</span><span class="stat-value">30+</span><span class="text-muted fs-sm">Bootstrap parity</span></div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- FAQ -->
-    <section class="container pb-7 d-flex flex-column gap-4" id="faq">
-      <h2 class="display-6">Questions people actually ask</h2>
-      <div class="accordion" id="faq-accordion">
-        <div class="accordion-item">
-          <h3 class="accordion-header">
-            <button class="accordion-button" data-ja-toggle="collapse" data-ja-target="#faq-1" data-ja-parent="#faq-accordion" aria-expanded="true">
-              Can I use it alongside Bootstrap?
-            </button>
-          </h3>
-          <div id="faq-1" class="collapse show">
-            <div class="accordion-body">
-              You can, but the class names overlap deliberately — load one or the other.
-              The JavaScript uses <code>data-ja-*</code> attributes and <code>ja:*</code>
-              events, so that half never collides.
-            </div>
-          </div>
-        </div>
-        <div class="accordion-item">
-          <h3 class="accordion-header">
-            <button class="accordion-button collapsed" data-ja-toggle="collapse" data-ja-target="#faq-2" data-ja-parent="#faq-accordion" aria-expanded="false">
-              Does it work with React or Vue?
-            </button>
-          </h3>
-          <div id="faq-2" class="collapse">
-            <div class="accordion-body">
-              It's plain CSS and plain classes, so yes. Import the stylesheet once and
-              put the class names on your components.
-            </div>
-          </div>
-        </div>
-        <div class="accordion-item">
-          <h3 class="accordion-header">
-            <button class="accordion-button collapsed" data-ja-toggle="collapse" data-ja-target="#faq-3" data-ja-parent="#faq-accordion" aria-expanded="false">
-              What about older browsers?
-            </button>
-          </h3>
-          <div id="faq-3" class="collapse">
-            <div class="accordion-body">
-              Modern evergreen browsers only. It leans on <code>color-mix()</code>,
-              <code>:has()</code>, logical properties and cascade layers, and it is not
-              sorry about it.
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="container pb-7">
-      <div class="card text-bg-primary p-5 pattern-grid text-center">
-        <div class="d-flex flex-column align-items-center gap-4">
-          <h2 class="display-5">Make the boring app the good one</h2>
-          <p class="lead text-white" style="max-inline-size: 34rem">
-            Free, MIT licensed, and installable from the GitHub registry in about eight
-            seconds.
+    <main id="main">
+      <!-- ================================================================ -->
+      <section id="hero">
+        <div>
+          <span class="badge pop">Version 1.0 is out</span>
+          <h1>Ship internal tools that don't look internal</h1>
+          <p class="lead measure">
+            One stylesheet, plain semantic HTML. A <code>&lt;button&gt;</code> is
+            a button, a <code>&lt;dialog&gt;</code> is the modal, and
+            <code>&lt;details&gt;</code> is the accordion. No class names to
+            learn and nothing to configure.
           </p>
-          <div class="d-flex flex-wrap gap-3 justify-content-center">
-            <a class="btn btn-lg btn-light" href="#">Read the docs</a>
-            <a class="btn btn-lg btn-dark" href="#">Browse components</a>
+          <div id="hero-actions">
+            <a class="button primary lg" href="pricing.html">Start building</a>
+            <a class="button outline lg" href="shop.html">See a live demo</a>
           </div>
+          <p>
+            <strong>1,200+</strong> internal apps built with it this year.
+          </p>
         </div>
-      </div>
-    </section>
 
-    <footer class="bg-white border-top py-6">
-      <div class="container d-flex flex-wrap justify-content-between gap-4">
-        <div class="d-flex flex-column gap-2">
-          <a class="navbar-brand" href="#">ja&nbsp;ui</a>
-          <span class="text-muted fs-sm">Just Another UI · MIT</span>
-        </div>
-        <nav class="d-flex gap-5">
-          <div class="d-flex flex-column gap-2">
-            <span class="text-label text-muted">Product</span>
-            <a href="#">Components</a><a href="pricing.html">Pricing</a><a href="dashboard.html">Demo</a>
+        <article>
+          <header>
+            <h2>Deploy status</h2>
+            <p>
+              acme-production
+              <span class="badge success"
+                >Live<span class="visually-hidden"> — deploy succeeded</span></span
+              >
+            </p>
+          </header>
+          <p>
+            <label for="rollout">Rollout</label>
+            <progress id="rollout" max="100" value="82">82%</progress>
+          </p>
+          <ul role="list">
+            <li>Zero runtime dependencies</li>
+            <li>Accessible by default</li>
+            <li>Light, dark and system themes</li>
+          </ul>
+        </article>
+      </section>
+
+      <!-- ================================================================ -->
+      <section id="features" aria-labelledby="features-heading">
+        <hgroup>
+          <h2 id="features-heading">Everything you'd have built anyway</h2>
+          <p>
+            Prototype at the speed of HTML, then ship the prototype. Keyboard
+            handling, focus management and dark mode come along for free.
+          </p>
+        </hgroup>
+
+        <ul role="list">
+          <li>
+            <article>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="m13 2-9 12h7l-1 8 9-12h-7z" />
+              </svg>
+              <h3>Nothing to configure</h3>
+              <p>
+                One stylesheet and one optional script. No build step, no plugin
+                ecosystem, no config file that grows a personality of its own.
+              </p>
+            </article>
+          </li>
+          <li>
+            <article>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 3v18M3 12h18" />
+              </svg>
+              <h3>Retheme in one file</h3>
+              <p>
+                Every colour, radius, shadow and control height is a custom
+                property. Override the handful you care about and the rest
+                follows — including the second skin.
+              </p>
+            </article>
+          </li>
+          <li>
+            <article>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="m5 13 4 4L19 7" />
+              </svg>
+              <h3>Accessible without trying</h3>
+              <p>
+                44px touch targets, focus rings you can actually see, real
+                <code>&lt;dialog&gt;</code> focus trapping and reduced-motion
+                handling. You just write the markup.
+              </p>
+            </article>
+          </li>
+        </ul>
+      </section>
+
+      <!-- ================================================================ -->
+      <section id="how" aria-labelledby="how-heading">
+        <hgroup>
+          <h2 id="how-heading">Three steps, no build step</h2>
+          <p>Link it, write HTML, ship. That is the whole integration guide.</p>
+        </hgroup>
+
+        <ol role="list">
+          <li>
+            <span class="badge pop">Step 1</span>
+            <h3>Link the stylesheet</h3>
+            <pre><code>&lt;link rel="stylesheet" href="ja-ui.css"&gt;</code></pre>
+          </li>
+          <li>
+            <span class="badge fresh">Step 2</span>
+            <h3>Write plain HTML</h3>
+            <pre><code>&lt;button class="primary"&gt;Save&lt;/button&gt;</code></pre>
+          </li>
+          <li>
+            <span class="badge success">Step 3</span>
+            <h3>Pick a theme, or don't</h3>
+            <pre><code>&lt;html data-theme="dark"&gt;</code></pre>
+          </li>
+        </ol>
+      </section>
+
+      <!-- ================================================================ -->
+      <section id="testimonial" aria-labelledby="testimonial-heading">
+        <h2 id="testimonial-heading" class="visually-hidden">
+          What people say
+        </h2>
+        <blockquote>
+          <p>
+            We replaced four thousand lines of bespoke CSS with one stylesheet,
+            and the internal tools finally look like someone owns them.
+          </p>
+          <footer>
+            Priya Raman, platform lead at Northbeam — interviewed in
+            <cite>The Internal Tools Report</cite>
+          </footer>
+        </blockquote>
+
+        <dl id="stats">
+          <div>
+            <dt>CSS shipped</dt>
+            <dd>30kb</dd>
           </div>
-          <div class="d-flex flex-column gap-2">
-            <span class="text-label text-muted">Project</span>
-            <a href="#">GitHub</a><a href="#">Changelog</a><a href="#">Licence</a>
+          <div>
+            <dt>JS shipped</dt>
+            <dd>5kb</dd>
           </div>
-        </nav>
+          <div>
+            <dt>Dependencies</dt>
+            <dd>0</dd>
+          </div>
+          <div>
+            <dt>Classes to learn</dt>
+            <dd>21</dd>
+          </div>
+        </dl>
+      </section>
+
+      <!-- ================================================================ -->
+      <section id="faq" aria-labelledby="faq-heading">
+        <h2 id="faq-heading">Questions people actually ask</h2>
+
+        <details name="faq" open>
+          <summary><h3>Do I have to learn any class names?</h3></summary>
+          <p class="measure">
+            Twenty-one, and they are all optional. Ten colours, three
+            treatments, two sizes and a handful of nouns the platform has no
+            element for — a badge, a callout, a toast. Everything else is an
+            element selector.
+          </p>
+        </details>
+
+        <details name="faq">
+          <summary><h3>Does it work with React or Vue?</h3></summary>
+          <p class="measure">
+            It is plain CSS over plain elements, so yes. Import the stylesheet
+            once. The interactive parts are <code>&lt;dialog&gt;</code>,
+            <code>&lt;details&gt;</code> and <code>[popover]</code>, which are
+            the platform's, not a framework's.
+          </p>
+        </details>
+
+        <details name="faq">
+          <summary><h3>What about older browsers?</h3></summary>
+          <p class="measure">
+            Modern evergreen browsers only. It leans on
+            <code>color-mix()</code>, <code>:has()</code>, logical properties
+            and cascade layers, and it is not sorry about it.
+          </p>
+        </details>
+
+        <details name="faq">
+          <summary><h3>Can I override it without !important?</h3></summary>
+          <p class="measure">
+            That is the whole point of the layers. Everything ja-ui ships lives
+            in <code>@layer</code>, and unlayered CSS beats layered CSS whatever
+            its specificity — so your own stylesheet wins by existing. This page
+            is written that way.
+          </p>
+        </details>
+      </section>
+
+      <!-- ================================================================ -->
+      <section id="cta" aria-labelledby="cta-heading">
+        <article>
+          <h2 id="cta-heading">Make the boring app the good one</h2>
+          <p class="lead measure">
+            Free, MIT licensed, and it is one stylesheet. There is nothing else
+            to adopt.
+          </p>
+          <div id="cta-actions">
+            <a class="button light lg" href="#features">Read the docs</a>
+            <a class="button dark lg" href="shop.html">Browse components</a>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer>
+      <div id="colophon">
+        <strong>ja&nbsp;ui</strong>
+        <small>Just Another UI · MIT licensed</small>
       </div>
+
+      <nav aria-label="Product">
+        <h2>Product</h2>
+        <ul role="list">
+          <li><a href="#features">Components</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="shop.html">Demo</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Project">
+        <h2>Project</h2>
+        <ul role="list">
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#main">Changelog</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Legal">
+        <h2>Legal</h2>
+        <ul role="list">
+          <li><a href="#main">Licence</a></li>
+          <li><a href="#main">Privacy</a></li>
+        </ul>
+      </nav>
     </footer>
+
+    <script>
+      // The brutal skin is half the library's personality — this is the whole
+      // integration: one attribute on <html>.
+      const skinToggle = document.getElementById('skin-toggle');
+      skinToggle.addEventListener('click', () => {
+        const on = document.documentElement.dataset.style !== 'brutal';
+        if (on) document.documentElement.dataset.style = 'brutal';
+        else delete document.documentElement.dataset.style;
+        skinToggle.setAttribute('aria-pressed', String(on));
+      });
+    </script>
   </body>
 </html>

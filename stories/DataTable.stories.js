@@ -1,6 +1,16 @@
 import { DataTable } from '../src/index.js';
-import { html, stack, uid } from './helpers.js';
+import { html, note, stack, uid } from './helpers.js';
 
+/**
+ * The second of the two non-native components, and the one place in the library
+ * where a table is deliberately **not** a `<table>`.
+ *
+ * That is a documented trade, not an oversight. Every part of a `<table>` loses
+ * its accessibility semantics the moment CSS re-`display`s it, and a virtualised
+ * grid has to control its own layout absolutely — so for anything that fits in
+ * the DOM, use a real `<table>` (see Elements → Table, including the scroll
+ * region). Reach for this only when the data genuinely does not fit.
+ */
 export default {
   title: 'Components/DataTable',
   tags: ['autodocs'],
@@ -10,7 +20,9 @@ export default {
         component:
           'A spreadsheet-ish grid for serious data: both axes are virtualised, columns start at a fixed width, ' +
           'drag the edge to resize, double-click a header edge to auto-size that column, and double-click the ' +
-          'top-left gutter edge after selecting the sheet to auto-size every column.',
+          'top-left gutter edge after selecting the sheet to auto-size every column. ' +
+          'It is driven by `[data-ja-datatable]`, the only data attribute in the class inventory apart from ' +
+          'the theme hooks.',
       },
     },
   },
@@ -24,13 +36,10 @@ const INVOICES = [
   ['INV-2045', 'Graphic Design Institute', 'Pending', '£184.00', '{"kind":"note","owner":"sales","tags":["priority","west"]}'],
 ];
 
-function mount({ config, note }) {
+function mount({ config, caption }) {
   const id = uid('datatable');
   const root = document.createElement('div');
-  root.innerHTML = stack([
-    note ? `<p class="text-muted">${note}</p>` : '',
-    html`<div id="${id}"></div>`,
-  ]);
+  root.innerHTML = stack([caption ? note(caption) : '', html`<div id="${id}"></div>`]);
   requestAnimationFrame(() => new DataTable(root.querySelector(`#${id}`), config));
   return root;
 }
@@ -38,7 +47,7 @@ function mount({ config, note }) {
 export const InvoiceGrid = {
   render: () =>
     mount({
-      note: 'Double-click a header edge to fit the contents, but long strings still clamp at the configured max.',
+      caption: 'Double-click a header edge to fit the contents, but long strings still clamp at the configured max.',
       config: {
         columns: ['Reference', 'Client', 'Status', 'Total', 'Notes'],
         rows: INVOICES,

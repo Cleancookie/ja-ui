@@ -29,48 +29,37 @@ function findChromium() {
 
 const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8" />
 <style>${CSS}</style></head><body>
-  <button class="btn" id="modal-open" data-ja-toggle="modal" data-ja-target="#m">Open</button>
-  <div class="modal fade" id="m" tabindex="-1">
-    <div class="modal-dialog"><div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Title</h5>
-      <button class="btn-close" data-ja-dismiss="modal"></button></div>
-      <div class="modal-body"><input id="modal-input" class="form-control" /></div>
-    </div></div>
+  <!-- Modal: a plain <dialog>, opened by a plain invoker button. No classes. -->
+  <button id="dlg-open" commandfor="dlg" command="show-modal">Open</button>
+  <dialog id="dlg">
+    <header><h2>Title</h2></header>
+    <input id="dlg-input" autofocus />
+    <footer><button id="dlg-close" commandfor="dlg" command="close">Close</button></footer>
+  </dialog>
+
+  <!-- Drawer: the same element, pinned to an edge by one class. -->
+  <button id="drawer-open" commandfor="drawer" command="show-modal">Drawer</button>
+  <dialog id="drawer" class="drawer end">
+    <button id="drawer-close" commandfor="drawer" command="close">Close</button>
+  </dialog>
+
+  <!-- Dropdown: the popover API. -->
+  <button id="pop-open" popovertarget="pop">Menu</button>
+  <menu id="pop" popover><li><button id="pop-item">One</button></li></menu>
+
+  <!-- Accordion: <details>, which needs no JavaScript whatsoever. -->
+  <details id="det"><summary id="det-summary">More</summary><p id="det-body">Region</p></details>
+
+  <!-- Tabs: the one pattern with no native element. -->
+  <div role="tablist" aria-label="Sections">
+    <button role="tab" id="tab1" aria-selected="true" aria-controls="p1" tabindex="0">1</button>
+    <button role="tab" id="tab2" aria-selected="false" aria-controls="p2" tabindex="-1">2</button>
   </div>
-
-  <div class="dropdown">
-    <button class="btn dropdown-toggle" id="dd" data-ja-toggle="dropdown">Menu</button>
-    <ul class="dropdown-menu"><li><a class="dropdown-item" href="#" id="dd-item">One</a></li>
-    <li><a class="dropdown-item" href="#">Two</a></li></ul>
-  </div>
-
-  <button class="btn" id="col-toggle" data-ja-toggle="collapse" data-ja-target="#col">Toggle</button>
-  <div class="collapse" id="col"><div class="p-4">Region</div></div>
-
-  <div class="alert alert-info fade show" id="al">Dismiss me
-    <button class="btn-close" data-ja-dismiss="alert"></button></div>
-
-  <ul class="nav nav-tabs">
-    <li class="nav-item"><button class="nav-link active" data-ja-toggle="tab" data-ja-target="#p1">1</button></li>
-    <li class="nav-item"><button class="nav-link" id="tab2" data-ja-toggle="tab" data-ja-target="#p2">2</button></li>
-  </ul>
-  <div class="tab-content">
-    <div class="tab-pane fade active show" id="p1">Pane one</div>
-    <div class="tab-pane fade" id="p2">Pane two</div>
-  </div>
-
-  <button class="btn" id="oc-open" data-ja-toggle="offcanvas" data-ja-target="#oc">Drawer</button>
-  <div class="offcanvas offcanvas-end" id="oc" tabindex="-1">
-    <div class="offcanvas-body"><button class="btn" data-ja-dismiss="offcanvas">Close</button></div>
-  </div>
-
-  <div class="toast-container bottom-0 end-0"><div class="toast" id="t">
-    <div class="toast-body">Hello</div></div></div>
-
-  <button class="btn" id="tog" data-ja-toggle="button" aria-pressed="false">Toggle</button>
+  <div id="p1" role="tabpanel" tabindex="0" aria-labelledby="tab1">Pane one</div>
+  <div id="p2" role="tabpanel" tabindex="0" aria-labelledby="tab2" hidden>Pane two</div>
 
   <div class="command-palette" id="cp"></div>
-  <div id="dt" style="inline-size: 880px; margin-top: 1rem;"></div>
+  <div id="dt" style="inline-size: 880px"></div>
 <script>${JS}</script></body></html>`;
 
 const results = [];
@@ -112,77 +101,84 @@ async function main() {
   const page = await browser.newPage({ viewport: { width: 900, height: 700 } });
   await page.setContent(PAGE, { waitUntil: 'load' });
 
-  // Modal ------------------------------------------------------------------
-  await page.click('#modal-open');
+  // Dialog — the modal is just <dialog> -----------------------------------
+  await page.click('#dlg-open');
   await page.waitForTimeout(300);
-  check('modal opens', await page.isVisible('#m .modal-content'));
-  check('modal adds a backdrop', (await page.locator('.modal-backdrop').count()) === 1);
-  check('modal locks page scroll', await page.evaluate(() => document.body.classList.contains('ja-scroll-locked')));
-  check('modal moves focus inside', await page.evaluate(() => document.querySelector('#m').contains(document.activeElement)));
+  check('a command button opens the dialog', await page.evaluate(() => document.querySelector('#dlg').open));
+  check('the dialog is modal, so it gets a ::backdrop', await page.evaluate(() => document.querySelector('#dlg').matches(':modal')));
+  check('opening a modal locks the page scroll', await page.evaluate(() => getComputedStyle(document.documentElement).overflow === 'hidden'));
+  check('autofocus moves focus inside', await page.evaluate(() => document.activeElement?.id === 'dlg-input'));
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
-  check('Escape closes the modal', !(await page.isVisible('#m .modal-content')));
-  check('backdrop is removed', (await page.locator('.modal-backdrop').count()) === 0);
-  check('scroll lock is released', await page.evaluate(() => !document.body.classList.contains('ja-scroll-locked')));
+  check('Escape closes the dialog', await page.evaluate(() => !document.querySelector('#dlg').open));
+  check('the scroll lock is released', await page.evaluate(() => getComputedStyle(document.documentElement).overflow !== 'hidden'));
 
-  // Dropdown ---------------------------------------------------------------
-  await page.click('#dd');
+  await page.click('#dlg-open');
+  await page.waitForTimeout(250);
+  await page.click('#dlg-close');
+  await page.waitForTimeout(400);
+  check('a close command button closes the dialog', await page.evaluate(() => !document.querySelector('#dlg').open));
+
+  // Drawer — the same element, one class ------------------------------------
+  await page.click('#drawer-open');
+  await page.waitForTimeout(400);
+  check('the drawer opens', await page.evaluate(() => document.querySelector('#drawer').open));
+  check('the drawer is pinned to an edge, not centred', await page.evaluate(() => {
+    const box = document.querySelector('#drawer').getBoundingClientRect();
+    return Math.abs(box.right - window.innerWidth) < 2;
+  }));
+  await page.click('#drawer-close');
+  await page.waitForTimeout(400);
+  check('the drawer closes', await page.evaluate(() => !document.querySelector('#drawer').open));
+
+  // Popover — the dropdown --------------------------------------------------
+  await page.click('#pop-open');
   await page.waitForTimeout(200);
-  check('dropdown opens', await page.isVisible('.dropdown-menu'));
-  check('dropdown sets aria-expanded', (await page.getAttribute('#dd', 'aria-expanded')) === 'true');
-  await page.keyboard.press('ArrowDown');
-  check('arrow key focuses the first item', await page.evaluate(() => document.activeElement?.id === 'dd-item'));
+  check('the popover opens', await page.evaluate(() => document.querySelector('#pop').matches(':popover-open')));
   await page.keyboard.press('Escape');
   await page.waitForTimeout(200);
-  check('Escape closes the dropdown', !(await page.isVisible('.dropdown-menu')));
-  await page.click('#dd');
+  check('Escape light-dismisses the popover', await page.evaluate(() => !document.querySelector('#pop').matches(':popover-open')));
+  await page.click('#pop-open');
   await page.waitForTimeout(150);
   await page.mouse.click(880, 680);
   await page.waitForTimeout(200);
-  check('outside click closes the dropdown', !(await page.isVisible('.dropdown-menu')));
+  check('an outside click light-dismisses the popover', await page.evaluate(() => !document.querySelector('#pop').matches(':popover-open')));
 
-  // Collapse ---------------------------------------------------------------
-  await page.click('#col-toggle');
-  await page.waitForTimeout(500);
-  check('collapse expands', await page.isVisible('#col'));
-  check('collapse clears its inline height', (await page.getAttribute('#col', 'style')) === '' || !(await page.getAttribute('#col', 'style'))?.includes('height: 0'));
-  check('trigger reflects expanded state', (await page.getAttribute('#col-toggle', 'aria-expanded')) === 'true');
-  await page.click('#col-toggle');
-  await page.waitForTimeout(500);
-  check('collapse collapses again', !(await page.isVisible('#col')));
-
-  // Alert ------------------------------------------------------------------
-  await page.click('#al .btn-close');
+  // Details — zero JavaScript ----------------------------------------------
+  check('details starts closed', !(await page.isVisible('#det-body')));
+  await page.click('#det-summary');
   await page.waitForTimeout(400);
-  check('alert removes itself', (await page.locator('#al').count()) === 0);
+  check('details opens with no JavaScript at all', await page.isVisible('#det-body'));
+  check('the summary is a real touch target', await page.evaluate(() => document.querySelector('#det-summary').getBoundingClientRect().height >= 44));
+  await page.click('#det-summary');
+  await page.waitForTimeout(400);
+  check('details closes again', !(await page.isVisible('#det-body')));
 
-  // Tabs -------------------------------------------------------------------
+  // Tabs — the APG keyboard model ------------------------------------------
   await page.click('#tab2');
-  await page.waitForTimeout(300);
-  check('tab switches the pane', await page.isVisible('#p2'));
-  check('previous pane is hidden', !(await page.isVisible('#p1')));
-  check('tab sets aria-selected', (await page.getAttribute('#tab2', 'aria-selected')) === 'true');
-
-  // Offcanvas --------------------------------------------------------------
-  await page.click('#oc-open');
-  await page.waitForTimeout(500);
-  check('offcanvas opens', await page.isVisible('#oc'));
-  await page.click('#oc [data-ja-dismiss="offcanvas"]');
-  await page.waitForTimeout(600);
-  check('offcanvas closes', !(await page.isVisible('#oc')));
-
-  // Toast ------------------------------------------------------------------
-  await page.evaluate(() => window.JaUI.Toast.getOrCreateInstance('#t', { delay: 600 }).show());
   await page.waitForTimeout(200);
-  check('toast shows', await page.isVisible('#t'));
-  await page.waitForTimeout(900);
-  check('toast auto-hides', !(await page.isVisible('#t')));
+  check('clicking a tab reveals its panel', await page.isVisible('#p2'));
+  check('the previous panel is hidden', !(await page.isVisible('#p1')));
+  check('aria-selected follows the tab', (await page.getAttribute('#tab2', 'aria-selected')) === 'true');
+  check('the roving tabindex moves with it', await page.evaluate(() =>
+    document.querySelector('#tab2').tabIndex === 0 && document.querySelector('#tab1').tabIndex === -1));
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(150);
+  check('ArrowRight wraps to the first tab', (await page.getAttribute('#tab1', 'aria-selected')) === 'true');
+  await page.keyboard.press('End');
+  await page.waitForTimeout(150);
+  check('End jumps to the last tab', (await page.getAttribute('#tab2', 'aria-selected')) === 'true');
 
-  // Toggle button ----------------------------------------------------------
-  await page.click('#tog');
-  check('toggle button presses', (await page.getAttribute('#tog', 'aria-pressed')) === 'true');
-  await page.click('#tog');
-  check('toggle button releases', (await page.getAttribute('#tog', 'aria-pressed')) === 'false');
+  // Toasts ------------------------------------------------------------------
+  await page.evaluate(() => window.JaUI.toast('Saved.', { duration: 500 }));
+  await page.waitForTimeout(200);
+  check('a toast appears', (await page.locator('.toasts .toast').count()) === 1);
+  check('the toast region is a manual popover', await page.evaluate(() =>
+    document.querySelector('.toasts')?.getAttribute('popover') === 'manual'));
+  check('the toast is polite, not assertive', await page.evaluate(() =>
+    document.querySelector('.toasts .toast')?.getAttribute('role') === 'status'));
+  await page.waitForTimeout(1200);
+  check('the toast dismisses itself', (await page.locator('.toasts .toast').count()) === 0);
 
   // Command palette --------------------------------------------------------
   await page.evaluate(() => {
@@ -296,7 +292,7 @@ async function main() {
 
   // Theme API --------------------------------------------------------------
   await page.evaluate(() => window.JaUI.setTheme('dark'));
-  check('setTheme flips the attribute', (await page.getAttribute('html', 'data-ja-theme')) === 'dark');
+  check('setTheme flips the attribute', (await page.getAttribute('html', 'data-theme')) === 'dark');
   check('resolved theme reports dark', await page.evaluate(() => window.JaUI.getResolvedTheme() === 'dark'));
 
   await browser.close();

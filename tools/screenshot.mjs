@@ -37,40 +37,46 @@ const FILTERS = process.argv.slice(2);
 const wanted = (name) => !FILTERS.length || FILTERS.some((f) => name.includes(f));
 
 /**
- * Component shots, taken from the built stories. The optional fourth field
- * takes the whole viewport instead of the story root — for overlays, which
- * deliberately escape it.
+ * Component shots, taken from the built stories, keyed by the story ids in
+ * `storybook-static/index.json`. `viewport` shoots the whole viewport instead
+ * of the story root — for the overlays, which deliberately escape it — and
+ * `prepare` drives the story before the shutter for anything that is not
+ * already on screen.
  */
 const COMPONENTS = [
-  ['components-button--solid', 'buttons-solid', 1040],
-  ['components-button--outline', 'buttons-outline', 1040],
-  ['components-button--soft', 'buttons-soft', 1040],
-  ['components-button--with-icons', 'buttons-icons', 900],
-  ['components-button--groups', 'button-groups', 700],
-  ['components-badge--shapes', 'badges', 800],
-  ['components-alert--colours', 'alerts', 760],
-  ['components-alert--with-heading-and-icon', 'alert-rich', 760],
-  ['components-card--interactive', 'cards', 960],
-  ['components-card--variations', 'card-variations', 960],
-  ['components-table--in-a-card', 'table', 860],
-  ['components-list-group--actionable', 'list-group', 480],
-  ['components-accordion--basic', 'accordion', 640],
-  ['components-navigation--tabs', 'tabs', 760],
-  ['components-navigation--dropdown', 'dropdown', 520],
-  ['components-navigation--pagination', 'pagination', 620],
-  ['components-feedback--progress', 'progress', 620],
-  ['components-feedback--spinners', 'spinners', 620],
-  ['components-overlays--static-toasts', 'toasts', 460],
-  ['components-command-palette--open', 'command-palette', 900, true],
-  ['forms-controls--text-inputs', 'forms', 560],
-  ['forms-controls--checks-and-radios', 'checks', 560],
-  ['forms-controls--full-form', 'form-card', 700],
-  ['foundations-design-tokens--colours', 'tokens-colours', 900],
-  ['foundations-design-tokens--typography', 'typography', 800],
-  ['foundations-design-tokens--elevation', 'elevation', 900],
-  ['foundations-design-tokens--decoration', 'decoration', 820],
-  ['foundations-design-tokens--stats', 'stats', 900],
-  ['layout-grid--columns', 'grid', 860],
+  { id: 'elements-buttons--colour', name: 'buttons-solid', width: 1040 },
+  { id: 'elements-buttons--treatment', name: 'buttons-treatment', width: 640, height: 1000 },
+  { id: 'elements-feedback--badge', name: 'badges', width: 800 },
+  { id: 'elements-forms--progress', name: 'progress', width: 580 },
+  { id: 'elements-forms--text-controls', name: 'forms', width: 600 },
+  { id: 'elements-forms--choice-controls', name: 'checks', width: 600 },
+  { id: 'elements-table--variants', name: 'table', width: 860, height: 1100 },
+  { id: 'elements-navigation--tabs', name: 'tabs', width: 760 },
+  { id: 'elements-content--interactive', name: 'cards', width: 960 },
+  { id: 'foundations-tokens--colour', name: 'tokens-colours', width: 900 },
+  {
+    id: 'components-command-palette--open',
+    name: 'command-palette',
+    width: 900,
+    height: 560,
+    viewport: true,
+  },
+  {
+    id: 'elements-feedback--toast',
+    name: 'toasts',
+    width: 620,
+    height: 460,
+    viewport: true,
+    // The stack is a top-layer popover pinned to the bottom-right corner, and it
+    // does not exist until something has been toasted. Fire three, then shoot
+    // well inside the five-second dismiss timer.
+    prepare: async (page) => {
+      for (const variant of ['success', 'danger', 'info']) {
+        await page.click(`[data-variant="${variant}"]`);
+        await page.waitForTimeout(120);
+      }
+    },
+  },
 ];
 
 /** Full-page shots of the standalone templates. */
@@ -129,6 +135,13 @@ async function shoot(page, path, margin = 28) {
     width: Math.min(viewport.width - Math.max(0, box.x - margin), box.width + margin * 2),
     height: Math.min(viewport.height - Math.max(0, box.y - margin), box.height + margin * 2),
   };
+  // A story taller than its viewport would be silently guillotined by the clip,
+  // and a half a table in the README looks like a rendering bug.
+  if (box.height + margin * 2 > viewport.height) {
+    console.warn(
+      `  ! ${path} clipped: story is ${Math.ceil(box.height)}px in a ${viewport.height}px viewport`
+    );
+  }
   await page.screenshot({ path, clip, animations: 'disabled' });
 }
 
@@ -145,27 +158,26 @@ async function main() {
   const ctx = await browser.newContext({ deviceScaleFactor: 2, reducedMotion: 'reduce' });
   const page = await ctx.newPage();
 
-  for (const [id, name, width, fullViewport] of COMPONENTS) {
-    if (!wanted(name)) continue;
-    await page.setViewportSize({ width, height: fullViewport ? 560 : 900 });
-    await page.goto(storyUrl(id), { waitUntil: 'networkidle' });
+  for (const shot of COMPONENTS) {
+    if (!wanted(shot.name)) continue;
+    await page.setViewportSize({ width: shot.width, height: shot.height ?? 900 });
+    await page.goto(storyUrl(shot.id), { waitUntil: 'networkidle' });
     await page.evaluate(() => {
       document.body.style.padding = '24px';
       document.documentElement.style.background = 'var(--ja-body-bg)';
     });
     await page.waitForTimeout(250);
-    if (fullViewport) await page.screenshot({ path: join(OUT, `${name}.png`), animations: 'disabled' });
-    else await shoot(page, join(OUT, `${name}.png`));
-    console.log(`  ${name}.png`);
+    await shot.prepare?.(page);
+    const path = join(OUT, `${shot.name}.png`);
+    if (shot.viewport) await page.screenshot({ path, animations: 'disabled' });
+    else await shoot(page, path);
+    console.log(`  ${shot.name}.png`);
   }
 
   // A dark-mode and a brutal-skin shot, to show both off.
   for (const [id, name, width, globals] of [
-    ['components-card--interactive', 'cards-dark', 960, 'theme:dark'],
-    ['foundations-design-tokens--colours', 'tokens-dark', 900, 'theme:dark'],
-    ['components-button--solid', 'buttons-brutal', 1040, 'skin:brutal'],
-    ['components-card--interactive', 'cards-brutal', 960, 'skin:brutal'],
-    ['forms-controls--text-inputs', 'forms-brutal', 560, 'skin:brutal'],
+    ['elements-content--interactive', 'cards-dark', 960, 'theme:dark'],
+    ['elements-buttons--colour', 'buttons-brutal', 1040, 'skin:brutal'],
   ]) {
     if (!wanted(name)) continue;
     await page.setViewportSize({ width, height: 900 });

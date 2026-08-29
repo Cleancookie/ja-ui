@@ -1,0 +1,484 @@
+/* =============================================================================
+   ja-ui — dialog, drawer, popover
+   ---------------------------------------------------------------------------
+   <dialog> IS the modal. [popover] IS the dropdown surface. There is no .modal,
+   no .offcanvas and no .dropdown-menu, because the platform now ships all three
+   behaviours: light dismiss, Esc to close, focus trapping, inert-ing the page
+   behind, and a stacking context that cannot be lost.
+
+   NO Z-INDEX ANYWHERE IN THIS FILE. Both a modal <dialog> and an open [popover]
+   are promoted to the *top layer*, which paints above the entire document
+   regardless of stacking contexts, transforms, filters or `overflow: hidden`
+   ancestors. The old library carried a whole z-index scale to fight that fight;
+   the top layer wins it for free. tokens.css keeps --ja-z-sticky and
+   --ja-z-fixed for sticky headers, and nothing else needs a number.
+
+   Two things the author still has to do:
+
+     1. Put `autofocus` on something inside every dialog — the field the user is
+        meant to fill, or the confirming button. Without it the dialog itself
+        takes focus and long content opens scrolled to the bottom, which is the
+        single most common <dialog> bug.
+     2. Open modals with showModal(), not show(). show() renders the dialog in
+        the normal flow with no backdrop, no focus trap and no Esc.
+
+   `closedby="any"` gives a non-modal dialog light dismiss where it is
+   supported, and is simply ignored where it is not — a free enhancement.
+   ============================================================================= */
+
+@layer ja.elements {
+  /* ---------------------------------------------------------------------------
+     The dialog surface
+
+     Note what is NOT here: no margin. The UA stylesheet already centres a
+     dialog with `margin: auto` against `inset: 0`, so the library ships no
+     margin of its own and inherits correct centring. The drawer variants below
+     re-pin it by releasing one inset, which makes those auto margins resolve to
+     zero — still no margin declared anywhere.
+     ------------------------------------------------------------------------ */
+  dialog {
+    max-inline-size: min(32rem, calc(100% - var(--ja-space-6)));
+    /* The dialog never grows past the viewport; the body inside it scrolls. */
+    max-block-size: min(80dvb, calc(100dvb - var(--ja-space-7)));
+    padding: var(--ja-space-5);
+    border: var(--ja-border);
+    border-radius: var(--ja-radius-lg);
+    background-color: var(--ja-surface);
+    color: var(--ja-text);
+    box-shadow: var(--ja-shadow-xl);
+
+    /* Closed / exit state. The open state below reverses both. */
+    opacity: 0;
+    scale: 0.96;
+    transition:
+      opacity var(--ja-transition),
+      scale var(--ja-transition),
+      translate var(--ja-transition),
+      overlay var(--ja-transition) allow-discrete,
+      display var(--ja-transition) allow-discrete;
+  }
+
+  /* `display` is only ever set on the open state, deliberately: author CSS
+     beats the UA sheet regardless of specificity, so declaring `display: flex`
+     on bare `dialog` would defeat the UA's `dialog:not([open]) { display: none }`
+     and paint every closed dialog on the page. */
+  dialog[open] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-space-4);
+    /* The dialog itself never scrolls — the body region inside it does. */
+    overflow: hidden;
+    opacity: 1;
+    scale: 1;
+  }
+
+  /* @starting-style is the "where the transition comes from" state. Engines
+     without it (and without allow-discrete) simply snap the dialog open and
+     shut, which is a perfectly good dialog — no @supports needed. */
+  @starting-style {
+    dialog[open] {
+      opacity: 0;
+      scale: 0.96;
+    }
+  }
+
+  /* ---------------------------------------------------------------------------
+     The backdrop — solid ink at opacity. No blur, here or anywhere.
+     ------------------------------------------------------------------------ */
+  dialog::backdrop {
+    /* ::backdrop has inherited from its originating element since Chromium 122,
+       Safari 17.4 and Firefox 120. Before that it inherited from nothing at
+       all, so var(--ja-backdrop-bg) resolved to the guaranteed-invalid value
+       and the page behind the modal stayed undimmed. The literal below is the
+       token's own light value, repeated for those engines exactly the way
+       tokens.css repeats a plain value under every light-dark(). It is the only
+       colour literal in the element layer, and this is why. */
+    background-color: rgb(30 41 59 / 55%);
+    background-color: var(--ja-backdrop-bg);
+    transition:
+      background-color var(--ja-transition),
+      overlay var(--ja-transition) allow-discrete,
+      display var(--ja-transition) allow-discrete;
+  }
+
+  @starting-style {
+    dialog[open]::backdrop {
+      background-color: transparent;
+    }
+  }
+
+  /* ---------------------------------------------------------------------------
+     Scroll lock
+
+     <dialog> deliberately does not lock the page behind it — the spec makes the
+     document inert, not unscrollable, so the wheel still moves the page under
+     the modal. :has() puts that right in one rule.
+
+     The reset already sets `scrollbar-gutter: stable` on <body>, so removing
+     the scrollbar here does not shift the layout sideways.
+
+     Known platform gap, not a bug in this file: iOS Safari still lets a *touch*
+     drag scroll the document behind a modal. The only fixes are the
+     position: fixed body hack (which loses scroll position) or JS. Neither is
+     worth it, so ja-ui does neither.
+     ------------------------------------------------------------------------ */
+  html:has(dialog:modal) {
+    overflow: hidden;
+  }
+
+  /* ---------------------------------------------------------------------------
+     Dialog parts
+
+     Two markup shapes are supported and styled identically:
+
+       <dialog> <header> <div> <footer> </dialog>
+       <dialog> <form method="dialog"> <header> <div> <footer> </form> </dialog>
+
+     A <form method="dialog"> closes the dialog on submit and reports the
+     pressed button's value in dialog.returnValue — no JS, no event listener.
+     ------------------------------------------------------------------------ */
+  dialog > form[method="dialog"] {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--ja-space-4);
+    min-block-size: 0;
+    overflow: hidden;
+  }
+
+  :is(dialog, dialog > form[method="dialog"]) > :is(header, footer) {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--ja-space-3);
+  }
+
+  :is(dialog, dialog > form[method="dialog"]) > header {
+    justify-content: space-between;
+    padding-block-end: var(--ja-space-3);
+    border-block-end: var(--ja-border);
+  }
+
+  /* The footer is where the actions live: pushed to the trailing edge, in
+     reading order, with the confirming action last. */
+  :is(dialog, dialog > form[method="dialog"]) > footer {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    padding-block-start: var(--ja-space-3);
+    border-block-start: var(--ja-border);
+  }
+
+  /* Everything between the header and the footer is the scrolling body. Give it
+     one element — a plain <div>, since a scroll container is presentational
+     and an <article> here would pick up the card's border and shadow. Several
+     siblings would mean several independent scrollbars. */
+  :is(dialog, dialog > form[method="dialog"])
+    > :not(header, footer, form[method="dialog"]) {
+    flex: 0 1 auto;
+    min-block-size: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* ---------------------------------------------------------------------------
+     The drawer — the same element, pinned to an edge
+
+     There is no second component. `class="drawer"` plus an edge class re-pins
+     the dialog and swaps the scale entry for a slide; every other rule above
+     (surface, backdrop, scroll lock, header/footer, form handling) applies
+     unchanged. Still showModal(), still Esc, still focus-trapped.
+
+       <dialog class="drawer end"> … </dialog>
+     ------------------------------------------------------------------------ */
+  dialog.drawer {
+    scale: 1;
+    border-radius: 0;
+  }
+
+  /* Inline edges: full height, capped width. */
+  dialog.drawer:is(.start, .end) {
+    inset-block: 0;
+    inline-size: min(28rem, 100%);
+    max-inline-size: 100%;
+    max-block-size: 100dvb;
+  }
+
+  dialog.drawer.start {
+    inset-inline-start: 0;
+    /* Releasing the trailing inset is what makes the UA's `margin: auto`
+       resolve to zero on this axis, so the panel pins instead of centring. */
+    inset-inline-end: auto;
+    border-start-end-radius: var(--ja-radius-lg);
+    border-end-end-radius: var(--ja-radius-lg);
+    translate: -100% 0;
+  }
+
+  dialog.drawer.end {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    border-start-start-radius: var(--ja-radius-lg);
+    border-end-start-radius: var(--ja-radius-lg);
+    translate: 100% 0;
+  }
+
+  /* Block edges: full width, capped height. */
+  dialog.drawer:is(.top, .bottom) {
+    inset-inline: 0;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    max-block-size: min(80dvb, 100dvb);
+  }
+
+  dialog.drawer.top {
+    inset-block-start: 0;
+    inset-block-end: auto;
+    border-end-start-radius: var(--ja-radius-lg);
+    border-end-end-radius: var(--ja-radius-lg);
+    translate: 0 -100%;
+  }
+
+  dialog.drawer.bottom {
+    inset-block-start: auto;
+    inset-block-end: 0;
+    border-start-start-radius: var(--ja-radius-lg);
+    border-start-end-radius: var(--ja-radius-lg);
+    translate: 0 100%;
+  }
+
+  dialog.drawer[open] {
+    translate: 0 0;
+  }
+
+  @starting-style {
+    dialog.drawer.start[open] {
+      translate: -100% 0;
+    }
+    dialog.drawer.end[open] {
+      translate: 100% 0;
+    }
+    dialog.drawer.top[open] {
+      translate: 0 -100%;
+    }
+    dialog.drawer.bottom[open] {
+      translate: 0 100%;
+    }
+  }
+
+  /* ---------------------------------------------------------------------------
+     Reduced motion — keep the state change, drop the travel.
+
+     The discrete display/overlay steps stay so the element still enters and
+     leaves the top layer cleanly; only the distance and the duration go.
+     ------------------------------------------------------------------------ */
+  @media (prefers-reduced-motion: reduce) {
+    dialog,
+    dialog[open],
+    dialog.drawer,
+    dialog.drawer[open],
+    dialog.drawer:is(.start, .end, .top, .bottom) {
+      scale: 1;
+      translate: none;
+      transition-duration: var(--ja-duration-fast);
+    }
+  }
+
+  /* ===========================================================================
+     [popover] — the dropdown, menu and tooltip surface
+
+     Also top layer, also no z-index: a popover escapes `overflow: hidden` and
+     every transformed ancestor for free, which is the entire reason the old
+     dropdown needed a portal and this one does not.
+
+     :popover-open, never :open. `:open` matches the same thing and reads
+     better, but it is far newer than the popover API itself, so styling on it
+     would leave working popovers unstyled in shipping browsers.
+     ========================================================================== */
+  [popover] {
+    /* The UA sheet centres a popover in the viewport with `inset: 0` and
+       `margin: auto` — right for a lightbox, wrong for a dropdown. Release the
+       insets and zero the centring margin. This declares no spacing; it undoes
+       the UA's. */
+    position: absolute;
+    inset: auto;
+    margin: 0;
+    /* Static fallback: sit directly under the trigger. Without anchor
+       positioning the author owns placement — a `position: relative` wrapper
+       around the trigger, or a few lines of JS. The enhancement below removes
+       that job entirely wherever it is supported. */
+    inset-block-start: 100%;
+    inset-inline-start: 0;
+
+    inline-size: max-content;
+    max-inline-size: min(20rem, calc(100vw - var(--ja-space-4)));
+    max-block-size: min(60dvb, 24rem);
+    overflow: auto;
+    padding: var(--ja-space-2);
+    border: var(--ja-border);
+    border-radius: var(--ja-radius);
+    background-color: var(--ja-surface);
+    color: var(--ja-text);
+    box-shadow: var(--ja-shadow-lg);
+
+    opacity: 0;
+    scale: 0.98;
+    transition:
+      opacity var(--ja-duration-fast) var(--ja-ease-out),
+      scale var(--ja-duration-fast) var(--ja-ease-out),
+      overlay var(--ja-duration-fast) allow-discrete,
+      display var(--ja-duration-fast) allow-discrete;
+  }
+
+  /* As with dialog: display is set on the open state only, so the UA's
+     `[popover]:not(:popover-open) { display: none }` keeps working. */
+  [popover]:popover-open {
+    display: block;
+    opacity: 1;
+    scale: 1;
+  }
+
+  @starting-style {
+    [popover]:popover-open {
+      opacity: 0;
+      scale: 0.98;
+    }
+  }
+
+  /* popover="auto" gets a backdrop for light dismiss. Leave it transparent — a
+     dropdown is not a modal, and dimming the page behind a menu is the classic
+     tell that someone reached for the modal component by mistake. */
+  [popover]::backdrop {
+    background-color: transparent;
+  }
+
+  /* ---------------------------------------------------------------------------
+     Anchor positioning — gated, because Safari and Firefox are not there yet.
+
+     Everything above is the fallback and stands on its own; everything in here
+     is the upgrade. A popover opened by a [popovertarget] button already has an
+     *implicit* anchor, which is why `position-anchor: auto` is enough and no
+     anchor-name is needed for the common case.
+
+     For a popover shown from script (showPopover() with no invoker) there is no
+     implicit anchor, so pair them yourself — anchor names are author-chosen and
+     a library cannot invent one that stays unique per popover:
+
+       .filter-button { anchor-name: --filter; }
+       #filter-menu   { position-anchor: --filter; }
+     ------------------------------------------------------------------------ */
+  @supports (position-anchor: --ja-anchor) {
+    [popover] {
+      position: fixed;
+      position-anchor: auto;
+      /* Below the trigger, aligned to its leading edge. */
+      position-area: block-end span-inline-end;
+      /* Out of room? Flip to the other side rather than clipping. */
+      position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+      /* Never taller than the space it was given. */
+      max-block-size: min(60dvb, 24rem);
+    }
+  }
+
+  /* ---------------------------------------------------------------------------
+     Menu rows inside a popover
+
+     ACCESSIBILITY — this is a DISCLOSURE, never role="menu". role="menu" is a
+     promise: arrow keys move between items, Home/End jump, Tab leaves the whole
+     widget, typeahead works, and every child is a role="menuitem". Tab moving
+     between links inside a role="menu" is a broken widget, and screen reader
+     users are told to expect the keyboard model they are not getting. Unless
+     you are implementing the full APG menu pattern (application menus,
+     right-click menus), leave the roles off: a button that toggles a popover
+     containing a list of links is a correct, complete, announced disclosure.
+     ------------------------------------------------------------------------ */
+  [popover] :is(menu, ul[role="list"], ol[role="list"]) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-space-1);
+    list-style: none;
+  }
+
+  [popover] :is(menu, ul[role="list"], ol[role="list"]) :is(a, button) {
+    display: flex;
+    align-items: center;
+    gap: var(--ja-space-3);
+    inline-size: 100%;
+    /* 44px. A menu row is a touch target like any other. */
+    min-block-size: var(--ja-control-height);
+    padding-block: var(--ja-space-2);
+    padding-inline: var(--ja-space-3);
+    border: 0;
+    border-radius: var(--ja-radius-sm);
+    background-color: var(--ja-accent, transparent);
+    color: var(--ja-accent-fg, var(--ja-text));
+    font: inherit;
+    font-weight: var(--ja-font-weight-medium);
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--ja-duration-fast) var(--ja-ease-out);
+  }
+
+  /* --ja-surface-hover is translucent ink, so painting it as a flat image over
+     the row's own background tints an accented row exactly as well as a plain
+     one — one rule instead of a fallback chain. Flat, not a gradient. */
+  [popover] :is(menu, ul[role="list"], ol[role="list"]) :is(a, button):hover {
+    background-image: linear-gradient(var(--ja-surface-hover) 0 0);
+  }
+
+  [popover]
+    :is(menu, ul[role="list"], ol[role="list"])
+    :is(a, button):is(:active, [aria-current], [aria-pressed="true"]) {
+    background-image: linear-gradient(var(--ja-surface-active) 0 0);
+  }
+
+  /* The reset already draws the focus ring; pull it inside so it is not clipped
+     by the popover's own rounded, scrolling box. */
+  [popover] :is(menu, ul[role="list"], ol[role="list"]) :is(a, button):focus-visible {
+    outline-offset: calc(var(--ja-ring-offset) * -1);
+  }
+
+  [popover] :is(menu, ul[role="list"], ol[role="list"]) hr {
+    inline-size: 100%;
+    block-size: 0;
+    border: 0;
+    border-block-start: var(--ja-border);
+  }
+
+  /* ---------------------------------------------------------------------------
+     popover="hint" — the tooltip
+
+     No Safari support at all, and Firefox arrived late. An engine that does not
+     know the value parses it as popover="auto", which means a hint degrades to
+     a normal popover: it still opens, still light-dismisses, but it takes focus
+     handling and closes its sibling auto popovers. That is a graceful landing,
+     not a break — and it is the reason a hint must never be the only place a
+     piece of information exists.
+     ------------------------------------------------------------------------ */
+  [popover="hint"] {
+    max-inline-size: 20ch;
+    padding-block: var(--ja-space-1);
+    padding-inline: var(--ja-space-2);
+    border-color: var(--ja-border-color-strong);
+    border-radius: var(--ja-radius-xs);
+    background-color: var(--ja-ink-fill);
+    color: var(--ja-ink-fill-fg);
+    font-size: var(--ja-font-size-sm);
+    line-height: var(--ja-line-height-tight);
+    box-shadow: var(--ja-shadow-xs);
+    overflow: visible;
+  }
+
+  @supports (position-anchor: --ja-anchor) {
+    [popover="hint"] {
+      position-area: block-start;
+      position-try-fallbacks: flip-block;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [popover],
+    [popover]:popover-open {
+      scale: 1;
+    }
+  }
+}

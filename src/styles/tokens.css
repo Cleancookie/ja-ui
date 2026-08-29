@@ -1,0 +1,465 @@
+/* =============================================================================
+   ja-ui — design tokens
+   ---------------------------------------------------------------------------
+   Every visual value in the library lives here. Override any of them on :root,
+   on <body>, or on any subtree, and the whole library follows.
+
+   Two skins:
+     (default)              Playful Geometric — cream paper, slate ink, chunky
+                            2px borders, hard offset shadows, pill buttons.
+     [data-style="brutal"]  Neo-brutalism — pure black, 4px borders, zero
+                            radius, uppercase, deeper ink shadows.
+
+   Three theme states, never a boolean:
+     (no attribute)         follow the operating system
+     [data-theme="light"]   forced light
+     [data-theme="dark"]    forced dark
+
+   Each token is declared twice: a plain light value, then the real light-dark()
+   declaration. light-dark() is NOT a graceful no-op — an unsupported colour
+   function invalidates the whole declaration and the element gets no colour at
+   all — so the plain declaration underneath is the fallback, and an engine
+   without light-dark() renders the light theme everywhere.
+
+   Custom properties substitute at use time, so these resolve against the
+   colour-scheme of the element that *uses* them, not of :root. That is what
+   makes <aside data-theme="dark"> inside a light page work from one block.
+   ============================================================================= */
+
+@layer ja.tokens {
+  :root,
+  :host {
+    color-scheme: light dark;
+
+    /* --- Type -------------------------------------------------------------
+       Fonts are referenced, never downloaded — ja-ui makes zero network
+       requests. Add this to your <head> for the intended look:
+       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+       -------------------------------------------------------------------- */
+    --ja-font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --ja-font-heading: "Outfit", "Space Grotesk", var(--ja-font-sans);
+    --ja-font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo,
+      Consolas, monospace;
+
+    /* Major-third scale (1.25) */
+    --ja-font-size: 1rem;
+    --ja-font-size-xs: 0.75rem;
+    --ja-font-size-sm: 0.875rem;
+    --ja-font-size-lg: 1.125rem;
+    --ja-font-size-xl: 1.25rem;
+    --ja-line-height: 1.6;
+    --ja-line-height-tight: 1.2;
+
+    --ja-font-weight-normal: 400;
+    --ja-font-weight-medium: 500;
+    --ja-font-weight-semibold: 600;
+    --ja-font-weight-bold: 700;
+    --ja-font-weight-black: 800;
+
+    --ja-heading-family: var(--ja-font-heading);
+    --ja-heading-weight: 800;
+    --ja-heading-tracking: -0.02em;
+    --ja-heading-line-height: 1.1;
+    --ja-heading-case: none;
+
+    /* Labels, buttons, table heads: the loud small text. */
+    --ja-label-weight: 700;
+    --ja-label-tracking: 0.04em;
+    --ja-label-case: uppercase;
+
+    /* --- Space scale (8px rhythm, 4px half-steps) ------------------------- */
+    --ja-space-0: 0;
+    --ja-space-1: 0.25rem;
+    --ja-space-2: 0.5rem;
+    --ja-space-3: 0.75rem;
+    --ja-space-4: 1rem;
+    --ja-space-5: 1.5rem;
+    --ja-space-6: 2rem;
+    --ja-space-7: 3rem;
+    --ja-space-8: 4rem;
+
+    /* --- Radii ------------------------------------------------------------ */
+    --ja-radius-xs: 0.375rem;
+    --ja-radius-sm: 0.5rem;
+    --ja-radius: 0.75rem;
+    --ja-radius-lg: 1rem;
+    --ja-radius-xl: 1.5rem;
+    --ja-radius-pill: 999px;
+    /* The signature asymmetric "speech bubble" corner. */
+    --ja-radius-blob: var(--ja-radius-lg) var(--ja-radius-lg) var(--ja-radius-lg) 0;
+
+    /* --- Motion: bouncy, fast, mechanical -------------------------------- */
+    --ja-ease: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoot */
+    --ja-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ja-duration-fast: 100ms;
+    --ja-duration: 200ms;
+    --ja-duration-slow: 320ms;
+    --ja-transition: var(--ja-duration) var(--ja-ease);
+
+    /* --- Palette ----------------------------------------------------------
+       Light is Playful Geometric. Dark is One Dark — not an inversion of the
+       light theme, but that editor's own chrome: desaturated blue-grey paper,
+       soft #abb2bf ink, and borders that step back so 2px outlines read as
+       structure instead of glare.
+       -------------------------------------------------------------------- */
+    --ja-cream: #fffdf5;
+    --ja-cream: light-dark(#fffdf5, #282c34);
+    --ja-ink: #1e293b;
+    --ja-ink: light-dark(#1e293b, #abb2bf);
+    --ja-white: #ffffff;
+    --ja-white: light-dark(#ffffff, #2c313a);
+
+    --ja-violet: #8b5cf6;
+    --ja-violet: light-dark(#8b5cf6, #c678dd);
+    --ja-lilac: #c4b5fd;
+    --ja-lilac: light-dark(#c4b5fd, #d3a5e8);
+    --ja-pink: #f472b6;
+    --ja-pink: light-dark(#f472b6, #e06c75);
+    --ja-amber: #fbbf24;
+    --ja-amber: light-dark(#fbbf24, #e5c07b);
+    --ja-mint: #34d399;
+    --ja-mint: light-dark(#34d399, #98c379);
+    --ja-sky: #38bdf8;
+    --ja-sky: light-dark(#38bdf8, #61afef);
+    --ja-red: #ff6b6b;
+    --ja-red: light-dark(#ff6b6b, #e06c75);
+    --ja-cyan: #22d3ee;
+    --ja-cyan: light-dark(#22d3ee, #56b6c2);
+    --ja-orange: #fb923c;
+    --ja-orange: light-dark(#fb923c, #d19a66);
+
+    --ja-slate-50: #f8fafc;
+    --ja-slate-50: light-dark(#f8fafc, #2c313a);
+    --ja-slate-100: #f1f5f9;
+    --ja-slate-100: light-dark(#f1f5f9, #323842);
+    --ja-slate-200: #e2e8f0;
+    --ja-slate-200: light-dark(#e2e8f0, #3e4451);
+    --ja-slate-300: #cbd5e1;
+    --ja-slate-300: light-dark(#cbd5e1, #4b5263);
+    --ja-slate-400: #94a3b8;
+    --ja-slate-400: light-dark(#94a3b8, #5c6370);
+    --ja-slate-500: #64748b;
+    --ja-slate-500: light-dark(#64748b, #828997);
+    --ja-slate-600: #475569;
+    --ja-slate-600: light-dark(#475569, #9da5b4);
+    --ja-slate-700: #334155;
+    --ja-slate-700: light-dark(#334155, #abb2bf);
+    --ja-slate-800: #1e293b;
+    --ja-slate-800: light-dark(#1e293b, #c5ccd6);
+    --ja-slate-900: #0f172a;
+    --ja-slate-900: light-dark(#0f172a, #dfe4ec);
+
+    /* --- Semantic colours -------------------------------------------------
+       In dark, every accent is mid-tone, so filled surfaces take dark ink on
+       top rather than white.
+       -------------------------------------------------------------------- */
+    /* One step darker than --ja-violet. White on #8b5cf6 is 4.23:1, which
+       misses AA for the 14px bold label on a filled button — and the filled
+       primary button is the most common piece of text in the whole library. */
+    --ja-primary: #7c3aed;
+    --ja-primary: light-dark(#7c3aed, #c678dd);
+    --ja-secondary: #64748b;
+    --ja-secondary: light-dark(#64748b, #9da5b4);
+    --ja-success: var(--ja-mint);
+    --ja-info: #38bdf8;
+    --ja-info: light-dark(#38bdf8, #56b6c2);
+    --ja-warning: var(--ja-amber);
+    --ja-danger: var(--ja-red);
+    --ja-light: #f1f5f9;
+    --ja-light: light-dark(#f1f5f9, #3e4451);
+    --ja-dark: #1e293b;
+    --ja-dark: light-dark(#1e293b, #c5ccd6);
+    /* ja-ui extras — the confetti colours, available as full variants. */
+    --ja-pop: #f472b6;
+    --ja-pop: light-dark(#f472b6, #d19a66);
+    --ja-fresh: var(--ja-lilac);
+
+    /* Ink that sits on top of a filled colour. */
+    --ja-primary-fg: #ffffff;
+    --ja-primary-fg: light-dark(#ffffff, #21252b);
+    --ja-secondary-fg: #ffffff;
+    --ja-secondary-fg: light-dark(#ffffff, #21252b);
+    --ja-success-fg: #1e293b;
+    --ja-success-fg: light-dark(#1e293b, #21252b);
+    --ja-info-fg: #1e293b;
+    --ja-info-fg: light-dark(#1e293b, #21252b);
+    --ja-warning-fg: #1e293b;
+    --ja-warning-fg: light-dark(#1e293b, #21252b);
+    --ja-danger-fg: #1e293b;
+    --ja-danger-fg: light-dark(#1e293b, #21252b);
+    --ja-light-fg: #1e293b;
+    --ja-light-fg: light-dark(#1e293b, #abb2bf);
+    --ja-dark-fg: #fffdf5;
+    --ja-dark-fg: light-dark(#fffdf5, #21252b);
+    --ja-pop-fg: #1e293b;
+    --ja-pop-fg: light-dark(#1e293b, #21252b);
+    --ja-fresh-fg: #1e293b;
+    --ja-fresh-fg: light-dark(#1e293b, #21252b);
+
+    /* --- Surfaces & ink --------------------------------------------------- */
+    --ja-body-bg: var(--ja-cream);
+    --ja-body-color: var(--ja-ink);
+    --ja-surface: var(--ja-white);
+    --ja-surface-raised: #ffffff;
+    --ja-surface-raised: light-dark(#ffffff, #323842);
+    --ja-surface-sunken: #f1f5f9;
+    --ja-surface-sunken: light-dark(#f1f5f9, #21252b);
+    /* Ink is mid-grey in dark, so hover states lift with light, not with ink. */
+    --ja-surface-hover: rgb(30 41 59 / 6%);
+    --ja-surface-hover: light-dark(rgb(30 41 59 / 6%), rgb(255 255 255 / 6%));
+    --ja-surface-active: rgb(30 41 59 / 12%);
+    --ja-surface-active: light-dark(rgb(30 41 59 / 12%), rgb(255 255 255 / 11%));
+
+    --ja-text: var(--ja-ink);
+    /* One step lighter than slate-500 in dark, where #828997 on a raised
+       surface is 3.72:1 and misses AA for small print. */
+    --ja-text-muted: #64748b;
+    --ja-text-muted: light-dark(#64748b, #9da5b4);
+    --ja-text-subtle: var(--ja-slate-400);
+    --ja-text-inverse: #fffdf5;
+    --ja-text-inverse: light-dark(#fffdf5, #21252b);
+
+    /* Chunky by default: 2px, and always ink — never a washed-out hairline.
+       In dark the borders step back, which is the whole reason One Dark reads
+       as calm rather than as a high-contrast inversion. */
+    --ja-border-width: 2px;
+    --ja-border-color: #1e293b;
+    --ja-border-color: light-dark(#1e293b, #3e4451);
+    --ja-border-color-strong: #1e293b;
+    --ja-border-color-strong: light-dark(#1e293b, #4b5263);
+    --ja-border-color-subtle: #e2e8f0;
+    --ja-border-color-subtle: light-dark(#e2e8f0, #353b45);
+    --ja-border: var(--ja-border-width) solid var(--ja-border-color);
+
+    /* A block filled with solid ink — table heads, code blocks. Split out from
+       --ja-ink so dark can dial it down instead of flipping to a light slab in
+       the middle of a dark page. */
+    --ja-ink-fill: #1e293b;
+    --ja-ink-fill: light-dark(#1e293b, #21252b);
+    --ja-ink-fill-fg: #fffdf5;
+    --ja-ink-fill-fg: light-dark(#fffdf5, #abb2bf);
+
+    /* How much of the raw accent survives in `.outline` / `.soft` / `.ghost`
+       text. The rest is the page's own text colour, which darkens the accent on
+       a light page and lightens it on a dark one. It is a token because it is
+       the single dial that decides whether coloured 14px labels clear WCAG AA —
+       `npm run check:contrast` is what sets it. */
+    --ja-accent-ink-mix: 45%;
+
+    /* How much accent `.soft` washes into the surface. Lower in dark, where the
+       accents are bright mid-tones and the same 15% lifts the fill far enough
+       to cost the label its contrast. */
+    --ja-soft-tint: 15%;
+    --ja-soft-tint: light-dark(15%, 9%);
+    --ja-soft-tint-hover: 24%;
+    --ja-soft-tint-hover: light-dark(24%, 16%);
+
+    --ja-link-color: #4c3ba8;
+    --ja-link-color: light-dark(#4c3ba8, #61afef);
+    --ja-link-hover-color: #8b5cf6;
+    --ja-link-hover-color: light-dark(#8b5cf6, #8cc6f7);
+    --ja-link-decoration: underline;
+    --ja-link-decoration-thickness: 2px;
+    --ja-link-hover-decoration: underline;
+
+    --ja-code-color: #5b3fa8;
+    --ja-code-color: light-dark(#5b3fa8, #98c379);
+    --ja-code-bg: #f5f0ff;
+    --ja-code-bg: light-dark(#f5f0ff, #21252b);
+
+    /* --- Elevation: hard, offset, zero blur ------------------------------- */
+    --ja-shadow-color: #1e293b;
+    --ja-shadow-color: light-dark(#1e293b, #16181d);
+    --ja-shadow-xs: 2px 2px 0 0 var(--ja-shadow-color);
+    --ja-shadow-sm: 3px 3px 0 0 var(--ja-shadow-color);
+    --ja-shadow: 4px 4px 0 0 var(--ja-shadow-color);
+    --ja-shadow-lg: 8px 8px 0 0 var(--ja-shadow-color);
+    --ja-shadow-xl: 12px 12px 0 0 var(--ja-shadow-color);
+    --ja-shadow-2xl: 16px 16px 0 0 var(--ja-shadow-color);
+    --ja-shadow-inset: inset 0 2px 0 0 rgb(30 41 59 / 10%);
+    /* Interaction pair: things lift toward you, then press into the page. The
+       shadow grows or shrinks by exactly as much as the element moves, so its
+       far corner stays pinned and the light source never jumps. Keep
+       --ja-press + --ja-shadow-active's offset equal to --ja-shadow's. */
+    --ja-shadow-hover: 5px 5px 0 0 var(--ja-shadow-color);
+    --ja-shadow-active: 3px 3px 0 0 var(--ja-shadow-color);
+    --ja-lift: -1px;
+    --ja-press: 1px;
+
+    /* --- Focus ring: thick, high-contrast, unmissable --------------------- */
+    --ja-ring-color: #1e293b;
+    --ja-ring-color: light-dark(#1e293b, #61afef);
+    --ja-ring-width: 3px;
+    --ja-ring-offset: 2px;
+    /* Inputs light up instead of glowing. */
+    --ja-focus-fill: #fef0cd;
+    --ja-focus-fill: light-dark(#fef0cd, #2f3b46);
+
+    /* --- Controls ---------------------------------------------------------- */
+    --ja-control-height: 2.75rem; /* 44px — a real touch target */
+    --ja-control-height-sm: 2.25rem;
+    --ja-control-height-lg: 3.25rem;
+    --ja-control-padding-x: 1rem;
+    --ja-control-padding-x-sm: 0.75rem;
+    --ja-control-padding-x-lg: 1.5rem;
+    --ja-control-radius: var(--ja-radius);
+    --ja-btn-radius-base: var(--ja-radius-pill);
+    --ja-control-bg: #ffffff;
+    --ja-control-bg: light-dark(#ffffff, #21252b);
+    --ja-control-color: var(--ja-text);
+    --ja-control-border-color: var(--ja-border-color);
+    --ja-control-placeholder-color: #94a3b8;
+    --ja-control-placeholder-color: light-dark(#94a3b8, #5c6370);
+    --ja-control-disabled-bg: var(--ja-slate-100);
+    --ja-control-disabled-color: var(--ja-slate-400);
+
+    /* --- Layering ---------------------------------------------------------- */
+    --ja-z-sticky: 1020;
+    --ja-z-fixed: 1030;
+    /* <dialog> and [popover] live in the top layer and need no z-index, which
+       is why this scale is three entries instead of the nine it used to be.
+       The command palette renders its own overlay rather than using the top
+       layer, so it is the one thing still stacking by hand. */
+    --ja-z-command-palette: 1070;
+
+    /* Backdrops are solid ink at opacity — no blur anywhere in this library. */
+    --ja-backdrop-bg: rgb(30 41 59 / 55%);
+    --ja-backdrop-bg: light-dark(rgb(30 41 59 / 55%), rgb(20 22 26 / 74%));
+
+    /* --- Patterns (backgrounds are never flat) ---------------------------- */
+    --ja-pattern-color: rgb(30 41 59 / 12%);
+    --ja-pattern-color: light-dark(rgb(30 41 59 / 12%), rgb(255 255 255 / 7%));
+    --ja-pattern-size: 20px;
+
+    /* --- Page rhythm -------------------------------------------------------
+       The library ships no layout, but content elements need a shared vertical
+       rhythm and a readable measure. */
+    --ja-flow-space: var(--ja-space-4);
+    --ja-measure: 68ch;
+  }
+
+  /* --- The three theme states ------------------------------------------------
+     Bare selectors, deliberately: the attribute works on <html>, on <body>, and
+     on any subtree — <aside data-theme="dark"> inside a light page is a
+     first-class, supported thing.
+     ------------------------------------------------------------------------ */
+  [data-theme="light"] { color-scheme: light; }
+  [data-theme="dark"] { color-scheme: dark; }
+
+  /* color-scheme does not propagate from <body> to the viewport, so a
+     body-level theme would otherwise leave a light scrollbar on a dark page.
+     Lift it. <html data-theme> remains the recommended spelling. */
+  html:has(> body[data-theme="light"]) { color-scheme: light; }
+  html:has(> body[data-theme="dark"]) { color-scheme: dark; }
+}
+
+/* =============================================================================
+   Neo-brutalist skin — same elements, louder
+   ---------------------------------------------------------------------------
+   Tokens only. Not one element rule changes between the two skins.
+   ============================================================================= */
+
+@layer ja.tokens {
+  [data-style="brutal"] {
+    --ja-ink: #000000;
+    --ja-ink: light-dark(#000000, #f4f2e9);
+    --ja-cream: #fffdf5;
+    --ja-cream: light-dark(#fffdf5, #14161f);
+    --ja-white: #ffffff;
+    --ja-white: light-dark(#ffffff, #1c1f2b);
+
+    --ja-font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --ja-font-heading: "Space Grotesk", var(--ja-font-sans);
+    --ja-heading-weight: 900;
+    --ja-heading-tracking: -0.035em;
+    --ja-heading-line-height: 0.95;
+    --ja-heading-case: uppercase;
+    /* Lightness is forbidden: 700 and 900, nothing else. */
+    --ja-font-weight-normal: 700;
+    --ja-font-weight-medium: 700;
+    --ja-font-weight-semibold: 700;
+    --ja-font-weight-bold: 900;
+    --ja-font-weight-black: 900;
+    --ja-label-weight: 900;
+    --ja-label-tracking: 0.12em;
+
+    --ja-primary: #ff6b6b;
+    --ja-secondary: #c4b5fd;
+    --ja-success: #34d399;
+    --ja-info: #c4b5fd;
+    --ja-warning: #ffd93d;
+    --ja-danger: #ff6b6b;
+    --ja-light: #ffffff;
+    --ja-light: light-dark(#ffffff, #2a2e3d);
+    --ja-dark: var(--ja-ink);
+    --ja-pop: #ffd93d;
+    --ja-fresh: #c4b5fd;
+
+    --ja-primary-fg: #000000;
+    --ja-primary-fg: light-dark(#000000, #14161f);
+    --ja-secondary-fg: #000000;
+    --ja-info-fg: #000000;
+    --ja-dark-fg: #ffffff;
+    --ja-dark-fg: light-dark(#ffffff, #14161f);
+
+    /* Sharp or fully round — nothing in between. */
+    --ja-radius-xs: 0;
+    --ja-radius-sm: 0;
+    --ja-radius: 0;
+    --ja-radius-lg: 0;
+    --ja-radius-xl: 0;
+    --ja-radius-blob: 0;
+    --ja-btn-radius-base: 0;
+
+    /* If it doesn't have a border, it doesn't exist. */
+    --ja-border-width: 4px;
+    --ja-border-color: var(--ja-ink);
+    --ja-border-color-strong: var(--ja-ink);
+    --ja-border-color-subtle: var(--ja-ink);
+
+    --ja-ink-fill: var(--ja-ink);
+    --ja-ink-fill-fg: var(--ja-cream);
+
+    --ja-shadow-color: #000000;
+    --ja-shadow-color: light-dark(#000000, #05060a);
+    --ja-shadow-xs: 4px 4px 0 0 var(--ja-shadow-color);
+    --ja-shadow-sm: 4px 4px 0 0 var(--ja-shadow-color);
+    --ja-shadow: 6px 6px 0 0 var(--ja-shadow-color);
+    --ja-shadow-lg: 8px 8px 0 0 var(--ja-shadow-color);
+    --ja-shadow-xl: 12px 12px 0 0 var(--ja-shadow-color);
+    --ja-shadow-2xl: 16px 16px 0 0 var(--ja-shadow-color);
+    --ja-shadow-hover: 9px 9px 0 0 var(--ja-shadow-color);
+    --ja-shadow-active: 3px 3px 0 0 var(--ja-shadow-color);
+    --ja-lift: -3px;
+    --ja-press: 3px;
+
+    /* Mechanical, never eased-in-out. */
+    --ja-ease: linear;
+    --ja-ease-out: linear;
+    --ja-duration: 100ms;
+
+    --ja-ring-color: var(--ja-ink);
+    --ja-focus-fill: #ffd93d;
+    /* Neo-brutalism has no subtle greys: it is black, or it is a colour. */
+    --ja-text-muted: var(--ja-ink);
+    --ja-text-subtle: var(--ja-ink);
+    --ja-pattern-color: var(--ja-ink);
+    --ja-backdrop-bg: rgb(0 0 0 / 70%);
+  }
+}
+
+/* Reduced motion: kill the bounce and the travel, keep the state changes. */
+@layer ja.tokens {
+  @media (prefers-reduced-motion: reduce) {
+    :root,
+    :host,
+    [data-style="brutal"] {
+      --ja-ease: linear;
+      --ja-ease-out: linear;
+      --ja-lift: 0px;
+      --ja-press: 0px;
+    }
+  }
+}

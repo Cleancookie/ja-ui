@@ -10,14 +10,7 @@ const preview = {
     backgrounds: { disable: true },
     options: {
       storySort: {
-        order: [
-          'Getting Started',
-          'Foundations',
-          'Components',
-          'Forms',
-          'Layout',
-          'Templates',
-        ],
+        order: ['Getting Started', 'Foundations', 'Elements', 'Components', 'Templates'],
       },
     },
   },
@@ -55,9 +48,9 @@ const preview = {
     (story, context) => {
       const { theme, skin } = context.globals;
       const root = document.documentElement;
-      root.dataset.jaTheme = theme;
-      if (skin === 'brutal') root.dataset.jaStyle = 'brutal';
-      else delete root.dataset.jaStyle;
+      root.dataset.theme = theme;
+      if (skin === 'brutal') root.dataset.style = 'brutal';
+      else delete root.dataset.style;
       document.body.style.background = 'var(--ja-body-bg)';
       document.body.style.color = 'var(--ja-body-color)';
       return story();

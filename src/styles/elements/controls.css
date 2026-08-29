@@ -1,0 +1,316 @@
+/* =============================================================================
+   ja-ui — controls (the button, with no class required)
+   ---------------------------------------------------------------------------
+   `<button>Save</button>` is a finished button. There is no `.btn`.
+
+   Everything here is styled through a set of *local* button tokens
+   (--ja-btn-*), each read with the real token as its fallback:
+
+     background: var(--ja-btn-bg, var(--ja-accent, var(--ja-surface)));
+                     ^ treatment      ^ colour class    ^ the element's own
+
+   Three chances to answer the question "what colour is this button?", in
+   priority order: a treatment class (.outline/.soft/.ghost), a colour class
+   (.primary/.danger/...), then the element's own default. Because the button
+   never *declares* --ja-btn-bg itself, a treatment class also works when it is
+   set on an ancestor — custom properties inherit, so `<div class="ghost">`
+   quietens every button inside it. That is a feature, not an accident.
+
+   The interaction is the library's whole personality: at rest the button casts
+   a hard offset shadow; on hover it lifts toward you and the shadow *grows by
+   exactly the distance it moved*; pressed, it sinks and the shadow shrinks by
+   the same amount. The far corner of the shadow never moves, so the light
+   source stays put and the thing reads as a physical object rather than a
+   sliding rectangle. All four numbers come from tokens (--ja-shadow,
+   --ja-shadow-hover, --ja-shadow-active, --ja-lift, --ja-press) which are tuned
+   together per skin — never hardcode a distance here, or the corner unpins and
+   the movement gets loud.
+
+   Layer note: the *inference* rules at the bottom of this file (submit is
+   primary, a dialog's autofocus button is primary, a close button is quiet)
+   live in ja.elements deliberately. ja.variants comes later, so an explicit
+   `class="danger"` beats them on layer order alone — no :not() chains needed.
+   ============================================================================= */
+
+@layer ja.elements {
+  /* ---------------------------------------------------------------------------
+     The button surface
+
+     :is() keeps the group to one specificity (0-1-1, set by the attribute
+     selectors) so every state rule below can be reasoned about. `a.button` is
+     the one class in this file, and only because the platform gives no element
+     for "a link that acts as a button".
+     ------------------------------------------------------------------------ */
+  :is(
+      button,
+      input[type="button"],
+      input[type="submit"],
+      input[type="reset"],
+      a.button
+    ) {
+    /* Kill the UA's native control chrome; ours replaces all of it. */
+    appearance: none;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* Buttons sit in running text as often as in a toolbar. */
+    vertical-align: middle;
+    gap: var(--ja-space-2);
+
+    /* 44px: a real touch target, before any padding is considered. */
+    min-block-size: var(--ja-btn-height, var(--ja-control-height));
+    padding-block: var(--ja-space-2);
+    padding-inline: var(--ja-btn-padding-x, var(--ja-control-padding-x));
+    /* No margin. Ever. Spacing between buttons belongs to their parent. */
+
+    border: var(--ja-border);
+    border-color: var(--ja-btn-border-color, var(--ja-border-color));
+    border-radius: var(--ja-btn-radius, var(--ja-btn-radius-base));
+
+    background: var(--ja-btn-bg, var(--ja-accent, var(--ja-surface)));
+    color: var(--ja-btn-fg, var(--ja-accent-fg, var(--ja-text)));
+
+    /* The loud small text: short, heavy, spaced out, shouted. */
+    font-family: inherit;
+    font-size: var(--ja-btn-font-size, var(--ja-font-size-sm));
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+    line-height: var(--ja-line-height-tight);
+    text-align: center;
+    text-decoration: none;
+
+    box-shadow: var(--ja-btn-shadow, var(--ja-shadow));
+
+    cursor: pointer;
+    /* A label that can be accidentally selected on a double-click feels broken. */
+    user-select: none;
+    -webkit-user-select: none;
+
+    /* Movement is fast and mechanical; colour changes can afford to be slower.
+       Under prefers-reduced-motion the tokens zero --ja-lift/--ja-press, so the
+       translate transition animates nothing and there is no rule to duplicate. */
+    transition:
+      box-shadow var(--ja-duration-fast) var(--ja-ease-out),
+      translate var(--ja-duration-fast) var(--ja-ease-out),
+      background-color var(--ja-transition),
+      border-color var(--ja-transition),
+      color var(--ja-transition);
+  }
+
+  /* `a.button` has to out-specify whatever a:visited picks up in the type
+     layer, or a visited button-link goes purple. :visited also only accepts a
+     short list of properties, colour among them, so it must be said here. */
+  a.button:is(:link, :visited) {
+    color: var(--ja-btn-fg, var(--ja-accent-fg, var(--ja-text)));
+    text-decoration: none;
+  }
+
+  /* ---------------------------------------------------------------------------
+     Hover — lift toward the reader
+
+     Behind @media (hover: hover) so a touch device never gets a hover state
+     stuck on after a tap. The :where() wrapper on the disabled exclusion keeps
+     this at 0-2-1, matching the disabled rule further down, which is declared
+     later and therefore wins.
+     ------------------------------------------------------------------------ */
+  @media (hover: hover) {
+    :is(
+        button,
+        input[type="button"],
+        input[type="submit"],
+        input[type="reset"],
+        a.button
+      ):hover:where(:not(:disabled, [aria-disabled="true"])) {
+      background: var(
+        --ja-btn-bg-hover,
+        var(--ja-btn-bg, var(--ja-accent, var(--ja-surface)))
+      );
+      box-shadow: var(--ja-btn-shadow-hover, var(--ja-shadow-hover));
+      translate: var(--ja-btn-lift, var(--ja-lift))
+        var(--ja-btn-lift, var(--ja-lift));
+    }
+  }
+
+  /* ---------------------------------------------------------------------------
+     Pressed — sink into the page
+
+     :active covers the pointer/keyboard press. [aria-pressed] and
+     [aria-expanded] are ARIA *state*, which is exactly what this layer is
+     allowed to select on: a toggle that is on, and a disclosure whose panel is
+     open, are genuinely held down. (ARIA *naming* — [aria-label="Close"] — is
+     never a hook here: that string is translated and the style would vanish in
+     French.)
+     ------------------------------------------------------------------------ */
+  :is(
+      button,
+      input[type="button"],
+      input[type="submit"],
+      input[type="reset"],
+      a.button
+    ):is(:active, [aria-pressed="true"], [aria-expanded="true"]):where(
+      :not(:disabled, [aria-disabled="true"])
+    ) {
+    box-shadow: var(--ja-btn-shadow-active, var(--ja-shadow-active));
+    translate: var(--ja-btn-press, var(--ja-press))
+      var(--ja-btn-press, var(--ja-press));
+  }
+
+  /* ---------------------------------------------------------------------------
+     Icons
+
+     Direct SVG children are sized in em so they track the label, and never
+     shrink when the label wraps.
+     ------------------------------------------------------------------------ */
+  :is(button, a.button) > svg {
+    inline-size: 1.15em;
+    block-size: 1.15em;
+    flex-shrink: 0;
+  }
+
+  /* Icon-only: square it off.
+
+     `:has(> svg):not(:has(> :not(svg)))` reads "has an SVG child and no
+     non-SVG element child". CSS cannot see text nodes, so it cannot tell
+     `<button><svg/></button>` from `<button><svg/> Save</button>` — which is
+     why this sets min-inline-size rather than aspect-ratio. An icon-only
+     button hits the 44px minimum and comes out an exact square; the icon+bare
+     text case simply stays as wide as its content instead of being clipped.
+     `.icon` is the explicit spelling for authors who want to be certain. */
+  :is(button, a.button):is(.icon, :has(> svg):not(:has(> :not(svg)))) {
+    padding-inline: var(--ja-space-2);
+    min-inline-size: var(--ja-btn-height, var(--ja-control-height));
+  }
+
+  /* ---------------------------------------------------------------------------
+     Busy
+
+     A ring with one side removed, spinning. No library, no background image,
+     no blur — it is the same hard geometry as everything else. The ring is
+     drawn as a ::before so the label stays readable and the announced
+     aria-busy state and the visible state cannot drift apart.
+     ------------------------------------------------------------------------ */
+  :is(button, a.button)[aria-busy="true"] {
+    cursor: progress;
+  }
+
+  :is(button, a.button)[aria-busy="true"]::before {
+    content: "";
+    inline-size: 1em;
+    block-size: 1em;
+    flex-shrink: 0;
+    border: var(--ja-border-width) solid currentColor;
+    /* The missing quadrant is what makes the rotation legible. */
+    border-block-start-color: transparent;
+    border-radius: var(--ja-radius-pill);
+    animation: ja-spin var(--ja-duration-slow) linear infinite;
+  }
+
+  /* A busy button should not also be inviting a click, so it does not lift. */
+  @media (hover: hover) {
+    :is(button, a.button)[aria-busy="true"]:hover {
+      box-shadow: var(--ja-btn-shadow, var(--ja-shadow));
+      translate: none;
+    }
+  }
+
+  /* `ja-spin` is defined once, in feedback.css alongside the .spinner that is
+     its main user. Keyframes are document-global, so defining it twice would
+     just mean the later file silently won. */
+
+  /* Continuous rotation is exactly the motion this preference is about. The
+     static broken ring still marks the control, and aria-busy is what actually
+     carries the meaning. */
+  @media (prefers-reduced-motion: reduce) {
+    :is(button, a.button)[aria-busy="true"]::before {
+      animation: none;
+    }
+  }
+
+  /* ---------------------------------------------------------------------------
+     Disabled
+
+     Declared last in the file so that, at equal specificity (0-2-1), it beats
+     the hover and pressed rules above on source order. A disabled button is
+     flat: no shadow to lift off, nowhere to travel to.
+
+     [aria-disabled="true"] is the spelling for a control that must stay
+     focusable and announceable — `a.button` cannot take :disabled at all, and
+     a submit button that explains *why* it is unavailable has to be reachable.
+     ------------------------------------------------------------------------ */
+  :is(
+      button,
+      input[type="button"],
+      input[type="submit"],
+      input[type="reset"],
+      a.button
+    ):is(:disabled, [aria-disabled="true"]) {
+    background: var(--ja-control-disabled-bg);
+    color: var(--ja-control-disabled-color);
+    border-color: var(--ja-border-color-subtle);
+    box-shadow: none;
+    translate: none;
+    cursor: not-allowed;
+  }
+
+  /* ---------------------------------------------------------------------------
+     Inference — intent that is already in the markup
+
+     These sit in ja.elements, one layer below ja.variants, which is the entire
+     mechanism: `<button type="submit" class="danger">` comes out red because
+     .danger (0-1-0) lives in the later layer and layer order sorts above
+     specificity. Do not try to defend these with :not().
+
+     Each one only ever remaps tokens, exactly like a variant class does, so a
+     colour class and an inferred colour can never fight over a raw property.
+     ------------------------------------------------------------------------ */
+
+  /* The submit button of a form *is* the form's primary action. There is no
+     more reliable signal of intent in HTML, and it costs the author nothing. */
+  button[type="submit"],
+  input[type="submit"] {
+    --ja-accent: var(--ja-primary);
+    --ja-accent-fg: var(--ja-primary-fg);
+  }
+
+  /* A dialog's autofocused button is its default action — the thing that
+     happens if you open the dialog and hit Enter. Same reasoning. */
+  dialog button[autofocus] {
+    --ja-accent: var(--ja-primary);
+    --ja-accent-fg: var(--ja-primary-fg);
+  }
+
+  /* The way out is not loud. A close button, and a submit that deliberately
+     skips validation (Cancel, Back, Save draft), are escape hatches: they get
+     the quiet treatment so the real action stays the loudest thing on screen.
+
+     These are the same token remaps as `.ghost` in variants.css. The
+     duplication is the price of the layer split — the two cannot share a
+     selector, and .ghost has to remain able to override this from the later
+     layer. If you retune one, retune both. */
+  button:is([command="close"], [command="request-close"], [formnovalidate]) {
+    --ja-btn-bg: transparent;
+    --ja-btn-fg: var(--ja-text-muted);
+    /* Transparent rather than none: the border still occupies its 2px, so a
+       quiet button lines up exactly with a loud one beside it. */
+    --ja-btn-border-color: transparent;
+    --ja-btn-shadow: none;
+    --ja-btn-shadow-hover: none;
+    --ja-btn-shadow-active: none;
+    --ja-btn-lift: 0px;
+    --ja-btn-press: 0px;
+    --ja-btn-bg-hover: var(--ja-surface-hover);
+  }
+
+  /* [type="reset"] is deliberately NOT inferred as destructive. Reset wipes a
+     form with no undo and no confirmation, it is a documented UX anti-pattern,
+     and painting it red would be advertising it. `.danger` is the only
+     spelling for destructive. */
+
+  /* button[popovertarget] needs nothing of its own: the platform (and any
+     author following the pattern) puts aria-expanded on the invoker, and the
+     pressed rule above already renders an open popover's trigger as held down.
+     Grouping — a <menu> or <div> of adjacent buttons welded into a bar — is
+     navigation's territory and lives in elements/navigation.css. */
+}

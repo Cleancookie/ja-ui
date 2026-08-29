@@ -1,0 +1,308 @@
+/* =============================================================================
+   ja-ui — table
+   ---------------------------------------------------------------------------
+   A <table> with no classes on it at all is the deliverable: chunky ink frame,
+   rounded corners, and the signature solid-ink header slab. Nothing here asks
+   the author for a wrapper, a class or a data attribute.
+
+   THE ONE RULE THIS FILE WILL NOT BREAK
+   -------------------------------------
+   `display: block | flex | grid | contents` on ANY table part — table, thead,
+   tbody, tfoot, tr, th, td — removes that part from the accessibility tree.
+   The rows stop being rows, the headers stop being announced with their cells,
+   and a screen-reader user is left reading a list of unlabelled strings.
+   Firefox still mis-handles `display: contents` on table parts on top of that.
+
+   So there is deliberately NO grid-based "responsive table" skin in this
+   library, and no card-per-row stacking at a breakpoint. Every one of those
+   tricks is built on re-`display`ing table parts, and every one of them silently
+   destroys the semantics that made you choose a <table> in the first place.
+
+   The responsive answer is a scroll container the author opts into:
+
+     <div role="region" aria-labelledby="orders-caption" tabindex="0">
+       <table id="orders">…</table>
+     </div>
+
+   styled at the bottom of this file. `tabindex="0"` is REQUIRED, not decorative:
+   a scrollable box that cannot be focused cannot be scrolled from the keyboard,
+   and `role="region"` without an accessible name is dropped by some screen
+   readers — hence `aria-labelledby` pointing at the caption (or `aria-label`).
+   ============================================================================= */
+
+@layer ja.elements {
+  table {
+    /* --- Locals ------------------------------------------------------------
+       Everything an opt-in class touches is remapped here, never re-declared as
+       a raw property further down. That is what keeps `.compact` one line and
+       stops it escalating specificity.
+       -------------------------------------------------------------------- */
+    --ja-table-padding-block: var(--ja-space-3);
+    --ja-table-padding-inline: var(--ja-space-4);
+    /* The horizontal rule between rows. */
+    --ja-table-rule: var(--ja-border-width) solid var(--ja-border-color-subtle);
+    /* The vertical one — off until `.bordered` switches it on. */
+    --ja-table-vrule: 0 none;
+    --ja-table-stripe: transparent;
+
+    inline-size: 100%;
+    border-collapse: collapse;
+    background-color: var(--ja-surface);
+    color: var(--ja-text);
+    border-radius: var(--ja-radius);
+
+    /* --- The frame, and why it is an outline -------------------------------
+       In the collapsed border model a table's own `border` is painted as part
+       of the table's *contents*, not as a border box — so `overflow: clip`,
+       which is what actually rounds the corners, clips the frame clean off.
+       (Verified in Chromium: collapse + radius + clip = rounded corners and no
+       visible border at all.) `border-radius` is also spec'd not to apply to
+       the collapsed border itself, so keeping the border and dropping the clip
+       just gives square corners.
+
+       An outline is painted by the element, follows `border-radius`, and is
+       untouched by the element's own overflow — so it survives the clip. Pulled
+       inward by exactly its own width, it lands where a border would have, and
+       costs no layout box, so nothing shifts.
+
+       The alternative — rounding the four corner cells individually — needs a
+       :first-child/:last-child rule per corner and picks the wrong cells the
+       moment a <caption>, a <tfoot> or a colspan turns up. One clip on the
+       table handles every combination.
+
+       `clip`, not `hidden`: `overflow: hidden` makes a scroll container, which
+       a screen reader offers as a scrollable region and a keyboard user cannot
+       reach. `clip` only draws less.
+       -------------------------------------------------------------------- */
+    outline: var(--ja-border);
+    outline-offset: calc(-1 * var(--ja-border-width));
+    overflow: clip;
+
+    /* Hard, zero-blur, offset. Read through a var with a fallback rather than
+       declared here, so the scroll wrapper below can hand the shadow to itself
+       without this rule winning. */
+    box-shadow: var(--ja-table-shadow, var(--ja-shadow));
+  }
+
+  /* We spent the table's `outline` on the frame, so hand the focus ring back
+     for the rare focusable table. A focus ring is never optional. */
+  table:focus-visible {
+    outline: var(--ja-ring-width) solid var(--ja-ring-color);
+    outline-offset: var(--ja-ring-offset);
+  }
+
+  /* --- Caption --------------------------------------------------------------
+     Above the table, in the loud label style — it is the table's heading, not a
+     footnote. `caption-side: top` rather than `block-start`: the logical
+     keywords are still Firefox-only, and an unsupported value would drop the
+     declaration and float the caption to the bottom.
+     ----------------------------------------------------------------------- */
+  caption {
+    caption-side: top;
+    padding: var(--ja-table-padding-block) var(--ja-table-padding-inline);
+    border-block-end: var(--ja-table-rule);
+    /* The table's own background is painted over the grid, not over the
+       caption box — without this the caption sits on the page and the frame
+       looks like it has a hole punched in the top of it. */
+    background-color: var(--ja-surface);
+    color: var(--ja-text);
+    font-family: var(--ja-font-heading);
+    font-size: var(--ja-font-size-sm);
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+    text-align: start;
+  }
+
+  /* --- The ink slab ---------------------------------------------------------
+     The most recognisable detail in the library: the head is a solid block of
+     ink, never a washed-out grey. The background sits on <thead> so it survives
+     colspans, multiple header rows and a <th> that opts out of the label type.
+     ----------------------------------------------------------------------- */
+  thead {
+    background-color: var(--ja-ink-fill);
+    color: var(--ja-ink-fill-fg);
+  }
+
+  thead th {
+    font-family: var(--ja-font-heading);
+    font-size: var(--ja-font-size-xs);
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+  }
+
+  /* --- Cells ---------------------------------------------------------------- */
+  th,
+  td {
+    padding: var(--ja-table-padding-block) var(--ja-table-padding-inline);
+    /* Logical, so an RTL table aligns itself without a second stylesheet. */
+    text-align: start;
+    vertical-align: middle;
+  }
+
+  /* Row headers (`<th scope="row">`) stay in the body's paper — bold, not ink. */
+  tbody th {
+    font-weight: var(--ja-font-weight-bold);
+  }
+
+  /* One subtle rule between rows; the frame draws the outer edges. */
+  tbody tr:not(:last-child) > :is(th, td) {
+    border-block-end: var(--ja-table-rule);
+  }
+
+  /* Vertical rules are off by default and switched on by `.bordered`. Drawn on
+     the inline-start of every cell that has a sibling before it, so the outer
+     edges are never doubled up against the frame. */
+  :is(th, td) + :is(th, td) {
+    border-inline-start: var(--ja-table-vrule);
+  }
+
+  /* Stripes ride on the row, hover rides on the cells. Cells paint above rows
+     in the table painting order, so a hovered striped row shows both: the
+     translucent hover tint composites over the stripe instead of replacing it. */
+  tbody tr:nth-child(even) {
+    background-color: var(--ja-table-stripe);
+  }
+
+  /* Only where a pointer can actually hover — on a touch screen `:hover` sticks
+     to the last tapped row and reads as a selection that isn't there. */
+  @media (hover: hover) {
+    tbody tr:hover > :is(th, td) {
+      background-color: var(--ja-surface-hover);
+    }
+  }
+
+  /* --- Foot ---------------------------------------------------------------
+     Totals row: sunken paper, bold, and a full-strength ink rule to cut it off
+     from the data above it. */
+  tfoot {
+    background-color: var(--ja-surface-sunken);
+    font-weight: var(--ja-font-weight-bold);
+  }
+
+  tfoot > tr:first-child > :is(th, td) {
+    border-block-start: var(--ja-border);
+  }
+
+  /* --- Sort direction -------------------------------------------------------
+     `aria-sort` is ARIA *state*, so styling it is legitimate — it says what the
+     table is doing, not what it looks like. Only ever one column at a time, and
+     the header stays a <th> containing a <button> that the author wires up;
+     this file just draws the arrow.
+
+     The arrow is a pseudo-element on the cell rather than a glyph in the markup
+     so the sort control's accessible name stays "Price", not "Price ▲".
+
+     The glyphs are written as escapes, not as literal characters: a CSS file
+     served without a charset is decoded using the referencing document's
+     encoding, and a latin-1 page turns "▲" into mojibake in the header.
+     ----------------------------------------------------------------------- */
+  th[aria-sort] {
+    --ja-sort-mark: "\2195"; /* ↕ sortable, not currently sorted */
+  }
+  th[aria-sort="ascending"] {
+    --ja-sort-mark: "\25B2"; /* ▲ */
+  }
+  th[aria-sort="descending"] {
+    --ja-sort-mark: "\25BC"; /* ▼ */
+  }
+
+  th[aria-sort]::after {
+    content: var(--ja-sort-mark);
+    /* The alt-text form silences the glyph for screen readers, which already
+       hear the sort state from aria-sort itself. Declared second so an engine
+       without `content: x / alt` keeps the plain arrow instead of dropping the
+       whole declaration and rendering nothing. */
+    content: var(--ja-sort-mark) / "";
+    /* Padding, not margin — nothing in this library ships a margin. */
+    padding-inline-start: var(--ja-space-2);
+    font-size: 0.75em;
+    /* The neutral state is a hint, the sorted states are the answer. */
+    opacity: 0.55;
+  }
+  th:is([aria-sort="ascending"], [aria-sort="descending"])::after {
+    opacity: 1;
+  }
+
+  /* --- colgroup / col -------------------------------------------------------
+     <col> is not a box. The only properties that reach it are `background`,
+     `border` (and only in the collapsed model, which is the one above),
+     `visibility: collapse` — which removes the column outright — and width /
+     `inline-size`. Padding, colour, alignment and font on a <col> are silently
+     ignored by every engine, so a numeric column is aligned with `.numeric` on
+     the cells, not on the <col>.
+
+     Nothing is declared for it here: sizing columns is the author's call, and
+     `<col style="inline-size: 12rem">` already does it.
+     ----------------------------------------------------------------------- */
+
+  /* --- Cells that hold a control -------------------------------------------
+     A control brings its own 44px target and its own padding, so the cell backs
+     off its block padding rather than stacking two lots of air.
+     ----------------------------------------------------------------------- */
+  td:has(> :is(input, select, textarea, button)) {
+    padding-block: var(--ja-space-2);
+  }
+
+  /* The row-select checkbox column: as narrow as its content. `inline-size: 1%`
+     is the table-layout idiom for "shrink to fit" — auto layout treats it as a
+     floor, not a target. */
+  :is(th, td):has(> input:is([type="checkbox"], [type="radio"])) {
+    inline-size: 1%;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* --- Numbers --------------------------------------------------------------
+     Tabular figures are the whole point: digits share one advance width, so the
+     units line up down the column and 111 stops looking narrower than 999. */
+  :is(th, td).numeric {
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+  }
+
+  /* --- The three opt-in classes --------------------------------------------
+     Scoped to `table` so they cannot collide with an author's own `.compact` on
+     some other element, and written as token remaps only — not one of them
+     declares a raw property. The colour-intent classes (`.primary`, `.danger` …)
+     live in variants.css and are not repeated here.
+     ----------------------------------------------------------------------- */
+  table.striped {
+    --ja-table-stripe: var(--ja-surface-sunken);
+  }
+
+  table.compact {
+    --ja-table-padding-block: var(--ja-space-2);
+    --ja-table-padding-inline: var(--ja-space-3);
+  }
+
+  table.bordered {
+    --ja-table-vrule: var(--ja-border-width) solid var(--ja-border-color-subtle);
+  }
+
+  /* --- The responsive answer: a scroll container, not a re-layout -----------
+     See the header of this file for why there is no grid skin. The wrapper is
+     plain markup the author writes:
+
+       <div role="region" aria-labelledby="…" tabindex="0"> <table>…</table> </div>
+
+     `tabindex="0"` is required — without it the box scrolls with a pointer and
+     is a dead end for a keyboard, which is a WCAG 2.1.1 failure, and browsers
+     will not add the tabstop for you on a `role="region"`.
+
+     The wrapper takes the shadow over: an offset shadow drawn inside a scroll
+     container is clipped along the two edges it is offset toward, so the table
+     hands it up. Setting the local to `none` here is enough — the table reads
+     it as an inherited value through the `var()` fallback and paints nothing.
+     ----------------------------------------------------------------------- */
+  [role="region"]:has(> table) {
+    --ja-table-shadow: none;
+
+    overflow: auto;
+    /* Don't chain the page's scroll onto the end of the table's. */
+    overscroll-behavior-inline: contain;
+    border-radius: var(--ja-radius);
+    box-shadow: var(--ja-shadow);
+  }
+}

@@ -1,51 +1,36 @@
 /* =============================================================================
    ja-ui — Just Another UI
-   A zero-dependency, Bootstrap 5-compatible component library.
+   Drop this in, write plain semantic HTML, get a themed page.
 
-   Import order matters: tokens define the vocabulary, the reset clears the
-   ground, components build on both, and utilities win last.
+   The layer order below is the first thing in the file, and it is load-bearing:
+   unlayered CSS beats layered CSS regardless of specificity, so your own
+   stylesheet wins over this one without !important and without specificity
+   archaeology. There is no !important anywhere in this library — it would
+   invert the layer order and start beating you.
    ============================================================================= */
 
+@layer ja.reset, ja.tokens, ja.elements, ja.variants, ja.components, ja.hidden;
 
-/* 1. Vocabulary */
-@import "./base/tokens.css";
-@import "./generated/theme-colors.css";
+/* 1. Ground */
+@import "./reset.css";
 
-/* 2. Ground */
-@import "./base/reset.css";
-@import "./base/typography.css";
+/* 2. Vocabulary */
+@import "./tokens.css";
 
-/* 3. Layout */
-@import "./generated/grid.css";
-@import "./layout/helpers.css";
+/* 3. The elements themselves */
+@import "./elements/typography.css";
+@import "./elements/content.css";
+@import "./elements/controls.css";
+@import "./elements/forms.css";
+@import "./elements/table.css";
+@import "./elements/disclosure.css";
+@import "./elements/dialog.css";
+@import "./elements/navigation.css";
+@import "./elements/feedback.css";
 
-/* 4. Components */
-@import "./components/transitions.css";
-@import "./components/buttons.css";
-@import "./components/badge.css";
-@import "./components/alert.css";
-@import "./components/card.css";
-@import "./components/list-group.css";
-@import "./components/table.css";
-@import "./components/breadcrumb-pagination.css";
-@import "./components/progress.css";
-@import "./components/spinners.css";
-@import "./components/placeholders.css";
-@import "./components/forms.css";
-@import "./components/input-group.css";
-@import "./components/validation.css";
-@import "./components/nav.css";
-@import "./components/navbar.css";
-@import "./components/dropdown.css";
-@import "./components/modal.css";
+/* 4. Intent classes — token remaps only */
+@import "./variants.css";
+
+/* 5. The two things the platform genuinely cannot do */
 @import "./components/command-palette.css";
-@import "./components/offcanvas.css";
-@import "./components/toast.css";
-@import "./components/accordion.css";
-@import "./components/decorations.css";
-
-/* 5. Colour variants for every component above */
-@import "./generated/variants.css";
-
-/* 6. Utilities — last word, and the only place !important lives */
-@import "./generated/utilities.css";
+@import "./components/datatable.css";

@@ -1,0 +1,276 @@
+/* =============================================================================
+   ja-ui — disclosure
+   ---------------------------------------------------------------------------
+   <details>/<summary> IS the accordion. There is no .accordion, no
+   .accordion-item, no aria-expanded to keep in sync and no JS at all.
+
+   ACCESSIBILITY — read this before you reach for a JS accordion instead.
+
+   <details> does NOT expose the ARIA Authoring Practices accordion pattern. It
+   exposes N independent group/button pairs. Concretely, what you do not get:
+
+     - no roving arrow-key navigation between the headers (Tab, not Down)
+     - no "2 of 5" position announcement, because there is no owning group
+     - no heading semantics unless you put an <h3> inside the <summary>
+     - inconsistent announcement of the expanded state across screen readers,
+       which the W3C has an open issue about (whatwg/html#4166 and friends)
+
+   What you get in exchange, none of which a JS accordion can give you:
+
+     - find-in-page opens the panel and scrolls to the match
+     - Ctrl+P prints the content, whether or not it was open on screen
+     - it works with JavaScript broken, blocked or still downloading
+     - one HTML element instead of a widget, a controller and a state bug
+
+   That trade is deliberate. If you genuinely need the APG keyboard model —
+   an application sidebar someone drives all day with the keyboard — build the
+   APG widget and do it properly. For an FAQ, a settings group, a "show the
+   details" panel, this is the better component, and it is the default here.
+   ============================================================================= */
+
+@layer ja.elements {
+  /* ---------------------------------------------------------------------------
+     The card
+     ------------------------------------------------------------------------ */
+  details {
+    /* The grid is the animation mechanism — see "Opening and closing" below.
+       Row 1 is the summary, row 2 is the panel, collapsed to 0fr. */
+    display: grid;
+    grid-template-rows: auto 0fr;
+    border: var(--ja-border);
+    border-radius: var(--ja-radius);
+    background-color: var(--ja-surface);
+    color: var(--ja-text);
+    box-shadow: var(--ja-shadow);
+    transition: grid-template-rows var(--ja-duration) var(--ja-ease-out);
+  }
+
+  details[open] {
+    grid-template-rows: auto 1fr;
+  }
+
+  /* ---------------------------------------------------------------------------
+     The summary — the loud label treatment
+
+     `list-style: none` kills the marker in every modern engine; the WebKit
+     pseudo-element is the legacy spelling and is still needed on older Safari.
+     `display: flex` would also suppress it, but relying on that alone breaks
+     the day someone overrides the display.
+     ------------------------------------------------------------------------ */
+  summary {
+    display: flex;
+    align-items: center;
+    /* The chevron is the last flex item and the label text is an anonymous
+       one, so space-between pushes them apart with no margin in sight. */
+    justify-content: space-between;
+    gap: var(--ja-space-3);
+    /* 44px. A summary is a button and gets a real touch target. */
+    min-block-size: var(--ja-control-height);
+    padding-block: var(--ja-space-3);
+    padding-inline: var(--ja-space-4);
+    border-radius: inherit;
+    background-color: var(--ja-accent, transparent);
+    color: var(--ja-accent-fg, var(--ja-text));
+    font-family: var(--ja-heading-family);
+    font-size: var(--ja-font-size);
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+    line-height: var(--ja-line-height-tight);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    transition: background-color var(--ja-duration-fast) var(--ja-ease-out);
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Open: the summary sits against the panel, so only its leading corners stay
+     round. */
+  details[open] > summary {
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  /* --ja-surface-hover is translucent ink, so painting it as a flat image over
+     the summary's own background tints an accented summary exactly as well as
+     a plain one — one rule, no fallback chain. Flat colour, not a gradient. */
+  summary:hover {
+    background-image: linear-gradient(var(--ja-surface-hover) 0 0);
+  }
+
+  summary:active {
+    background-image: linear-gradient(var(--ja-surface-active) 0 0);
+  }
+
+  /* The reset draws the ring; pull it inside so it hugs the card's border
+     instead of straddling it. */
+  summary:focus-visible {
+    outline-offset: calc(var(--ja-ring-offset) * -1);
+  }
+
+  /* A heading inside the summary is the recommended markup — it is what puts
+     the panel in the document outline. It must not bring its own scale. */
+  summary > :is(h1, h2, h3, h4, h5, h6) {
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+  }
+
+  /* ---------------------------------------------------------------------------
+     The chevron — drawn from two borders, so it inherits the ink weight and the
+     current colour and needs no asset, no font and no SVG.
+     ------------------------------------------------------------------------ */
+  summary::after {
+    content: "";
+    flex: none;
+    inline-size: 0.45em;
+    block-size: 0.45em;
+    border-inline-end: var(--ja-border-width) solid currentColor;
+    border-block-end: var(--ja-border-width) solid currentColor;
+    /* Pointing down when closed, up when open. */
+    rotate: 45deg;
+    transition: rotate var(--ja-duration) var(--ja-ease);
+  }
+
+  details[open] > summary::after {
+    rotate: -135deg;
+  }
+
+  /* ---------------------------------------------------------------------------
+     The panel
+
+     Everything that is not the summary lands in grid row 2 and is clipped by
+     the collapsed row. Give the panel ONE element — several siblings here all
+     land in the same cell and stack on top of each other.
+
+     Padding is safe against a 0fr row because the reset sets
+     `box-sizing: border-box` globally: the stretched item's border box is 0
+     tall, and the padding is squeezed out with the content rather than adding
+     to it.
+     ------------------------------------------------------------------------ */
+  details > :not(summary) {
+    grid-row: 2;
+    min-block-size: 0;
+    overflow: hidden;
+    padding-block: var(--ja-space-4);
+    padding-inline: var(--ja-space-4);
+    border-block-start: var(--ja-border);
+  }
+
+  /* The border only makes sense once there is something under it. */
+  details:not([open]) > :not(summary) {
+    border-block-start-color: transparent;
+  }
+
+  /* ---------------------------------------------------------------------------
+     Opening and closing
+
+     The mechanism above is the 0fr → 1fr grid row transition, because it works
+     in every engine that has :has() and cascade layers — which is the whole
+     support floor of this library.
+
+     Honest limitation: the panel is not rendered at all while the details is
+     closed, so the grid transition plays on the way open and the close is a
+     snap in engines without ::details-content. That is the correct trade; the
+     alternative is JS that measures heights and fights the element's own
+     toggle.
+
+     The block below is the upgrade, not the mechanism. `interpolate-size` is
+     Chromium-only and is on the "don't ship" list precisely because it must
+     never be load-bearing — here it is gated twice (the property AND the
+     pseudo-element) and only ever replaces something that already works.
+     `interpolate-size` is inherited, so declaring it on `details` is enough to
+     reach ::details-content; it is not set on :root, so it changes no
+     animation anywhere else on the page.
+     ------------------------------------------------------------------------ */
+  @supports (interpolate-size: allow-keywords) and (selector(::details-content)) {
+    details {
+      interpolate-size: allow-keywords;
+      /* Hand the job over: no grid, no row transition. */
+      display: block;
+      grid-template-rows: none;
+      transition: none;
+    }
+
+    details > :not(summary) {
+      overflow: visible;
+    }
+
+    details::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition:
+        block-size var(--ja-duration) var(--ja-ease-out),
+        content-visibility var(--ja-duration) allow-discrete;
+    }
+
+    /* `auto` is a keyword, which is exactly what interpolate-size makes
+       animatable. Both directions animate here, close included. */
+    details[open]::details-content {
+      block-size: auto;
+    }
+  }
+
+  /* Reduced motion: the panel still opens, it just stops sliding. */
+  @media (prefers-reduced-motion: reduce) {
+    details,
+    details::details-content,
+    summary,
+    summary::after {
+      transition-duration: 1ms;
+    }
+  }
+
+  /* ---------------------------------------------------------------------------
+     details[name] — the exclusive accordion
+
+     Give every <details> in a run the same name and opening one closes the
+     rest, with no JS and no state to hold. An engine that does not know the
+     attribute ignores it and lets the panels open independently — the content
+     is all still there, still reachable, still printable. That is a free and
+     entirely acceptable fallback, which is why this ships unguarded.
+
+     One catch worth knowing: a named group can have at most one panel open, so
+     `open` on two of them is resolved by the browser keeping the last.
+     ------------------------------------------------------------------------ */
+
+  /* ---------------------------------------------------------------------------
+     A run of adjacent <details> reads as one accordion
+
+     Collapse the doubled border between neighbours and round only the outer
+     corners. :has() is safe to ship — it is in the unguarded column — and it is
+     what lets the first and last item in a run style themselves without a
+     wrapper element or a class.
+
+     The hard offset shadow is deliberately left on every item: neighbours touch
+     with no gap, so each one's downward shadow is painted over by the item
+     below it and only the trailing edge shows through. The run ends up casting
+     one continuous shadow, which is exactly the intent.
+     ------------------------------------------------------------------------ */
+  details:has(+ details) {
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  details + details {
+    border-start-start-radius: 0;
+    border-start-end-radius: 0;
+    /* The previous card's bottom border is the divider; a second one here
+       would draw it twice as thick. */
+    border-block-start-width: 0;
+  }
+
+  /* Its summary must square off with it. */
+  details + details > summary {
+    border-start-start-radius: 0;
+    border-start-end-radius: 0;
+  }
+
+  details:has(+ details) > summary {
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+}

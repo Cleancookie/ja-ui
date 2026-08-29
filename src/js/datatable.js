@@ -97,6 +97,8 @@ export class DataTable extends Component {
     this._selectedAll = false;
     this._resize = null;
     this._pendingWidth = 0;
+    this._measureContext = undefined;
+    this._metrics = null;
     this._widthFrame = 0;
 
     this._onScroll = () => this._scheduleRender();
@@ -151,12 +153,14 @@ export class DataTable extends Component {
 
   autoSizeColumn(index) {
     if (index < 0 || index >= this._columnCount) return this;
+    this._primeMetrics();
     const width = this._measureColumn(index);
     return this.resizeColumn(index, width);
   }
 
   autoSizeAll() {
     if (!this._emit('autosize', { columns: this._columnCount }, true)) return this;
+    this._primeMetrics();
     for (let i = 0; i < this._columnCount; i += 1) {
       this._columnWidths[i] = this._measureColumn(i);
     }
@@ -546,7 +550,59 @@ export class DataTable extends Component {
     return clamp(width, this._minColumnWidth, limit);
   }
 
+  /**
+   * Read the font and the cell chrome once per auto-size pass.
+   *
+   * Auto-sizing a thousand columns means measuring tens of thousands of
+   * strings. Doing that by writing textContent and reading scrollWidth is a
+   * forced synchronous layout per string, which is what makes Excel-style
+   * "fit every column" feel broken. A canvas measures the same text with no
+   * layout at all, so the pass is arithmetic once these are known.
+   */
+  _primeMetrics() {
+    this._metrics = null;
+    if (!this._element.isConnected) return;
+
+    if (this._measureContext === undefined) {
+      this._measureContext = document.createElement('canvas').getContext('2d') ?? null;
+    }
+    if (!this._measureContext) return;
+
+    const read = (element) => {
+      const styles = getComputedStyle(element);
+      // The text sits in a span, so the cell's own padding and borders are
+      // chrome the canvas knows nothing about.
+      const chrome =
+        parseFloat(styles.paddingInlineStart) +
+        parseFloat(styles.paddingInlineEnd) +
+        parseFloat(styles.borderInlineStartWidth) +
+        parseFloat(styles.borderInlineEndWidth);
+      return {
+        font: styles.font || `${styles.fontWeight} ${styles.fontSize} ${styles.fontFamily}`,
+        letterSpacing: styles.letterSpacing,
+        chrome: Number.isFinite(chrome) ? chrome : 0,
+      };
+    };
+
+    const header = read(this._measureHeader);
+    const cell = read(this._measureCell);
+    if (!header.font || !cell.font) return;
+    this._metrics = new Map([
+      [this._measureHeader, header],
+      [this._measureCell, cell],
+    ]);
+  }
+
   _measureText(element, text) {
+    const metrics = this._metrics?.get(element);
+    if (metrics) {
+      const context = this._measureContext;
+      context.font = metrics.font;
+      // Chromium honours this; elsewhere it is silently ignored, and the
+      // fallback below is what a browser without it would have used anyway.
+      if ('letterSpacing' in context) context.letterSpacing = metrics.letterSpacing;
+      return Math.ceil(context.measureText(text).width + metrics.chrome);
+    }
     element.firstElementChild.textContent = text;
     return Math.ceil(element.scrollWidth);
   }

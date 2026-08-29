@@ -90,6 +90,11 @@ commit also needs a `BREAKING CHANGE:` paragraph in the body describing the migr
 
 ## Releasing
 
-Bump `version` in `package.json` by the highest bump among the commit emoji since the
-last release, push, then publish a GitHub release. The `publish` workflow builds and
-pushes the package to the GitHub npm registry.
+The bump is the highest among the commit emoji since the last release — 🔥 major, ✨ or
+🛠️ minor, 🐛 or 📝 patch. `npm version <major|minor|patch>` writes `package.json` and
+tags in one step; push with `git push --follow-tags`, then publish a GitHub release on
+that tag. The `publish` workflow builds and pushes the package to the GitHub npm
+registry — no release, no publish.
+
+Anything user-visible also needs `npm run site` and a commit of `docs/` in the same
+push, or the published playground goes stale. `CLAUDE.md` has the full checklist.

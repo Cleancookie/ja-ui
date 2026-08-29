@@ -64,6 +64,34 @@ and the built Storybook (`storybook-static/`).
 - Keep everything base-path agnostic — the site is served from `/<repo>/`, so no
   absolute URLs (`/examples/…`) in the landing page, examples or stories.
 
+## Shipping a change — the routine
+
+Every change follows the same path. Do all of it; a half-done release leaves the
+published site stale against the package.
+
+1. **Branch, build, prove it.** `npm run build && npm run smoke`, and add a story for
+   anything visual. CI runs the same, and fails if `src/styles/generated` is out of date
+   (`npm run gen` and commit the result).
+2. **Rebuild the site if anything user-visible changed** — CSS, JS, examples or the
+   landing page. `npm run site`, then commit the resulting `docs/`. GitHub Pages serves
+   that folder off `main`, so an un-rebuilt `docs/` is a stale published site. See
+   [The published site](#the-published-site-docs).
+3. **Commit with an emoji prefix** — see [Commit messages](#commit-messages). It is what
+   the version bump is read from, so it is not optional.
+4. **Merge to `main`.** Squash or fast-forward; keep the emoji on the resulting commit.
+5. **Bump the version.** The bump is the *highest* among the commit emoji since the last
+   release: 🔥 major, ✨ or 🛠️ minor, 🐛 or 📝 patch. `npm version <major|minor|patch>`
+   writes `package.json` and makes the `vX.Y.Z` tag in one step. Push with
+   `git push --follow-tags`.
+6. **Publish a GitHub release** on that tag (`gh release create vX.Y.Z --generate-notes`).
+   That is what fires `.github/workflows/publish.yml`, which builds and pushes the
+   package to the GitHub npm registry. No release, no publish.
+7. **Close the issue** it came from, referencing the release —
+   `gh issue close <n> --comment "..."`. A `Closes #n` line in the merge commit does this
+   for you when the branch merges through a PR.
+8. **Check the published site.** Pages rebuilds on push to `main`; confirm the change is
+   actually live at the playground URL rather than assuming it.
+
 ## Anything else
 
 Follow the layout and the component checklist in `CONTRIBUTING.md`.

@@ -181,7 +181,15 @@
   }
 
   /* Ghost — nothing at rest, fills on hover. For the third and fourth actions
-     in a row, and for anything that must not compete with the primary.
+     in a row, an icon-only control in a toolbar or a toast, a close button,
+     and a <button> that has to read as a nav link. Not for the only action on
+     the screen: with no fill, no border and no lift there is nothing left to
+     say "control", and a lone ghost button reads as a label.
+
+     Because it draws nothing at rest, ghost is also the treatment that
+     notices a stray shadow. See --ja-btn-shadow-base in controls.css: a size
+     class must never hand the shadow back, or the only thing on screen is a
+     hard dark arc with no fill or border behind it to explain it.
 
      No border, no shadow, and therefore no lift: with nothing casting a shadow
      there is nothing for the movement to be *of*, and a rectangle that slides
@@ -223,10 +231,16 @@
     /* Step the whole interaction trio down one notch, keeping the invariant
        intact: rest 3px, hover 4px, active 2px, against a ±1px lift, so the far
        corner of the shadow still does not move. The three shadow tokens have
-       to stay exactly one lift apart or the light source jumps. */
-    --ja-btn-shadow: var(--ja-shadow-sm);
-    --ja-btn-shadow-hover: var(--ja-shadow);
-    --ja-btn-shadow-active: var(--ja-shadow-xs);
+       to stay exactly one lift apart or the light source jumps.
+
+       The *-base spelling is load-bearing: size is a different axis from
+       treatment, so it may only move the default, never overwrite a
+       treatment's answer. `class="ghost sm"` has to stay flat — writing
+       --ja-btn-shadow here handed the shadow back to a button with no fill
+       and no border to cast it, which is the floating-arc artefact. */
+    --ja-btn-shadow-base: var(--ja-shadow-sm);
+    --ja-btn-shadow-hover-base: var(--ja-shadow);
+    --ja-btn-shadow-active-base: var(--ja-shadow-xs);
   }
 
   .lg {

@@ -16,6 +16,19 @@
    set on an ancestor — custom properties inherit, so `<div class="ghost">`
    quietens every button inside it. That is a feature, not an accident.
 
+   The shadow has one more tier than the rest, because two independent axes
+   both have an opinion about it: a *treatment* decides whether there is a
+   shadow at all (.ghost says none), and a *size* decides how deep it is
+   (.sm steps the trio down a notch). They are read as
+
+     var(--ja-btn-shadow, var(--ja-btn-shadow-base, var(--ja-shadow)))
+         ^ treatment: none    ^ size: the scaled trio   ^ the default trio
+
+   so a size class fills in the default without ever being able to hand a
+   shadow back to a treatment that just took it away. Writing both axes into
+   --ja-btn-shadow is what made `class="ghost sm"` render a hard shadow with
+   no fill and no border behind it: a stray arc floating over the header rule.
+
    The interaction is the library's whole personality: at rest the button casts
    a hard offset shadow; on hover it lifts toward you and the shadow *grows by
    exactly the distance it moved*; pressed, it sinks and the shadow shrinks by
@@ -81,7 +94,7 @@
     text-align: center;
     text-decoration: none;
 
-    box-shadow: var(--ja-btn-shadow, var(--ja-shadow));
+    box-shadow: var(--ja-btn-shadow, var(--ja-btn-shadow-base, var(--ja-shadow)));
 
     cursor: pointer;
     /* A label that can be accidentally selected on a double-click feels broken. */
@@ -127,7 +140,10 @@
         --ja-btn-bg-hover,
         var(--ja-btn-bg, var(--ja-accent, var(--ja-surface)))
       );
-      box-shadow: var(--ja-btn-shadow-hover, var(--ja-shadow-hover));
+      box-shadow: var(
+        --ja-btn-shadow-hover,
+        var(--ja-btn-shadow-hover-base, var(--ja-shadow-hover))
+      );
       translate: var(--ja-btn-lift, var(--ja-lift))
         var(--ja-btn-lift, var(--ja-lift));
     }
@@ -152,7 +168,10 @@
     ):is(:active, [aria-pressed="true"], [aria-expanded="true"]):where(
       :not(:disabled, [aria-disabled="true"])
     ) {
-    box-shadow: var(--ja-btn-shadow-active, var(--ja-shadow-active));
+    box-shadow: var(
+      --ja-btn-shadow-active,
+      var(--ja-btn-shadow-active-base, var(--ja-shadow-active))
+    );
     translate: var(--ja-btn-press, var(--ja-press))
       var(--ja-btn-press, var(--ja-press));
   }
@@ -210,7 +229,7 @@
   /* A busy button should not also be inviting a click, so it does not lift. */
   @media (hover: hover) {
     :is(button, a.button)[aria-busy="true"]:hover {
-      box-shadow: var(--ja-btn-shadow, var(--ja-shadow));
+      box-shadow: var(--ja-btn-shadow, var(--ja-btn-shadow-base, var(--ja-shadow)));
       translate: none;
     }
   }

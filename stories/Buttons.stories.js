@@ -113,6 +113,45 @@ export const Size = {
     ]),
 };
 
+export const TreatmentAndSize = {
+  name: 'Treatment × size',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The two axes are independent, and the shadow is where that is easiest to get ' +
+          'wrong. A treatment decides **whether** there is a shadow (`.ghost` says none); a ' +
+          'size decides **how deep** it is. They read through separate tokens — ' +
+          '`--ja-btn-shadow` for the treatment, `--ja-btn-shadow-base` for the size — so ' +
+          '`class="ghost sm"` stays flat. Every ghost row below must show nothing but ink at ' +
+          'rest: a ghost button with a shadow is a hard dark arc floating over whatever is ' +
+          'behind it, with no fill and no border to explain it.\n\n' +
+          '**Where ghost belongs:** the third and fourth actions in a row, an icon-only ' +
+          'control in a toolbar or a toast, a close button, and a `<button>` that has to ' +
+          'read as a nav link. **Where it does not:** alone, as the only action on the ' +
+          'screen — with no fill, no border and no lift, a lone ghost button does not read ' +
+          'as a control at all.',
+      },
+    },
+  },
+  render: () =>
+    stack(
+      ['filled', ...TREATMENTS].map((treatment) =>
+        section(
+          treatment,
+          row(
+            ['sm', '', 'lg'].map((size) => {
+              const cls = ['primary', treatment === 'filled' ? '' : treatment, size]
+                .filter(Boolean)
+                .join(' ');
+              return `<button class="${cls}">${size || 'default'}</button>`;
+            })
+          )
+        )
+      )
+    ),
+};
+
 export const WithIcons = {
   name: 'Icons',
   parameters: {

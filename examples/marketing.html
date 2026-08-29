@@ -42,14 +42,6 @@
         padding-inline: max(var(--gutter), (100% - var(--page)) / 2);
       }
 
-      /* `nav :is(a, button)` deliberately flattens links into nav chips —
-         which also catches real buttons. Hand them their own shape back. */
-      body > header > nav :is(button, a.button) {
-        border-radius: var(--ja-btn-radius-base);
-        padding-inline: var(--ja-control-padding-x);
-        color: var(--ja-btn-fg, var(--ja-accent-fg, var(--ja-text)));
-      }
-
       #nav-actions {
         display: flex;
         flex-wrap: wrap;
@@ -276,7 +268,7 @@
         <ul role="list">
           <li><a href="#features">Features</a></li>
           <li id="nav-product">
-            <button type="button" popovertarget="product-menu">
+            <button type="button" class="ghost" popovertarget="product-menu">
               Product
               <svg
                 viewBox="0 0 24 24"

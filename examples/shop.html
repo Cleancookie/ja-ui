@@ -37,12 +37,6 @@
         padding-inline: max(var(--gutter), (100% - var(--page)) / 2);
       }
 
-      body > header > nav :is(button, a.button) {
-        border-radius: var(--ja-btn-radius-base);
-        padding-inline: var(--ja-control-padding-x);
-        color: var(--ja-btn-fg, var(--ja-accent-fg, var(--ja-text)));
-      }
-
       #nav-actions {
         display: flex;
         align-items: center;
@@ -202,6 +196,10 @@
         align-items: center;
         justify-content: space-between;
         gap: var(--ja-space-3);
+      }
+
+      #basket ul small {
+        display: block;
       }
 
       #discount {

@@ -45,8 +45,15 @@
   }
 
   /* Links inside a nav read as targets, not as prose: no underline until you
-     interact, and a real 44px touch target even when the label is one word. */
-  nav :is(a, button) {
+     interact, and a real 44px touch target even when the label is one word.
+
+     LINKS ONLY — a <button> in a nav stays a button. This library's whole
+     premise is that a <button> looks like a button, and a rule here that
+     quietly stripped a navbar button's fill and pill would contradict it and
+     force every page to win its own buttons back with extra CSS. For a button
+     that should read as a nav link (a popover disclosure, say), use `.ghost`:
+     no border, no shadow, fills on hover — which is exactly a nav link. */
+  nav :is(a:not(.button)) {
     display: inline-flex;
     align-items: center;
     gap: var(--ja-space-2);
@@ -59,12 +66,12 @@
     transition: background-color var(--ja-transition), color var(--ja-transition);
   }
 
-  nav :is(a, button):hover {
+  nav :is(a:not(.button)):hover {
     background-color: var(--ja-surface-hover);
     color: var(--ja-link-hover-color);
   }
 
-  nav :is(a, button):active {
+  nav :is(a:not(.button)):active {
     background-color: var(--ja-surface-active);
   }
 

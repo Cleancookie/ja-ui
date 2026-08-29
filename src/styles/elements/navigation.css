@@ -82,12 +82,25 @@
      rule serves all three; the pagination block below overrides the treatment
      to a filled chip because a page number is a chip, not a word.
 
-     The bar is an inset box-shadow rather than an underline so it sits on the
-     padding box edge — hard, zero blur, house style. */
+     The bar is a ::after strip rather than an underline so it sits on the
+     padding box edge — full width, hard, zero blur, house style.
+
+     It cannot be an inset box-shadow: an inset shadow follows the element's
+     border-radius, and a nav link is rounded, so the bar curled up at both
+     ends and read as a broken bracket under the label rather than an
+     underline. A positioned strip has square ends by construction. */
   nav [aria-current="page"] {
+    position: relative;
     font-weight: var(--ja-font-weight-bold);
-    box-shadow: inset 0 calc(-1 * var(--ja-ring-width)) 0 0
-      var(--ja-accent, var(--ja-primary));
+  }
+
+  nav [aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    block-size: var(--ja-ring-width);
+    background-color: var(--ja-accent, var(--ja-primary));
   }
 
   nav [aria-current="page"]:hover {
@@ -222,9 +235,14 @@
   nav[aria-label="Breadcrumb" i] [aria-current="page"],
   nav.breadcrumb [aria-current="page"],
   :is(ol, ul).breadcrumb [aria-current="page"] {
-    box-shadow: none;
     color: var(--ja-text);
     text-decoration: none;
+  }
+
+  nav[aria-label="Breadcrumb" i] [aria-current="page"]::after,
+  nav.breadcrumb [aria-current="page"]::after,
+  :is(ol, ul).breadcrumb [aria-current="page"]::after {
+    content: none;
   }
 
   /* --- Pagination ----------------------------------------------------------
@@ -295,6 +313,14 @@
     color: var(--ja-accent-fg, var(--ja-primary-fg));
     box-shadow: var(--ja-shadow-xs);
     translate: none;
+  }
+
+  /* A filled chip says "you are here" on its own; the underline would just be
+     an accent bar drawn on top of the accent. */
+  nav[aria-label="Pagination" i] [aria-current="page"]::after,
+  nav.pagination [aria-current="page"]::after,
+  :is(ol, ul).pagination [aria-current="page"]::after {
+    content: none;
   }
 
   /* A disabled prev/next is still in the tab order and still announced — it is

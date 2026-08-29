@@ -40,34 +40,33 @@ Examples:
 🔥 rename data-ja-modal to data-ja-dialog
 ```
 
-## The published site (`docs/`)
+## The published site
 
-GitHub Pages serves the committed `docs/` folder off `main` (Settings → Pages → deploy
-from a branch, `main`, `/docs`). There is no deploy workflow — **pushing `docs/` is
-deploying**, and a `docs/` that is stale against `src/` is a broken site.
+`.github/workflows/pages.yml` builds the site from source and deploys it to GitHub Pages
+on every push to `main` (Settings → Pages → source: GitHub Actions). **Merging is
+deploying** — there is nothing to commit, and the Actions tab is the record of what is
+live.
 
-Rebuild it with:
+`docs/` is where the build lands. It is **gitignored build output**: never commit it,
+never hand-edit it — edit the source in `site/`, `examples/` or `src/`.
 
 ```
 npm run site        # = npm run build && npm run build-storybook && node tools/build-site.mjs
-npm run site:serve  # preview on :6008 without writing docs/
+npm run site:serve  # preview the assembled docs/ on :6008
 ```
 
-`npm run site` assembles `docs/` from `site/` (the landing page), `examples/`, `dist/`
-and the built Storybook (`storybook-static/`).
+`npm run site` assembles `docs/` from `site/` (the landing page and `site/images/`),
+`examples/`, `dist/` and the built Storybook (`storybook-static/`). Run it locally to
+preview a change; the workflow runs the same thing to publish.
 
-- **Anything that changes CSS, JS, examples or the landing page needs `npm run site`
-  and a commit of the resulting `docs/`.** Never hand-edit files in `docs/` — edit the
-  source in `site/`, `examples/` or `src/` and rebuild.
-- `docs/images/` is source, not build output. `npm run docs:images` (screenshots + GIFs,
-  needs a browser) writes it; the site build leaves it alone.
+- `site/images/` is source, not build output. `npm run docs:images` (screenshots + GIFs,
+  needs a browser) writes it, and the site build copies it to `docs/images/`.
 - Keep everything base-path agnostic — the site is served from `/<repo>/`, so no
   absolute URLs (`/examples/…`) in the landing page, examples or stories.
 
 ## Shipping a change — the routine
 
-Every change follows the same path. Do all of it; a half-done change leaves the
-published site stale against `src/`.
+Every change follows the same path.
 
 The package is **not published anywhere yet** — there are no tags, no GitHub releases
 and no npm package, and nothing else consumes ja-ui. So there is no version-bump or
@@ -77,17 +76,17 @@ versioned from.
 1. **Branch, build, prove it.** `npm run build && npm run smoke`, and add a story for
    anything visual. CI runs the same, and fails if `src/styles/generated` is out of date
    (`npm run gen` and commit the result).
-2. **Rebuild the site if anything user-visible changed** — CSS, JS, examples or the
-   landing page. `npm run site`, then commit the resulting `docs/`. GitHub Pages serves
-   that folder off `main`, so an un-rebuilt `docs/` is a stale published site. See
-   [The published site](#the-published-site-docs).
+2. **Preview the site if anything user-visible changed** — CSS, JS, examples or the
+   landing page. `npm run site && npm run site:serve`. Nothing to commit: the Pages
+   workflow rebuilds and deploys from source on merge. See
+   [The published site](#the-published-site).
 3. **Commit with an emoji prefix** — see [Commit messages](#commit-messages). It is what
    the version bump is read from, so it is not optional.
 4. **Merge to `main`.** Squash or fast-forward; keep the emoji on the resulting commit.
 5. **Close the issue** it came from — `gh issue close <n> --comment "..."`. A `Closes #n`
    line in the merge commit does this for you when the branch merges through a PR.
-6. **Check the published site.** Pages rebuilds on push to `main`; confirm the change is
-   actually live at the playground URL rather than assuming it.
+6. **Check the deploy.** The Pages workflow runs on the merge — `gh run watch` it, or
+   confirm the change is live at the playground URL. Don't assume it.
 
 ## Anything else
 

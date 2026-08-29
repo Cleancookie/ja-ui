@@ -12,7 +12,7 @@ Cream paper, ink borders, hard offset shadows, and buttons that physically press
 ![dependencies](https://img.shields.io/badge/runtime%20deps-0-34d399?style=flat-square)
 ![size](https://img.shields.io/badge/30kb%20css%20%2B%205kb%20js-gzipped-f472b6?style=flat-square)
 
-![Buttons in every colour](docs/images/buttons-solid.png)
+![Buttons in every colour](site/images/buttons-solid.png)
 
 **[Play with it →](https://cleancookie.github.io/ja-ui/)** — every template and every
 component, running live.
@@ -111,12 +111,12 @@ sets these much higher on purpose.
 
 | Buttons | Cards |
 | --- | --- |
-| ![Button press interaction](docs/images/interaction-buttons.gif) | ![Card lift interaction](docs/images/interaction-cards.gif) |
+| ![Button press interaction](site/images/interaction-buttons.gif) | ![Card lift interaction](site/images/interaction-cards.gif) |
 
 Two skins and two themes, from the same markup — flip `data-ja-style` and `data-ja-theme`
 on `<html>`:
 
-![Theme and skin switching](docs/images/interaction-theme.gif)
+![Theme and skin switching](site/images/interaction-theme.gif)
 
 ## Components
 
@@ -129,15 +129,15 @@ popover yet), plus a few additions.
 
 **Buttons** — solid, outline, soft, ghost, link, icon, groups, toggles
 
-![Buttons](docs/images/buttons-outline.png)
-![Soft buttons](docs/images/buttons-soft.png)
+![Buttons](site/images/buttons-outline.png)
+![Soft buttons](site/images/buttons-soft.png)
 
 </td>
 <td width="50%">
 
 **Cards** — hoverable, coloured shadows, blob corners, icon discs
 
-![Cards](docs/images/cards.png)
+![Cards](site/images/cards.png)
 
 </td>
 </tr>
@@ -146,14 +146,14 @@ popover yet), plus a few additions.
 
 **Forms** — inputs light up instead of glowing on focus
 
-![Form controls](docs/images/forms.png)
+![Form controls](site/images/forms.png)
 
 </td>
 <td>
 
 **Checks, radios & switches**
 
-![Checks and switches](docs/images/checks.png)
+![Checks and switches](site/images/checks.png)
 
 </td>
 </tr>
@@ -162,14 +162,14 @@ popover yet), plus a few additions.
 
 **Tables** — solid ink header, striped, hoverable, `.table-card`
 
-![Table](docs/images/table.png)
+![Table](site/images/table.png)
 
 </td>
 <td>
 
 **Alerts** — a solid accent block, not a tint
 
-![Alerts](docs/images/alert-rich.png)
+![Alerts](site/images/alert-rich.png)
 
 </td>
 </tr>
@@ -178,16 +178,16 @@ popover yet), plus a few additions.
 
 **Badges, progress, spinners, placeholders**
 
-![Badges](docs/images/badges.png)
-![Progress](docs/images/progress.png)
+![Badges](site/images/badges.png)
+![Progress](site/images/progress.png)
 
 </td>
 <td>
 
 **Navigation** — tabs, pills, underline, navbar, dropdown, pagination
 
-![Tabs](docs/images/tabs.png)
-![Pagination](docs/images/pagination.png)
+![Tabs](site/images/tabs.png)
+![Pagination](site/images/pagination.png)
 
 </td>
 </tr>
@@ -197,7 +197,7 @@ popover yet), plus a few additions.
 **Command palette** — an fzf-style ctrl-P for serious apps: fuzzy ranking, a highlight that
 slides between rows, and virtualised rendering for lists in the hundred thousands
 
-![Command palette](docs/images/command-palette.png)
+![Command palette](site/images/command-palette.png)
 
 </td>
 </tr>
@@ -226,11 +226,11 @@ directly in a browser after `npm run build`.
 | | |
 | --- | --- |
 | [Admin dashboard](examples/dashboard.html) | [Content manager](examples/cms.html) |
-| ![Dashboard](docs/images/template-dashboard.png) | ![CMS](docs/images/template-cms.png) |
+| ![Dashboard](site/images/template-dashboard.png) | ![CMS](site/images/template-cms.png) |
 | [Marketing page](examples/marketing.html) | [Pricing](examples/pricing.html) |
-| ![Marketing](docs/images/template-marketing.png) | ![Pricing](docs/images/template-pricing.png) |
+| ![Marketing](site/images/template-marketing.png) | ![Pricing](site/images/template-pricing.png) |
 | [E-commerce](examples/shop.html) | [Sign in](examples/signin.html) |
-| ![Shop](docs/images/template-shop.png) | ![Sign in](docs/images/template-signin.png) |
+| ![Shop](site/images/template-shop.png) | ![Sign in](site/images/template-signin.png) |
 
 ## Theming
 
@@ -249,7 +249,7 @@ base colour.
 }
 ```
 
-![Design tokens](docs/images/tokens-colours.png)
+![Design tokens](site/images/tokens-colours.png)
 
 ### Skins
 
@@ -262,7 +262,7 @@ base colour.
 <html data-ja-style="brutal" data-ja-theme="dark">
 ```
 
-![Neo-brutalist skin](docs/images/buttons-brutal.png)
+![Neo-brutalist skin](site/images/buttons-brutal.png)
 
 ### Dark mode
 
@@ -283,7 +283,7 @@ setTheme('system');     // back to following the OS
 setStyle('brutal');     // switch skin
 ```
 
-![Dark mode](docs/images/cards-dark.png)
+![Dark mode](site/images/cards-dark.png)
 
 ## JavaScript
 
@@ -414,19 +414,20 @@ npm run build           # dist/ — css, esm, iife, types
 npm run smoke           # drive every JS component in a real browser
 npm run gen             # regenerate the derived CSS (grid, variants, utilities)
 npm run docs:images     # rebuild every screenshot and GIF in this README
-npm run site            # rebuild the published site into docs/
+npm run site            # assemble the site into docs/ (build output, gitignored)
 npm run site:serve      # preview it on :6008
 ```
 
 The playground at
-[cleancookie.github.io/ja-ui](https://cleancookie.github.io/ja-ui/) is the committed
-`docs/` folder — Pages serves it straight off `main`, with no CI step in the loop. It is
-assembled from `site/` (the landing page), `examples/`, `dist/` and the built Storybook.
-Run `npm run site` and commit `docs/` whenever a change should show up on the site;
-nothing in it uses absolute paths, so it works from any base path.
+[cleancookie.github.io/ja-ui](https://cleancookie.github.io/ja-ui/) is built and deployed
+by `.github/workflows/pages.yml` on every push to `main` — merging is publishing, and the
+Actions tab is the deploy log. `npm run site` assembles it from `site/` (the landing page
+and its screenshots), `examples/`, `dist/` and the built Storybook into `docs/`, which is
+gitignored: run it locally to preview, never to publish. Nothing in it uses absolute
+paths, so it works from any base path.
 
-`docs/images/` is the exception: those are the README screenshots, written by
-`npm run shots`, and the site build leaves them alone.
+`site/images/` is source, not build output: the README screenshots and GIFs, written by
+`npm run docs:images`, which needs a browser.
 
 The CSS is authored by hand in `src/styles/**`, except the repetitive parts — the grid,
 the per-colour variants and the utility classes — which are generated by the scripts in

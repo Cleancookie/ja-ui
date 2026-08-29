@@ -15,7 +15,7 @@ import { homedir } from 'node:os';
 import { chromium } from 'playwright';
 
 const ROOT = 'storybook-static';
-const OUT = 'docs/images';
+const OUT = 'site/images';
 const PORT = 6007;
 
 const MIME = {

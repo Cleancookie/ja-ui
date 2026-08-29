@@ -1,12 +1,12 @@
 /**
- * Assemble the GitHub Pages site into `docs/`, which is committed.
+ * Assemble the GitHub Pages site into `docs/`, which is build output.
  *
  *   npm run site            build dist + Storybook, then assemble
  *   npm run site:serve      serve docs/ on http://localhost:6008
  *
- * Pages is set to "deploy from a branch: main /docs", so whatever is committed
- * here is what is live — run this and commit the result as part of any change
- * that should show up on the site.
+ * `docs/` is gitignored and disposable — Pages is deployed by
+ * `.github/workflows/pages.yml`, which runs this on every push to main and
+ * uploads the result. Nothing here is committed.
  *
  * The layout is chosen so that nothing needs rewriting: the example pages ask
  * for `../dist/ja-ui.css`, and Storybook builds with relative URLs, so the
@@ -14,13 +14,10 @@
  * included.
  *
  *   docs/index.html      the landing page (from site/)
+ *   docs/images/         the screenshots (from site/images/ — SOURCE, committed)
  *   docs/dist/           the built library
  *   docs/examples/       the standalone template pages
- *   docs/images/         the README screenshots — SOURCE, not generated here
  *   docs/storybook/      the built Storybook
- *
- * Everything except `images/` is generated: `images/` is written by
- * `npm run shots` and is the one thing in here the build must never delete.
  */
 import { createServer } from 'node:http';
 import {
@@ -36,7 +33,6 @@ import {
 import { extname, join, normalize } from 'node:path';
 
 const OUT = 'docs';
-const KEEP = new Set(['images']);
 const PORT = 6008;
 
 const MIME = {
@@ -60,10 +56,8 @@ function build() {
     process.exit(1);
   }
 
+  rmSync(OUT, { recursive: true, force: true });
   mkdirSync(OUT, { recursive: true });
-  for (const entry of readdirSync(OUT)) {
-    if (!KEEP.has(entry)) rmSync(join(OUT, entry), { recursive: true, force: true });
-  }
 
   for (const [from, to] of [
     ['dist', 'dist'],
@@ -81,7 +75,7 @@ function build() {
 
   const count = (dir) =>
     readdirSync(dir, { recursive: true }).filter((f) => statSync(join(dir, f)).isFile()).length;
-  console.log(`  ${OUT}/ assembled — ${count(OUT)} files. Commit it to publish.`);
+  console.log(`  ${OUT}/ assembled — ${count(OUT)} files.`);
 }
 
 function serve() {

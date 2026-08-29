@@ -17,7 +17,7 @@ import { PNG } from 'pngjs';
 
 const { GIFEncoder, quantize, applyPalette } = gifenc;
 
-const OUT = 'docs/images';
+const OUT = 'site/images';
 // Inlined rather than linked: setContent pages have no origin, so they cannot
 // pull in file:// subresources.
 const CSS = readFileSync('dist/ja-ui.css', 'utf8');

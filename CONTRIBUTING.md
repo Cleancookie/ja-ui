@@ -46,25 +46,24 @@ is out of date.
 
 ## The playground
 
-The published site is the committed `docs/` folder: GitHub Pages serves it directly off
-`main` (Settings → Pages → deploy from a branch, `main` `/docs`). There is no deploy
-workflow — pushing is deploying.
+The published site is built from source and deployed by `.github/workflows/pages.yml` on
+every push to `main` (Settings → Pages → source: GitHub Actions). Merging is deploying;
+the Actions tab is the deploy log.
 
-`npm run site` rebuilds it from `site/`, `examples/`, `dist/` and the built Storybook, and
-`npm run site:serve` previews it on :6008. **Anything that changes the CSS, the JS, the
-examples or the landing page needs `npm run site` and a commit of `docs/`**, or the site
-goes stale against the source.
+`npm run site` assembles it from `site/`, `examples/`, `dist/` and the built Storybook
+into `docs/`, and `npm run site:serve` previews that on :6008. `docs/` is gitignored
+build output — preview with it, never commit it, never hand-edit it.
 
-`docs/images/` is source, not build output — `npm run shots` writes it and the site build
-leaves it in place.
+`site/images/` is source, not build output — `npm run shots` writes it, and the site
+build copies it to `docs/images/`.
 
 Keep it base-path agnostic: the site is served from `/<repo>/`, so no absolute URLs
 (`/examples/…`) anywhere in the landing page, the example pages or the stories.
 
 ## Commit messages
 
-Every commit message starts with an emoji. It is not decoration — the release tooling
-reads it to work out the semver bump, so a commit without one cannot be versioned.
+Every commit message starts with an emoji. It is not decoration — it records the semver
+bump the change carries, so a commit without one cannot be versioned.
 
 | Emoji | Meaning | Bump |
 | --- | --- | --- |
@@ -77,7 +76,7 @@ reads it to work out the semver bump, so a commit without one cannot be versione
 The emoji is the first character, then a space, then an imperative subject in lower
 case with no trailing full stop. One emoji per commit — if a change is both a feature
 and a fix, split it or take the higher bump. A release bumps by the highest bump among
-the commits since the last tag, so a single 🔥 makes the whole release major, and a 🔥
+the commits since the last release, so a single 🔥 makes the whole release major, and a 🔥
 commit also needs a `BREAKING CHANGE:` paragraph in the body describing the migration.
 
 ```
@@ -90,11 +89,9 @@ commit also needs a `BREAKING CHANGE:` paragraph in the body describing the migr
 
 ## Releasing
 
-The bump is the highest among the commit emoji since the last release — 🔥 major, ✨ or
-🛠️ minor, 🐛 or 📝 patch. `npm version <major|minor|patch>` writes `package.json` and
-tags in one step; push with `git push --follow-tags`, then publish a GitHub release on
-that tag. The `publish` workflow builds and pushes the package to the GitHub npm
-registry — no release, no publish.
+There is no release yet: ja-ui is not tagged and not published to any registry, and
+nothing else consumes it. The commit emoji still matter — they are what a first release
+would be versioned from, the highest bump among the commits since it wins.
 
-Anything user-visible also needs `npm run site` and a commit of `docs/` in the same
-push, or the published playground goes stale. `CLAUDE.md` has the full checklist.
+Publishing the site is a separate thing and happens by itself: merge to `main` and the
+Pages workflow deploys. `CLAUDE.md` has the full checklist.

@@ -1,14 +1,16 @@
 {
   "name": "@cleancookie/ja-ui",
   "version": "0.1.0",
-  "description": "Just Another UI — a zero-dependency, Bootstrap 5-compatible component library with a modern CSS-variable theme.",
+  "description": "Just Another UI \u2014 a zero-dependency component library that styles plain semantic HTML5. Drop it in, write ordinary markup, get a themed page.",
   "keywords": [
     "css",
     "ui",
     "components",
-    "bootstrap",
+    "classless",
+    "semantic-html",
     "design-system",
-    "zero-dependency"
+    "zero-dependency",
+    "dark-mode"
   ],
   "license": "MIT",
   "author": "Cleancookie",
@@ -56,18 +58,17 @@
     "shots:gif": "node tools/record-gif.mjs",
     "docs:images": "npm run build && npm run build-storybook && npm run shots && npm run shots:gif",
     "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",
-    "gen": "node tools/gen-theme-colors.mjs && node tools/gen-grid.mjs && node tools/gen-variants.mjs && node tools/gen-utilities.mjs",
-    "lint:css": "node tools/lint-css.mjs",
     "build:css": "esbuild src/styles/index.css --bundle --loader:.css=css --outfile=dist/ja-ui.css",
     "build:css:min": "esbuild src/styles/index.css --bundle --minify --loader:.css=css --outfile=dist/ja-ui.min.css",
     "build:js": "esbuild src/index.js --bundle --format=esm --target=es2022 --outfile=dist/ja-ui.js",
     "build:js:min": "esbuild src/index.js --bundle --minify --format=esm --target=es2022 --outfile=dist/ja-ui.min.js",
     "build:iife": "esbuild src/index.js --bundle --minify --format=iife --global-name=JaUI --target=es2022 --outfile=dist/ja-ui.iife.js",
     "build:types": "node -e \"fs.mkdirSync('dist',{recursive:true});fs.copyFileSync('src/index.d.ts','dist/ja-ui.d.ts')\"",
-    "build": "npm run gen && npm run clean && npm run build:css && npm run build:css:min && npm run build:js && npm run build:js:min && npm run build:iife && npm run build:types && npm run lint:css",
+    "build": "npm run clean && npm run build:css && npm run build:css:min && npm run build:js && npm run build:js:min && npm run build:iife && npm run build:types && npm run lint:css",
     "smoke": "node tools/smoke.mjs",
     "perf": "node tools/perf.mjs",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "lint:css": "node tools/lint-css.mjs"
   },
   "devDependencies": {
     "@storybook/addon-a11y": "^9.1.10",

@@ -1,18 +1,20 @@
 /**
  * ja-ui — Just Another UI
- * Type definitions for the zero-dependency component library.
+ *
+ * The stylesheet is the library. These are the few things the web platform
+ * does not do for you.
  */
 
-export interface ComponentConfig {
-  [key: string]: unknown;
-}
+export type Theme = 'light' | 'dark' | 'system';
+export type Style = 'default' | 'brutal';
 
-export declare class Component<C extends ComponentConfig = ComponentConfig> {
-  static readonly NAME: string;
-  static readonly Default: ComponentConfig;
-  constructor(element: Element | string, config?: C);
-  readonly element: HTMLElement;
-  readonly config: C;
+/** Shared plumbing for the two components that are not native elements. */
+export class Component {
+  static NAME: string;
+  static Default: Record<string, unknown>;
+  constructor(element: Element | string, config?: Record<string, unknown>);
+  readonly element: Element;
+  readonly config: Record<string, unknown>;
   dispose(): void;
   static getInstance<T extends Component>(
     this: new (...args: never[]) => T,
@@ -21,265 +23,214 @@ export declare class Component<C extends ComponentConfig = ComponentConfig> {
   static getOrCreateInstance<T extends Component>(
     this: new (...args: never[]) => T,
     element: Element | string,
-    config?: ComponentConfig
+    config?: Record<string, unknown>
   ): T;
 }
 
-export interface CollapseConfig extends ComponentConfig {
-  /** Selector for a parent accordion; siblings close when this one opens. */
-  parent?: string | Element | null;
-  /** Toggle immediately on construction. */
-  toggle?: boolean;
-}
-
-export declare class Collapse extends Component<CollapseConfig> {
-  readonly isShown: boolean;
-  show(): void;
-  hide(): void;
-  toggle(): void;
-}
+/* -------------------------------------------------------------------------- */
+/* Command palette                                                            */
+/* -------------------------------------------------------------------------- */
 
 export interface CommandPaletteItem {
-  /** Shown as the row's title, and the text the fuzzy matcher ranks on. */
+  id?: string;
+  /** `title` and `name` are accepted as aliases. */
   label: string;
-  /** Muted text beside the label. Also searchable, at a lower weight. */
+  /** Secondary line under the label. */
   description?: string;
-  /** Right-hand text — a keyboard shortcut, a type, a path. */
+  /** Right-aligned hint, e.g. a shortcut. `shortcut` is an alias. */
   hint?: string;
-  /** Alias for `hint`. */
   shortcut?: string;
-  /** Group header shown when the query is empty; searchable either way. */
+  /** Group heading this item sits under. */
   group?: string;
-  /** Trusted HTML (an inline `<svg>`) rendered in the row's leading slot. */
+  /** Extra text the fuzzy matcher searches but never shows. */
+  keywords?: string;
   icon?: string;
-  /** Extra search terms that are never displayed. */
-  keywords?: string | string[];
   disabled?: boolean;
-  onSelect?(item: CommandPaletteItem, event: Event | null): void;
+  /** Called when this row is chosen. */
+  onSelect?: (item: CommandPaletteItem, event: Event | null) => void;
   [key: string]: unknown;
 }
 
-export interface CommandPaletteConfig extends ComponentConfig {
-  /** Items, a function returning them (called on every open), or a selector
-   *  for a `<script type="application/json">` holding them. */
-  items?: Array<CommandPaletteItem | string> | (() => Array<CommandPaletteItem | string>) | string | null;
+export interface CommandPaletteOptions {
+  /** Items, or a function returning them — called on every open. */
+  items?: CommandPaletteItem[] | (() => CommandPaletteItem[]) | null;
   placeholder?: string;
   emptyText?: string;
-  /** Global shortcut that opens it, e.g. `'mod+k'` — `mod` is ⌘ on macOS. */
+  /** Global shortcut that opens it, e.g. "mod+k". Null wires up nothing. */
   hotkey?: string | null;
-  /** Dim the page behind, and close on an outside click. Default: true. */
+  /** Dim the page behind, and close on an outside click. */
   backdrop?: boolean;
-  /** Close on Escape. Default: true. */
+  /** Close on Escape. */
   keyboard?: boolean;
-  /** Reset the query when it closes. Default: true. */
+  /** Reset the query when it closes. */
   clearOnClose?: boolean;
-  /** Show group headers while the query is empty. Default: true. */
+  /** Show group headings when the query is empty. */
   groups?: boolean;
-  /** Rows rendered either side of the visible window. Default: 4. */
+  /** Rows rendered above and below the visible window. */
   overscan?: number;
-  /** Cap the number of results. Default: 0 (no cap). */
+  /** Cap the number of results; 0 for no cap. */
   limit?: number;
-  /** Stay open after a selection. Default: false. */
+  /** Keep it open after a selection. */
   keepOpen?: boolean;
-  onSelect?(item: CommandPaletteItem, event: Event | null): void;
+  onSelect?: (item: CommandPaletteItem, event: Event | null) => void;
 }
 
-export declare class CommandPalette extends Component<CommandPaletteConfig> {
-  readonly isShown: boolean;
-  readonly items: CommandPaletteItem[];
-  readonly activeItem: CommandPaletteItem | null;
+export class CommandPalette extends Component {
+  constructor(element: Element | string, config?: CommandPaletteOptions);
   show(relatedTarget?: Element | null): void;
   hide(): void;
   toggle(relatedTarget?: Element | null): void;
-  /** Replace the list. Lowercase haystacks are built once, here. */
-  setItems(items: Array<CommandPaletteItem | string>): this;
-  /** Run the highlighted row. Returns false if there was nothing to run. */
-  select(event?: Event | null): boolean;
+  select(event?: Event | null): void;
+  setItems(items: CommandPaletteItem[]): void;
+  readonly items: CommandPaletteItem[];
+  readonly activeItem: CommandPaletteItem | null;
+  readonly isShown: boolean;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Data table                                                                 */
+/* -------------------------------------------------------------------------- */
 
 export interface DataTableColumn {
+  key?: string;
   label?: string;
-  name?: string;
-  title?: string;
-  key?: string | number;
-  field?: string | number;
   width?: number;
-  maxWidth?: number;
-  [key: string]: unknown;
+  align?: 'start' | 'center' | 'end';
 }
 
-export interface DataTableConfig extends ComponentConfig {
-  columns?: DataTableColumn[] | string | null;
-  rows?: unknown[] | string | null;
+export interface DataTableOptions {
+  /** Explicit columns, or use `columnCount` + `getColumnLabel` for a virtual set. */
+  columns?: DataTableColumn[] | null;
+  /** Explicit rows, or use `rowCount` + `getCell`/`getRow` for a virtual set. */
+  rows?: unknown[][] | null;
   columnCount?: number;
   rowCount?: number;
+  /** Fixed by default — that is what keeps a million rows cheap. */
   defaultColumnWidth?: number;
   minColumnWidth?: number;
+  /** The cap a double-click auto-size will not exceed, so a JSON blob
+   *  cannot explode the column to the width of the document. */
   maxAutoWidth?: number;
+  /** How many rows an auto-size measures before deciding. */
   autoSizeSample?: number;
   rowHeight?: number;
   headerHeight?: number;
   gutterWidth?: number;
   overscan?: number;
   selectable?: boolean;
-  getColumnLabel?: ((index: number, column?: DataTableColumn) => string) | null;
-  getCell?: ((rowIndex: number, columnIndex: number, row: unknown, column?: DataTableColumn) => unknown) | null;
-  getRow?: ((index: number) => unknown) | null;
+  getColumnLabel?: ((index: number) => string) | null;
+  getCell?: ((rowIndex: number, columnIndex: number) => unknown) | null;
+  getRow?: ((rowIndex: number) => unknown[]) | null;
 }
 
-export declare class DataTable extends Component<DataTableConfig> {
+export class DataTable extends Component {
+  constructor(element: Element | string, config?: DataTableOptions);
+  /** Auto-size one column to its contents, capped at `maxAutoWidth`. */
+  autoSizeColumn(index: number): void;
+  /** Auto-size every column, the way double-clicking the corner does. */
+  autoSizeAll(): void;
+  selectAll(selected?: boolean): void;
   readonly rowCount: number;
   readonly columnCount: number;
   readonly selectedAll: boolean;
-  setData(config?: Partial<DataTableConfig>): this;
-  resizeColumn(index: number, width: number, options?: { silent?: boolean }): this;
-  autoSizeColumn(index: number): this;
-  autoSizeAll(): this;
-  selectAll(selected?: boolean): this;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Fuzzy matching — exported because the palette's ranking is useful alone     */
+/* -------------------------------------------------------------------------- */
 
 export interface FuzzyMatch {
   score: number;
-  /** Indices into the label, for highlighting. */
+  /** Indices into the haystack to highlight. Only ever inside the visible label. */
   positions: number[];
 }
 
-/** Split a raw query into the lowercase terms `fuzzyMatch` expects. */
-export declare function parseQuery(query: string): string[];
+export interface FuzzyMatchOptions {
+  /** Pre-lowercased `text`, when the caller already has one cached. */
+  lowerText?: string;
+  /** Characters at the start of `text` that are the "real" label. Anything past
+   *  it (keywords, description) scores less and is never highlighted. */
+  primaryLength?: number;
+}
 
-export declare function fuzzyMatch(
+/** Match one haystack against the AND-ed `terms` from `parseQuery`. */
+export function fuzzyMatch(
   text: string,
   terms: string[],
-  options?: { lowerText?: string; primaryLength?: number }
+  options?: FuzzyMatchOptions
 ): FuzzyMatch | null;
 
-export declare function fuzzyFilter(
+/** Split a raw query into lowercase AND-ed terms. */
+export function parseQuery(query: string): string[];
+
+/** Filter and rank a list of strings, best first. */
+export function fuzzyFilter(
   texts: string[],
   query: string
-): Array<{ index: number } & FuzzyMatch>;
+): Array<{ index: number; score: number; positions: number[] }>;
 
-export interface DropdownConfig extends ComponentConfig {
-  /** Close when a menu item is clicked. Default: true. */
-  autoClose?: boolean;
+/* -------------------------------------------------------------------------- */
+/* Tabs — the W3C APG keyboard model, since HTML has no tabs element           */
+/* -------------------------------------------------------------------------- */
+
+/** Bind the delegated tablist listeners. Idempotent; auto-init calls it. */
+export function initTabs(): void;
+
+/** Select a `[role="tab"]`, revealing its panel. Returns false if cancelled. */
+export function selectTab(tab: Element, options?: { focus?: boolean }): boolean;
+
+/* -------------------------------------------------------------------------- */
+/* Toasts                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export interface ToastOptions {
+  /** A colour class — 'success', 'danger', 'warning', … */
+  variant?: string;
+  /** Milliseconds before self-dismissal; 0 to persist. */
+  duration?: number;
+  placement?: 'start' | 'end' | 'top' | 'bottom';
+  dismissible?: boolean;
 }
 
-export declare class Dropdown extends Component<DropdownConfig> {
-  readonly isShown: boolean;
-  show(): void;
-  hide(): void;
-  toggle(): void;
-  static closeAll(exceptTarget?: Element | null): void;
-}
+export function toast(message: string | Node, options?: ToastOptions): HTMLElement;
+export function dismissToast(element: HTMLElement): void;
 
-export interface ModalConfig extends ComponentConfig {
-  /** true | false | 'static' — 'static' nudges instead of closing. */
-  backdrop?: boolean | 'static';
-  /** Close on Escape. Default: true. */
-  keyboard?: boolean;
-  /** Trap and move focus into the dialog. Default: true. */
-  focus?: boolean;
-}
+/* -------------------------------------------------------------------------- */
+/* Invoker commands                                                           */
+/* -------------------------------------------------------------------------- */
 
-export declare class Modal extends Component<ModalConfig> {
-  readonly isShown: boolean;
-  show(relatedTarget?: Element | null): void;
-  hide(): void;
-  toggle(relatedTarget?: Element | null): void;
-}
+/** Fallback for `command`/`commandfor`. No-op where the platform implements it. */
+export function initInvokers(): void;
+export const hasNativeInvokers: boolean;
 
-export interface OffcanvasConfig extends ComponentConfig {
-  backdrop?: boolean;
-  keyboard?: boolean;
-  /** Keep the page scrollable while open. Default: false. */
-  scroll?: boolean;
-}
+/* -------------------------------------------------------------------------- */
+/* Theme                                                                      */
+/* -------------------------------------------------------------------------- */
 
-export declare class Offcanvas extends Component<OffcanvasConfig> {
-  readonly isShown: boolean;
-  show(relatedTarget?: Element | null): void;
-  hide(): void;
-  toggle(relatedTarget?: Element | null): void;
-}
+export function getTheme(): Theme;
+/** What the user actually sees right now — never 'system'. */
+export function getResolvedTheme(): 'light' | 'dark';
+export function setTheme(theme: Theme): Theme;
+export function toggleTheme(): Theme;
+export function getStyle(): Style;
+export function setStyle(style: Style): Style;
+export function restoreTheme(): void;
 
-export declare class Tab extends Component {
-  show(): void;
-}
+/* -------------------------------------------------------------------------- */
 
-export interface ToastConfig extends ComponentConfig {
-  /** Hide automatically after `delay` ms. Default: true. */
-  autohide?: boolean;
-  /** Milliseconds before auto-hiding. Default: 5000. */
-  delay?: number;
-}
+export function autoInit(): void;
+export function resetAutoInit(): void;
+export const version: string;
 
-export declare class Toast extends Component<ToastConfig> {
-  readonly isShown: boolean;
-  show(): void;
-  hide(): void;
-}
-
-export declare class Alert extends Component {
-  close(): void;
-}
-
-export declare class Button extends Component {
-  toggle(): boolean;
-}
-
-export type Theme = 'light' | 'dark' | 'system';
-export type Style = 'default' | 'brutal';
-
-export declare function getTheme(): Theme;
-export declare function getResolvedTheme(): 'light' | 'dark';
-export declare function setTheme(theme: Theme): Theme;
-export declare function toggleTheme(): Theme;
-export declare function getStyle(): Style;
-export declare function setStyle(style: Style): Style;
-export declare function restoreTheme(): void;
-
-export declare function autoInit(): void;
-export declare function resetAutoInit(): void;
-
-export declare const version: string;
-
-/** Namespaced events dispatched on the component's element. */
-export interface JaUIEventMap {
-  'ja:collapse:show': CustomEvent;
-  'ja:collapse:shown': CustomEvent;
-  'ja:collapse:hide': CustomEvent;
-  'ja:collapse:hidden': CustomEvent;
-  'ja:command-palette:show': CustomEvent<{ relatedTarget: Element | null }>;
-  'ja:command-palette:shown': CustomEvent<{ relatedTarget: Element | null }>;
-  'ja:command-palette:hide': CustomEvent;
-  'ja:command-palette:hidden': CustomEvent;
-  'ja:command-palette:filter': CustomEvent<{ query: string; count: number }>;
-  'ja:command-palette:highlight': CustomEvent<{ item: CommandPaletteItem | null; index: number }>;
-  'ja:command-palette:select': CustomEvent<{ item: CommandPaletteItem; index: number; query: string }>;
-  'ja:datatable:autosize': CustomEvent<{ columns: number }>;
-  'ja:datatable:autosized': CustomEvent<{ columns: number }>;
-  'ja:datatable:columnresize': CustomEvent<{ column: number; width: number }>;
-  'ja:datatable:columnresized': CustomEvent<{ column: number; width: number }>;
-  'ja:datatable:selectall': CustomEvent<{ selected: boolean }>;
-  'ja:datatable:selectallchanged': CustomEvent<{ selected: boolean }>;
-  'ja:dropdown:show': CustomEvent;
-  'ja:dropdown:shown': CustomEvent;
-  'ja:dropdown:hide': CustomEvent;
-  'ja:dropdown:hidden': CustomEvent;
-  'ja:modal:show': CustomEvent<{ relatedTarget: Element | null }>;
-  'ja:modal:shown': CustomEvent<{ relatedTarget: Element | null }>;
-  'ja:modal:hide': CustomEvent;
-  'ja:modal:hidden': CustomEvent;
-  'ja:offcanvas:show': CustomEvent;
-  'ja:offcanvas:shown': CustomEvent;
-  'ja:offcanvas:hide': CustomEvent;
-  'ja:offcanvas:hidden': CustomEvent;
-  'ja:tab:show': CustomEvent<{ relatedTarget: Element | null }>;
-  'ja:tab:shown': CustomEvent<{ relatedTarget: Element | null }>;
-  'ja:toast:show': CustomEvent;
-  'ja:toast:shown': CustomEvent;
-  'ja:toast:hide': CustomEvent;
-  'ja:toast:hidden': CustomEvent;
-  'ja:alert:close': CustomEvent;
-  'ja:alert:closed': CustomEvent;
-  'ja:button:toggled': CustomEvent<{ pressed: boolean }>;
+declare global {
+  interface DocumentEventMap {
+    'ja:theme:changed': CustomEvent<{ theme: Theme; resolved: 'light' | 'dark' }>;
+    'ja:style:changed': CustomEvent<{ style: Style }>;
+  }
+  interface HTMLElementEventMap {
+    'ja:tabs:show': CustomEvent<{ tab: Element; previous?: Element; panel: Element | null }>;
+    'ja:tabs:shown': CustomEvent<{ tab: Element; previous?: Element; panel: Element | null }>;
+    'ja:toast:shown': CustomEvent<{ element: HTMLElement }>;
+    'ja:toast:hide': CustomEvent<{ element: HTMLElement }>;
+  }
 }

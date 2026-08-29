@@ -1,114 +1,74 @@
 /**
- * Cheap structural checks on the authored CSS. These catch the class of bug
- * that is invisible in review and silently drops a whole rule at parse time.
+ * Lint the stylesheet against the rules in ARCHITECTURE.md.
+ *
+ * These are the four rules that are easy to break by accident and impossible to
+ * see in a screenshot, so they are checked mechanically rather than trusted:
+ *
+ *   1. No `!important`. It inverts cascade-layer order, so ours would start
+ *      beating the consumer's own stylesheet — the exact thing layers exist to
+ *      prevent.
+ *   2. No physical properties. Logical ones only, so the library works in a
+ *      right-to-left or vertical writing mode.
+ *   3. Every rule lives in a layer. An unlayered rule beats every layered one,
+ *      including the consumer's.
+ *   4. No token used that is never defined and has no fallback — a silent
+ *      no-op that renders as "nothing happened".
  *
  *   npm run lint:css
  */
-import { readFileSync } from 'node:fs';
-import { relative } from 'node:path';
-import { globSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 
-const files = globSync('src/styles/**/*.css');
-const problems = [];
+const ROOT = 'src/styles';
 
-for (const file of files) {
-  const source = readFileSync(file, 'utf8');
-  const lines = source.split('\n');
-  let inComment = false;
-
-  lines.forEach((line, i) => {
-    // A `*/` inside a comment — e.g. writing `.m-*/.gap-*` in prose — ends the
-    // comment early and turns the rest of it into a broken selector, which
-    // takes the following rule down with it.
-    let rest = line;
-    let column = 0;
-    while (rest.length) {
-      if (!inComment) {
-        const open = rest.indexOf('/*');
-        if (open === -1) break;
-        inComment = true;
-        column += open + 2;
-        rest = rest.slice(open + 2);
-      } else {
-        const close = rest.indexOf('*/');
-        if (close === -1) break;
-        const after = rest.slice(close + 2).trim();
-        // A legitimate close is followed by nothing, or by a new rule/comment.
-        if (after && !after.startsWith('/*') && !/^[.#:@a-zA-Z[*]/.test(after) === false) {
-          // fine — this is a real close followed by CSS
-        }
-        inComment = false;
-        column += close + 2;
-        rest = rest.slice(close + 2);
-      }
-    }
-
-    // The specific trap: `*/` appearing mid-word inside comment prose.
-    if (/\*\/[^\s]/.test(line) && /^\s*[^{}]*$/.test(line) && !line.includes('{')) {
-      const looksLikeProse = /[a-z]{3,}\s/.test(line);
-      if (looksLikeProse) {
-        problems.push(
-          `${relative('.', file)}:${i + 1}  a '*/' inside comment prose ends the comment early:\n      ${line.trim()}`
-        );
-      }
-    }
+const walk = (dir) =>
+  readdirSync(dir).flatMap((entry) => {
+    const path = join(dir, entry);
+    return statSync(path).isDirectory() ? walk(path) : path.endsWith('.css') ? [path] : [];
   });
 
-  if (inComment) {
-    problems.push(`${relative('.', file)}  unterminated comment`);
+/** Blank out comments so their prose never trips a check. */
+const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (match) => match.replace(/[^\n]/g, ' '));
+
+const PHYSICAL =
+  /(^|[;{\s])(width|height|min-width|min-height|max-width|max-height|left|right|top|bottom|margin-(?:left|right|top|bottom)|padding-(?:left|right|top|bottom)|border-(?:left|right|top|bottom)(?:-(?:width|style|color))?)\s*:/;
+
+const files = walk(ROOT);
+const problems = [];
+const defined = new Set(['--ja-accent', '--ja-accent-fg']); // supplied by the variant classes
+const used = [];
+
+for (const file of files) {
+  const source = decomment(readFileSync(file, 'utf8'));
+  const lines = source.split('\n');
+
+  if (!/@layer\s+ja\./.test(source) && !file.endsWith('index.css')) {
+    problems.push(`${file}: no @layer — unlayered rules beat every layered one`);
   }
-}
 
-// The dark theme is written twice — once for the explicit attribute, once for
-// the OS preference — and the two must not drift apart.
-{
-  const source = readFileSync('src/styles/base/tokens.css', 'utf8');
-  const declarations = (block) =>
-    block
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.startsWith('--'))
-      .join('\n');
+  for (const [index, line] of lines.entries()) {
+    const at = `${file}:${index + 1}`;
+    if (line.includes('!important')) problems.push(`${at}: !important`);
+    const physical = line.match(PHYSICAL);
+    if (physical) problems.push(`${at}: physical property '${physical[2]}' — use the logical form`);
 
-  for (const [name, attribute, media] of [
-    [
-      'default',
-      /\[data-ja-theme="dark"\] \{([\s\S]*?)\n\}/,
-      /:root:not\(\[data-ja-theme="light"\]\) \{([\s\S]*?)\n  \}/,
-    ],
-    [
-      'brutal',
-      /\[data-ja-style="brutal"\]\[data-ja-theme="dark"\] \{([\s\S]*?)\n\}/,
-      /:root\[data-ja-style="brutal"\]:not\(\[data-ja-theme="light"\]\) \{([\s\S]*?)\n  \}/,
-    ],
-  ]) {
-    const a = source.match(attribute);
-    const b = source.match(media);
-    if (!a || !b) {
-      problems.push(`src/styles/base/tokens.css  cannot find both ${name} dark blocks to compare`);
-    } else if (declarations(a[1]) !== declarations(b[1])) {
-      problems.push(
-        `src/styles/base/tokens.css  the ${name} dark theme differs between [data-ja-theme="dark"] and the prefers-color-scheme block — they must declare the same tokens.`
-      );
+    for (const [, name] of line.matchAll(/(--ja-[\w-]+)\s*:/g)) defined.add(name);
+    for (const match of line.matchAll(/var\(\s*(--ja-[\w-]+)\s*([,)])/g)) {
+      used.push({ at, name: match[1], hasFallback: match[2] === ',' });
     }
   }
 }
 
-// The rule that the above bug actually destroyed — assert it survives a build.
-try {
-  const bundle = readFileSync('dist/ja-ui.css', 'utf8');
-  if (!/^\*,\n\*::before,\n\*::after \{\n\s+box-sizing: border-box;/m.test(bundle)) {
-    problems.push(
-      "dist/ja-ui.css  the universal box-sizing rule is missing or malformed — something upstream broke CSS parsing."
-    );
+for (const { at, name, hasFallback } of used) {
+  if (!defined.has(name) && !hasFallback) {
+    problems.push(`${at}: ${name} is never defined and has no fallback`);
   }
-} catch {
-  console.log('  (dist not built — skipping bundle checks)');
 }
 
 if (problems.length) {
-  console.error(`\n${problems.length} problem(s):\n`);
-  for (const p of problems) console.error(`  ${p}`);
+  for (const problem of problems) console.error(`  ✗ ${problem}`);
+  console.error(`\n${problems.length} problem${problems.length === 1 ? '' : 's'}`);
   process.exit(1);
 }
-console.log(`  ${files.length} stylesheets look structurally sound`);
+
+console.log(`  ✓ ${files.length} stylesheets — layered, logical, no !important, no dangling tokens`);

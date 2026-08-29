@@ -1,0 +1,355 @@
+/* =============================================================================
+   ja-ui — data table
+   ---------------------------------------------------------------------------
+   One of only two components in this library that is not native HTML. A plain
+   <table> is styled in elements/table.css and is the right answer for anything
+   a person will read; this file is for the one-million-row by one-thousand-
+   column sheet, where the platform genuinely has nothing: rows and columns are
+   windowed in both directions, every visible cell is an absolutely positioned
+   div recycled from a pool, and the header and row-number gutter are painted by
+   JavaScript in lock-step with the scroll offset.
+
+   NOTHING HERE IS A <table>. That is deliberate — a real table with a million
+   rows never gets to first paint — and it is also why datatable.js gives the
+   viewport `role="grid"`, the header cells `role="columnheader"`, the gutter
+   `role="rowheader"` and the cells `role="gridcell"`, and keeps aria-rowcount
+   and aria-colcount in sync with the full dataset rather than the window.
+
+   THE SELECTORS BELOW ARE AN API BETWEEN CSS AND JS
+   -------------------------------------------------
+   `src/js/datatable.js` builds this DOM from a string template and then queries
+   it back by class. It is not being rewritten, so every class name here is
+   load-bearing and none of it can be renamed:
+
+     .datatable                    host; also the [data-ja-datatable] auto-init
+                                   hook, added as a class by the constructor
+     .datatable-shell              the framed, clipped card
+     .datatable-viewport           the only scroll container (role="grid")
+     .datatable-canvas             the spacer that gives the scrollbars their
+                                   full 1,000,000 x 1,000 extent
+     .datatable-header-layer       fake-sticky column headers
+     .datatable-gutter-layer       fake-sticky row numbers
+     .datatable-corner             the select-all box where the two layers meet
+     .datatable-corner-mark        the checkbox glyph inside it
+     .datatable-header-cell        pooled, [data-col]
+     .datatable-gutter-cell        pooled, [data-row]
+     .datatable-cell               pooled, [data-row][data-col]
+     .datatable-label              the text span inside a header/measure cell
+     .datatable-resize-handle      [data-role="col-handle" | "all-handle"]
+     .datatable-measurer           off-screen; the auto-fit measuring rig
+     .datatable-measure-cell       what getComputedStyle() is read from
+     .is-selected                  per-cell state, toggled on every paint
+     .is-resizing                  on the host, during a drag
+     .is-table-selected            on the host, whole sheet selected
+     [hidden]                      how a pooled element is retired
+
+   These custom properties are WRITTEN BY THE JS with element.style.setProperty
+   on every geometry sync, so their names are part of the same contract:
+   --ja-datatable-row-height, --ja-datatable-header-height,
+   --ja-datatable-gutter-width, --ja-datatable-max-auto-width. The JS also sets
+   inline-size / block-size / transform inline on the pooled elements — never
+   declare those here for anything it positions.
+
+   HOT PATH RULES
+   --------------
+   Thousands of these elements are restyled on every animation frame during a
+   scroll, so: no descendant selectors on cells (state travels by inherited
+   custom property instead), no transitions, and no `will-change` — promoting
+   ten thousand pooled cells to their own compositor layers is how you turn a
+   smooth scroll into an out-of-memory tab.
+   ============================================================================= */
+
+@layer ja.components {
+  .datatable,
+  [data-ja-datatable] {
+    /* --- Geometry. The four the JS overwrites inline are marked; the values
+       here are the same defaults datatable.js starts from, so the component
+       looks right for the frame before the first geometry sync lands. ------ */
+    --ja-datatable-row-height: 2.5rem; /* JS: rowHeight (40) */
+    --ja-datatable-header-height: 2.75rem; /* JS: headerHeight (44) */
+    --ja-datatable-gutter-width: 3.5rem; /* JS: gutterWidth (56) */
+    --ja-datatable-max-auto-width: 32rem; /* JS: maxAutoWidth (512) */
+    --ja-datatable-block-size: min(32rem, 70vh);
+    --ja-datatable-resize-handle-width: 0.625rem;
+
+    /* --- Cell chrome. The auto-fit pass reads the inline padding and the
+       inline borders straight off a measure cell with getComputedStyle, so
+       whatever these are, the fitted column widths follow them. ----------- */
+    --ja-datatable-padding-inline: var(--ja-space-3);
+    --ja-datatable-rule: var(--ja-border-width) solid var(--ja-border-color-subtle);
+    /* The same rule drawn on top of the ink slab: a paper-coloured divider up
+       there reads as a row of bright scratches. */
+    --ja-datatable-head-rule: var(--ja-border-width) solid
+      color-mix(in srgb, var(--ja-ink-fill-fg) 22%, transparent);
+
+    /* --- Colour. The head is the same solid ink slab as a plain <table>. -- */
+    --ja-datatable-head-bg: var(--ja-ink-fill);
+    --ja-datatable-head-fg: var(--ja-ink-fill-fg);
+    --ja-datatable-gutter-bg: color-mix(in srgb, var(--ja-ink-fill) 8%, var(--ja-surface));
+    /* Selection tints twice: once for paper, once for ink. Tinting the header
+       slab with the paper colour would leave cream text on a pale wash. */
+    --ja-datatable-selected-bg: color-mix(in srgb, var(--ja-primary) 16%, var(--ja-surface));
+    --ja-datatable-head-selected-bg: color-mix(in srgb, var(--ja-primary) 45%, var(--ja-ink-fill));
+
+    /* Read by the resize handles. Hovering a header or dragging remaps it; no
+       `.datatable.is-resizing .datatable-resize-handle` descendant match on the
+       hot path, just one inherited value. */
+    --ja-datatable-handle-opacity: 0.18;
+
+    position: relative;
+    display: block;
+    inline-size: 100%;
+    min-inline-size: 0;
+    color: var(--ja-text);
+    /* Digits share one advance width, so columns of numbers line up and a
+       scroll does not make the sheet shimmer as figures change width. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The framed card. `clip` rather than `hidden`: both round the corners off
+     the sticky layers, but `hidden` would make the shell a second scroll
+     container that a screen reader offers and a keyboard cannot reach. */
+  .datatable-shell {
+    position: relative;
+    overflow: clip;
+    border: var(--ja-border);
+    border-radius: var(--ja-radius);
+    background-color: var(--ja-surface);
+    box-shadow: var(--ja-shadow);
+  }
+
+  /* The one real scroll container. Everything else fakes it. */
+  .datatable-viewport {
+    position: relative;
+    overflow: auto;
+    block-size: var(--ja-datatable-block-size);
+    background-color: var(--ja-surface);
+    /* Reserve the scrollbar track up front so the columns don't jump sideways
+       the moment the sheet grows one row past the fold. NOT `both-edges`: that
+       reserves a matching strip on the start edge too, which pushes the canvas
+       clear of the row-number gutter and leaves a pale band down the inside of
+       the frame — the layers are positioned in the shell's coordinates and do
+       not move with it. */
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+    contain: layout style;
+  }
+
+  /* Pure spacer: the JS sizes it to gutter + total column width by header +
+     total row height, and that is what the scrollbars measure. It is also the
+     containing block for every pooled cell, so its size is explicit and
+     `strict` containment is safe — the million cells that never exist cost the
+     page nothing, and a cell being repainted cannot invalidate layout outside
+     it. */
+  .datatable-canvas {
+    position: relative;
+    contain: strict;
+  }
+
+  /* --- The two fake-sticky layers ----------------------------------------
+     Sticky positioning cannot follow a virtualised canvas, so these sit
+     outside the scroller in the shell's coordinate space and the JS translates
+     their pooled children by the scroll offset each frame. The JS writes
+     inset-inline-start / inline-size / block-size on them inline.
+     --------------------------------------------------------------------- */
+  .datatable-header-layer,
+  .datatable-gutter-layer,
+  .datatable-corner {
+    position: absolute;
+    inset-inline-start: 0;
+    z-index: 2;
+    overflow: hidden;
+  }
+
+  .datatable-header-layer {
+    inset-block-start: 0;
+    inset-inline-end: 0;
+  }
+
+  .datatable-gutter-layer {
+    inset-block-end: 0;
+  }
+
+  /* Where the two layers cross: the select-all box. Above both. */
+  .datatable-corner {
+    inset-block-start: 0;
+    z-index: 3;
+    justify-content: center;
+    cursor: default;
+    user-select: none;
+  }
+
+  /* --- Cells ---------------------------------------------------------------
+     Shared chrome only. Position and size come from the JS, inline.
+     --------------------------------------------------------------------- */
+  .datatable-header-cell,
+  .datatable-gutter-cell,
+  .datatable-cell,
+  .datatable-corner {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    padding-inline: var(--ja-datatable-padding-inline);
+    overflow: hidden;
+    white-space: nowrap;
+    border-inline-end: var(--ja-datatable-rule);
+    border-block-end: var(--ja-datatable-rule);
+    background-color: var(--ja-surface);
+    contain: layout paint style;
+  }
+
+  /* A body cell is a block, not a flexbox: `text-overflow: ellipsis` needs a
+     block container (a flex container ellipsises nothing, which is why the
+     old sheet just chopped long values off), and skipping flex layout on the
+     one element type there are tens of thousands of is free performance.
+     Vertical centring is the line box itself — every cell holds exactly one
+     line of text, written straight to textContent by the JS. */
+  .datatable-cell {
+    display: block;
+    block-size: var(--ja-datatable-row-height);
+    line-height: var(--ja-datatable-row-height);
+    text-overflow: ellipsis;
+  }
+
+  /* The header and the corner hold two children (a label and a resize handle),
+     so they stay flex. There are only ever a screenful of them. */
+  .datatable-header-cell,
+  .datatable-corner {
+    display: flex;
+    align-items: center;
+    block-size: var(--ja-datatable-header-height);
+    border-inline-end: var(--ja-datatable-head-rule);
+    border-block-end: var(--ja-datatable-head-rule);
+    background-color: var(--ja-datatable-head-bg);
+    color: var(--ja-datatable-head-fg);
+    font-family: var(--ja-font-heading);
+    font-size: var(--ja-font-size-xs);
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+  }
+
+  .datatable-header-cell {
+    user-select: none;
+  }
+
+  /* min-inline-size: 0 is what actually lets a flex item shrink far enough to
+     ellipsise — without it the label refuses to go below its min-content width
+     and overflows the column instead. */
+  .datatable-label {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* Row numbers: quiet, right-aligned against the data they label. */
+  .datatable-gutter-cell {
+    display: block;
+    inline-size: var(--ja-datatable-gutter-width);
+    block-size: var(--ja-datatable-row-height);
+    line-height: var(--ja-datatable-row-height);
+    background-color: var(--ja-datatable-gutter-bg);
+    color: var(--ja-text-muted);
+    text-align: end;
+  }
+
+  /* --- Selection -----------------------------------------------------------
+     The JS toggles .is-selected on every pooled element it paints, so these
+     stay single compound selectors — the rightmost match is a class and the
+     engine never has to walk an ancestor chain.
+     --------------------------------------------------------------------- */
+  .datatable-cell.is-selected,
+  .datatable-gutter-cell.is-selected {
+    background-color: var(--ja-datatable-selected-bg);
+  }
+
+  .datatable-header-cell.is-selected,
+  .datatable-corner[aria-pressed="true"] {
+    background-color: var(--ja-datatable-head-selected-bg);
+  }
+
+  .datatable-corner-mark {
+    flex: 0 0 auto;
+    inline-size: 0.875rem;
+    block-size: 0.875rem;
+    border: var(--ja-border-width) solid currentColor;
+    border-radius: var(--ja-radius-xs);
+    opacity: 0.8;
+  }
+
+  /* Filled when the whole sheet is selected. Driven by the corner's own ARIA
+     state — which the JS keeps in sync with the host's .is-table-selected —
+     rather than by a descendant selector from the host. */
+  .datatable-corner[aria-pressed="true"] .datatable-corner-mark {
+    background-color: currentColor;
+    opacity: 1;
+  }
+
+  /* Both the corner and the viewport are focusable, and both sit hard against
+     the shell's clip, which would eat an outset focus ring. Turn it inward. */
+  .datatable-corner:focus-visible,
+  .datatable-viewport:focus-visible {
+    outline-offset: calc(-1 * var(--ja-ring-width));
+  }
+
+  /* --- Resize handles ------------------------------------------------------
+     Drag to size a column, double-click to auto-fit it; on the corner's handle,
+     double-click auto-fits the whole sheet. The grab area sits inside the cell
+     rather than straddling its edge: the cells are clipped, and half a handle
+     hanging into the next column is half a handle you cannot click.
+     --------------------------------------------------------------------- */
+  .datatable-resize-handle {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    inline-size: var(--ja-datatable-resize-handle-width);
+    cursor: col-resize;
+  }
+
+  /* The visible rule, sitting over the column divider. */
+  .datatable-resize-handle::before {
+    content: "";
+    position: absolute;
+    inset-block: var(--ja-space-1);
+    inset-inline-end: 0;
+    inline-size: 2px;
+    background-color: currentColor;
+    opacity: var(--ja-datatable-handle-opacity);
+  }
+
+  .datatable-header-cell:hover,
+  .datatable-corner:hover,
+  .datatable.is-resizing {
+    --ja-datatable-handle-opacity: 1;
+  }
+
+  /* --- The measuring rig ---------------------------------------------------
+     Auto-fitting a thousand columns means measuring tens of thousands of
+     strings. Writing each one into the DOM and reading scrollWidth back is a
+     forced synchronous layout per string; instead the JS reads the font, the
+     letter-spacing and the inline chrome off these two cells ONCE per pass and
+     does the rest on a 2D canvas, with the DOM path only as a fallback.
+
+     So these two must keep the exact padding, border and typography of the real
+     cells they stand in for — they inherit it from the rules above, and only
+     their position and sizing are overridden here. Never size-contain them:
+     size containment makes an element measure as if it were empty, which is
+     precisely the measurement being taken.
+     --------------------------------------------------------------------- */
+  .datatable-measurer {
+    position: absolute;
+    inset-inline-start: -100000px;
+    inset-block-start: -100000px;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .datatable-measure-cell {
+    position: static;
+    inline-size: max-content;
+    max-inline-size: none;
+    contain: none;
+  }
+}

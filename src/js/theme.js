@@ -1,7 +1,7 @@
 /**
  * Theme — light/dark and the visual skin, persisted per browser.
  * Both are plain attributes on <html>, so you can also set them server-side:
- *   <html data-ja-theme="dark" data-ja-style="brutal">
+ *   <html data-theme="dark" data-style="brutal">
  */
 
 const THEME_KEY = 'ja-ui:theme';
@@ -26,7 +26,7 @@ const write = (key, value) => {
 
 /** 'light' | 'dark' | 'system' */
 export function getTheme() {
-  return document.documentElement.dataset.jaTheme ?? read(THEME_KEY) ?? 'system';
+  return document.documentElement.dataset.theme ?? read(THEME_KEY) ?? 'system';
 }
 
 /** What the user actually sees right now. */
@@ -38,8 +38,8 @@ export function getResolvedTheme() {
 
 export function setTheme(theme) {
   if (!THEMES.includes(theme)) throw new RangeError(`[ja-ui] unknown theme: ${theme}`);
-  if (theme === 'system') delete document.documentElement.dataset.jaTheme;
-  else document.documentElement.dataset.jaTheme = theme;
+  if (theme === 'system') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = theme;
   write(THEME_KEY, theme);
   document.dispatchEvent(
     new CustomEvent('ja:theme:changed', { detail: { theme, resolved: getResolvedTheme() } })
@@ -53,13 +53,13 @@ export function toggleTheme() {
 
 /** 'default' | 'brutal' */
 export function getStyle() {
-  return document.documentElement.dataset.jaStyle ?? read(STYLE_KEY) ?? 'default';
+  return document.documentElement.dataset.style ?? read(STYLE_KEY) ?? 'default';
 }
 
 export function setStyle(style) {
   if (!STYLES.includes(style)) throw new RangeError(`[ja-ui] unknown style: ${style}`);
-  if (style === 'default') delete document.documentElement.dataset.jaStyle;
-  else document.documentElement.dataset.jaStyle = style;
+  if (style === 'default') delete document.documentElement.dataset.style;
+  else document.documentElement.dataset.style = style;
   write(STYLE_KEY, style);
   document.dispatchEvent(new CustomEvent('ja:style:changed', { detail: { style } }));
   return style;
@@ -68,7 +68,7 @@ export function setStyle(style) {
 /** Re-apply whatever was stored. Called for you by ja-ui's auto-init. */
 export function restoreTheme() {
   const theme = read(THEME_KEY);
-  if (theme && theme !== 'system') document.documentElement.dataset.jaTheme = theme;
+  if (theme && theme !== 'system') document.documentElement.dataset.theme = theme;
   const style = read(STYLE_KEY);
-  if (style && style !== 'default') document.documentElement.dataset.jaStyle = style;
+  if (style && style !== 'default') document.documentElement.dataset.style = style;
 }

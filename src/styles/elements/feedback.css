@@ -1,0 +1,409 @@
+/* =============================================================================
+   ja-ui — feedback
+   ---------------------------------------------------------------------------
+   Callouts, badges, toasts, spinners, skeletons.
+
+   This is the corner of the library where the platform gives us the least.
+   There is no <alert>, no <badge>, no <toast>, no <spinner> — so almost
+   everything here is a class, which is exactly the escape hatch the contract
+   allows: "reach for a class only when the platform gives you nothing to
+   select". What the platform *does* give us is the live-region roles, and
+   those are the part that has to be got right.
+
+   THE ONE RULE THAT MATTERS IN THIS FILE: a live-region role is a promise that
+   something will change. None of it is baked into the styling, because a
+   server-rendered box that has been sitting on the page since load must not
+   announce itself. Every role in here is documented as opt-in, and every
+   comment says which of the two politeness levels it is.
+
+     role="alert"   — assertive. Interrupts whatever the screen reader is
+                      saying. MDN is explicit that it "should not be used on
+                      HTML that the user hasn't interacted with". Errors and
+                      failures, inserted in response to an action, only.
+     role="status"  — polite. Queues behind the current utterance. This is the
+                      correct role for almost everything: saved, copied,
+                      loading finished, toast appeared.
+     <output>       — THE ONLY ELEMENT WITH AN IMPLICIT LIVE ROLE. It maps to
+                      role="status" (polite, aria-atomic) for free, so a
+                      calculated result announces itself with no ARIA at all.
+                      Its box is styled in forms.css; nothing here touches it.
+                      Mentioned because if you are reaching for
+                      <div role="status"> to show a computed value, you wanted
+                      <output>.
+   ============================================================================= */
+
+@layer ja.elements {
+  /* --- Callout / alert -----------------------------------------------------
+     There is no native alert element, so this is `.callout`.
+
+     It fills with the accent — SOLID, not a washed-out 10% tint. Tinted alerts
+     are a different library's house style; this one fills, borders in ink and
+     drops a hard shadow. Reads the variant contract, so `.callout.danger`,
+     `.callout.success` and `.callout.info` are the whole API and no rule below
+     ever writes a raw colour.
+
+     DO NOT BAKE role="alert" INTO THIS. The role is assertive: it interrupts
+     the screen reader mid-sentence. A callout rendered by the server and
+     present at page load has nothing to interrupt about — the user will reach
+     it by reading the page. Adding the role to the CSS's expectation would
+     push every author into shipping an interruption.
+
+     Opt in, and only for content inserted or changed after load:
+       <div class="callout danger" role="alert">   assertive — a failure
+       <div class="callout success" role="status"> polite   — a confirmation
+       <div class="callout info">                  no role  — static prose
+
+     The dismiss button is placed by grid, not by an auto margin, because no
+     element in this library ships a margin.
+     ---------------------------------------------------------------------- */
+  .callout {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--ja-space-2) var(--ja-space-3);
+    align-items: start;
+    padding-block: var(--ja-space-4);
+    padding-inline: var(--ja-space-4);
+    background-color: var(--ja-accent, var(--ja-surface));
+    color: var(--ja-accent-fg, var(--ja-text));
+    border: var(--ja-border);
+    border-radius: var(--ja-radius);
+    box-shadow: var(--ja-shadow);
+  }
+
+  /* Everything stacks in the first column; the dismiss button is pinned to the
+     top of the second. */
+  .callout > * {
+    grid-column: 1;
+  }
+
+  /* An optional heading. Any level — the right level is whatever the document
+     outline needs, and that is the author's call, not ours. */
+  .callout > :is(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--ja-heading-family);
+    font-size: var(--ja-font-size-lg);
+    font-weight: var(--ja-heading-weight);
+    line-height: var(--ja-line-height-tight);
+    letter-spacing: var(--ja-heading-tracking);
+    text-transform: var(--ja-heading-case);
+    color: inherit;
+  }
+
+  .callout > p {
+    color: inherit;
+    max-inline-size: var(--ja-measure);
+  }
+
+  /* The dismiss button borrows the callout's own ink rather than the button
+     defaults, so it reads as part of the block on every variant. It needs a
+     real accessible name — <button aria-label="Dismiss"> or visually hidden
+     text — because "×" is announced as "multiplication sign", if at all. */
+  .callout > button {
+    grid-column: 2;
+    grid-row: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--ja-control-height-sm);
+    min-block-size: var(--ja-control-height-sm);
+    padding: 0;
+    background-color: transparent;
+    color: inherit;
+    border: var(--ja-border-width) solid transparent;
+    border-radius: var(--ja-radius-sm);
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color var(--ja-transition),
+      border-color var(--ja-transition);
+  }
+
+  .callout > button:hover {
+    background-color: var(--ja-surface-hover);
+    border-color: currentColor;
+  }
+
+  /* --- Badge ---------------------------------------------------------------
+     A small accent-filled chip. `.badge`.
+
+     THERE IS NO NATIVE SEMANTIC FOR A BADGE, and the two elements people reach
+     for are both wrong:
+       <mark>  means "highlighted for reference elsewhere" — the search-hit
+               highlight. It carries that meaning into the accessibility tree
+               and some screen readers announce it. A status chip is not a
+               search hit.
+       <small> means small print — legalese, copyright, disclaimers. It maps to
+               role `generic`, so it adds nothing but a wrong intent.
+     So a badge is a <span class="badge">, and its meaning lives in its text.
+
+     A BADGE THAT CONVEYS MEANING NEEDS THE MEANING IN TEXT. A red "3" next to
+     an inbox icon is invisible to a screen reader and to anyone who cannot
+     tell red from green. Ship the words, visually hidden:
+       <span class="badge danger">3<span class="visually-hidden">
+         unread messages</span></span>
+     The radius follows --ja-btn-radius-base, so the badge is a pill in the
+     default skin and a hard-cornered block in `[data-style="brutal"]` — the
+     skin decides, not this rule.
+     ---------------------------------------------------------------------- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ja-space-1);
+    padding-block: var(--ja-space-1);
+    padding-inline: var(--ja-space-2);
+    min-inline-size: var(--ja-space-5);
+    background-color: var(--ja-accent, var(--ja-ink-fill));
+    color: var(--ja-accent-fg, var(--ja-ink-fill-fg));
+    border: var(--ja-border-width) solid var(--ja-border-color);
+    border-radius: var(--ja-btn-radius-base);
+    font-size: var(--ja-font-size-xs);
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+    line-height: var(--ja-line-height-tight);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  /* --- Toast ---------------------------------------------------------------
+     A stack of transient messages in the corner. The container is a popover,
+     which puts it in the TOP LAYER — above every stacking context on the page,
+     with NO z-index anywhere in these rules and nothing to keep in sync with
+     --ja-z-sticky.
+
+       <div class="toasts" popover="manual" role="status" id="toasts">
+         <div class="toast success"> … </div>
+       </div>
+
+     popover="manual", NOT popover="auto". An `auto` popover light-dismisses:
+     it closes on Escape and on a click anywhere outside it, and — worse — it
+     closes any other `auto` popover when it opens. A toast stack that
+     evaporates because the user clicked a link, or that kills the open menu
+     just by appearing, is broken. `manual` opens and closes only when you tell
+     it to.
+
+     role="status", NOT role="alert". Polite: the toast queues behind whatever
+     the screen reader is saying instead of cutting it off. The role goes on
+     the CONTAINER, which must already be in the DOM before the first toast is
+     inserted — a live region is only watched from the moment it is parsed, so
+     a region created and populated in the same tick announces nothing.
+
+     NEVER MOVE FOCUS TO A TOAST. It is an interruption, not a destination:
+     stealing focus rips the user out of whatever they were typing, and when
+     the toast auto-dismisses focus falls back to <body>. If the message needs
+     an action, it is not a toast — it is a <dialog>.
+     ---------------------------------------------------------------------- */
+  .toasts {
+    position: fixed;
+    inset: auto;
+    inset-block-end: var(--ja-space-4);
+    inset-inline-end: var(--ja-space-4);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--ja-space-3);
+    max-inline-size: min(28rem, calc(100% - var(--ja-space-8)));
+    /* The UA popover styles a box: border, padding, background, auto margins.
+       Strip all of it — the toasts are the boxes, the container is scaffolding. */
+    padding: 0;
+    background: none;
+    border: 0;
+    overflow: visible;
+  }
+
+  /* A closed popover is display: none, and the UA sets display: block when it
+     opens — which would kill the flex column. Restore it. */
+  .toasts:popover-open {
+    display: flex;
+  }
+
+  .toast {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--ja-space-1) var(--ja-space-3);
+    align-items: start;
+    padding-block: var(--ja-space-3);
+    padding-inline: var(--ja-space-4);
+    background-color: var(--ja-accent, var(--ja-surface-raised));
+    color: var(--ja-accent-fg, var(--ja-text));
+    border: var(--ja-border);
+    border-radius: var(--ja-radius);
+    box-shadow: var(--ja-shadow-lg);
+    /* `display` is in the transition list with allow-discrete so a toast that
+       is removed by toggling `hidden` still gets to animate out. */
+    transition: opacity var(--ja-duration) var(--ja-ease-out),
+      translate var(--ja-duration) var(--ja-ease),
+      display var(--ja-duration) allow-discrete;
+  }
+
+  .toast > * {
+    grid-column: 1;
+  }
+
+  .toast > button {
+    grid-column: 2;
+    grid-row: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--ja-control-height-sm);
+    min-block-size: var(--ja-control-height-sm);
+    padding: 0;
+    background-color: transparent;
+    color: inherit;
+    border: var(--ja-border-width) solid transparent;
+    border-radius: var(--ja-radius-sm);
+    cursor: pointer;
+  }
+
+  .toast > button:hover {
+    border-color: currentColor;
+  }
+
+  /* The entry state. @starting-style is the one thing here that is not
+     universally supported, and the fallback is the good kind: an engine that
+     does not understand the at-rule drops it and the toast simply appears at
+     its end state — visible and correct, just without the slide. Nothing is
+     conditional on the animation having run. */
+  @starting-style {
+    .toast {
+      opacity: 0;
+      translate: 0 var(--ja-space-4);
+    }
+  }
+
+  /* The exit, and the mirror of the @starting-style block above. `dismissToast()`
+     adds `.leaving` and waits for the transition before removing the node, so
+     this rule is what gives it something to wait for — without it the toast
+     would sit there until the fallback timer fired. */
+  .toast.leaving {
+    opacity: 0;
+    translate: 0 var(--ja-space-4);
+    pointer-events: none;
+  }
+
+  /* --- Spinner -------------------------------------------------------------
+     `.spinner` — a chunky ink ring with one accent-coloured quadrant, stepped
+     round in eight discrete jumps rather than swept smoothly. It is a
+     mechanism, not a mood.
+
+     A SPINNER IS DECORATION AND NEEDS A TEXT ALTERNATIVE. On its own it says
+     nothing to a screen reader and nothing to anyone who has turned images or
+     animation off. Mark the shape as decorative and put the meaning in words:
+
+       <p role="status">
+         <span class="spinner" aria-hidden="true"></span>
+         <span class="visually-hidden">Loading results…</span>
+       </p>
+
+     aria-busy="true" ANNOUNCES NOTHING BY ITSELF. It tells assistive tech to
+     hold off announcing changes inside the region until the region settles —
+     it is a mute switch, not a message. Two consequences:
+       - it must be paired with a live region or a text alternative, otherwise
+         the user is told nothing at all;
+       - IT MUST BE CLEARED when loading finishes. A region left at
+         aria-busy="true" is a region the screen reader has stopped reporting,
+         permanently and silently.
+     ---------------------------------------------------------------------- */
+  .spinner {
+    display: inline-block;
+    inline-size: var(--ja-space-5);
+    block-size: var(--ja-space-5);
+    border: var(--ja-border-width) solid var(--ja-border-color);
+    border-block-start-color: var(--ja-accent, var(--ja-primary));
+    border-inline-end-color: var(--ja-accent, var(--ja-primary));
+    border-radius: var(--ja-radius-pill);
+    vertical-align: middle;
+    animation: ja-spin var(--ja-duration-slow) steps(8, end) infinite;
+  }
+
+  /* The brutal skin has no rings — it has squares. Same element, same tokens,
+     the skin decides the corner. */
+  [data-style="brutal"] .spinner {
+    border-radius: var(--ja-radius);
+  }
+
+  @keyframes ja-spin {
+    to {
+      rotate: 1turn;
+    }
+  }
+
+  /* A busy region is not interactive and says so with the cursor. It is
+     deliberately NOT dimmed: dimming loading content makes it harder to read
+     for exactly the people who need the extra time. */
+  [aria-busy="true"] {
+    cursor: progress;
+  }
+
+  /* --- Skeleton ------------------------------------------------------------
+     `.skeleton` — a placeholder block for content that has not arrived.
+
+     NO BLUR AND NO SMOOTH GRADIENT. The usual skeleton is a soft shimmer
+     sweeping a blurred grey box; this library does not own a blur radius or a
+     mid-stop gradient. This is a HARD-EDGED two-tone stripe: every colour stop
+     is doubled at the same position, so the pattern steps rather than fades.
+
+     A skeleton is decoration. Hide it (aria-hidden="true") and announce the
+     loading state once on the region — see the aria-busy note above. Do not
+     ship a dozen aria-busy skeletons; ship one busy region containing them.
+     ---------------------------------------------------------------------- */
+  .skeleton {
+    display: block;
+    min-block-size: var(--ja-space-4);
+    border: var(--ja-border-width) solid var(--ja-border-color-subtle);
+    border-radius: var(--ja-radius-sm);
+    background-color: var(--ja-surface-sunken);
+    /* Doubled stops = hard edges. There is no interpolation between the two
+       colours anywhere in this image. */
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--ja-pattern-color) 0 var(--ja-space-2),
+      transparent var(--ja-space-2) var(--ja-space-4)
+    );
+    background-size: var(--ja-space-8) 100%;
+    /* Whatever text is inside is a size hint, not content. */
+    color: transparent;
+    user-select: none;
+  }
+
+  /* Motion is opt-in, not opt-out: the stripes only travel where the user has
+     not asked for less of it. Everything above still renders identically. */
+  @media (prefers-reduced-motion: no-preference) {
+    .skeleton {
+      animation: ja-skeleton-step 1.2s steps(4, end) infinite;
+    }
+  }
+
+  @keyframes ja-skeleton-step {
+    to {
+      background-position: var(--ja-space-8) 0;
+    }
+  }
+
+  /* --- Reduced motion ------------------------------------------------------
+     The tokens already flatten --ja-lift, --ja-press and the easings, which
+     takes care of every press and hover in the library. Infinite animations
+     are the exception: they have to be stopped by name, because "slower" is
+     not an answer for someone whose vestibular system is the problem.
+
+     The spinner does not disappear — a loading indicator that vanishes is a
+     page that looks frozen. It pulses between two discrete states instead,
+     which reads as "still working" without any rotation at all.
+     ---------------------------------------------------------------------- */
+  @media (prefers-reduced-motion: reduce) {
+    .spinner {
+      animation: ja-pulse 1.4s steps(2, jump-none) infinite;
+    }
+
+    .toast {
+      transition: display var(--ja-duration) allow-discrete;
+    }
+  }
+
+  @keyframes ja-pulse {
+    to {
+      opacity: 0.45;
+    }
+  }
+}

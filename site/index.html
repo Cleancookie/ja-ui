@@ -3,10 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <title>ja-ui · playground</title>
     <meta
       name="description"
-      content="Just Another UI — a zero-dependency, Bootstrap 5-compatible component library. Browse the templates and every component, live."
+      content="Just Another UI — a zero-dependency component library that styles plain semantic HTML5. Browse the templates and every element, live."
     />
     <link rel="icon" href="favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,97 +18,271 @@
     />
     <link rel="stylesheet" href="dist/ja-ui.css" />
     <script src="dist/ja-ui.iife.js" defer></script>
-  </head>
-  <body class="pattern-dots">
-    <nav class="navbar navbar-expand-md bg-white">
-      <div class="container">
-        <a class="navbar-brand" href="#">ja&nbsp;ui</a>
-        <div class="d-flex align-items-center gap-2">
-          <button class="btn btn-ghost btn-sm" id="palette-open">
-            Search
-            <kbd>⌘K</kbd>
-          </button>
-          <button class="btn btn-outline-secondary btn-sm" id="skin-toggle">Skin</button>
-          <button class="btn btn-outline-secondary btn-sm" id="theme-toggle">Theme</button>
-          <a class="btn btn-primary btn-sm" href="https://github.com/Cleancookie/ja-ui">GitHub</a>
-        </div>
-      </div>
-    </nav>
 
-    <header class="container py-7 d-flex flex-column align-items-center text-center gap-4">
-      <span class="badge badge-lg bg-fresh rotate-n2">Zero dependencies</span>
-      <h1 class="display-2">Just Another UI</h1>
-      <p class="lead" style="max-inline-size: 40rem">
-        A Bootstrap 5-compatible component library with its own face. Two skins, light and
-        dark, no build step, no Tailwind, nothing to install to look around — everything on
-        this page is the real thing, running live.
-      </p>
-      <div class="d-flex flex-wrap justify-content-center gap-3">
-        <a class="btn btn-primary btn-lg" href="storybook/">Browse every component</a>
-        <a class="btn btn-outline-secondary btn-lg" href="examples/dashboard.html">Open a template</a>
-      </div>
-      <p class="text-muted">
-        Press <kbd>⌘K</kbd> / <kbd>ctrl</kbd>+<kbd>K</kbd> to jump anywhere on this site.
-      </p>
+    <!-- The page's own layout. The library styles content, not layout: there are
+         no utility classes and no grid, so every page brings its own — built from
+         the same --ja-* tokens, so it retheres along with everything else. -->
+    <style>
+      body {
+        background-image: radial-gradient(
+          var(--ja-pattern-color) 1.5px,
+          transparent 1.5px
+        );
+        background-size: var(--ja-pattern-size) var(--ja-pattern-size);
+      }
+
+      .wrap {
+        inline-size: min(72rem, 100% - 2 * var(--ja-space-5));
+        margin-inline: auto;
+      }
+
+      body > header > nav > .actions {
+        display: flex;
+        align-items: center;
+        gap: var(--ja-space-2);
+        flex-wrap: wrap;
+      }
+
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: var(--ja-space-4);
+        padding-block: var(--ja-space-8);
+      }
+      .hero h1 {
+        font-size: clamp(2.5rem, 8vw, 4.5rem);
+      }
+      .hero .lead {
+        max-inline-size: 44rem;
+      }
+      .hero .ctas {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--ja-space-3);
+      }
+
+      main {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ja-space-8);
+        padding-block-end: var(--ja-space-8);
+      }
+      main > section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ja-space-5);
+      }
+      .section-head {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ja-space-1);
+      }
+      .eyebrow {
+        font-weight: var(--ja-label-weight);
+        letter-spacing: var(--ja-label-tracking);
+        text-transform: var(--ja-label-case);
+        font-size: var(--ja-font-size-sm);
+        color: var(--ja-text-muted);
+      }
+
+      .grid {
+        display: grid;
+        gap: var(--ja-space-5);
+        grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
+      }
+      .grid.wide {
+        grid-template-columns: repeat(auto-fill, minmax(min(26rem, 100%), 1fr));
+      }
+
+      .grid > article {
+        padding: 0;
+        overflow: hidden;
+        gap: 0;
+      }
+      .grid > article > img {
+        block-size: 13rem;
+        object-fit: cover;
+        object-position: top center;
+        inline-size: 100%;
+        border-block-end: var(--ja-border);
+      }
+      .grid > article > .body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ja-space-2);
+        padding: var(--ja-space-5);
+      }
+
+      /* The whole card is clickable, but only the title is a link. Wrapping the
+         card in one <a> would make a screen reader announce the image, the
+         heading and the paragraph as a single link name. */
+      .grid > article:has(a) {
+        position: relative;
+      }
+      .grid > article h3 > a {
+        text-decoration: none;
+        color: inherit;
+      }
+      .grid > article h3 > a::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+      }
+
+      .demo {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--ja-space-3);
+      }
+
+      body > footer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ja-space-3);
+        padding-block: var(--ja-space-6);
+      }
+
+      #build-stamp {
+        font-family: var(--ja-font-mono);
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header>
+      <nav class="sticky wrap" aria-label="Site">
+        <a href="#">ja&nbsp;ui</a>
+        <div class="actions">
+          <button class="ghost sm" id="palette-open">Search <kbd>⌘K</kbd></button>
+          <button class="outline sm" id="skin-toggle">Skin</button>
+          <button class="outline sm" data-ja-theme-toggle>Theme</button>
+          <a class="button primary sm" href="https://github.com/Cleancookie/ja-ui">GitHub</a>
+        </div>
+      </nav>
     </header>
 
-    <main class="container pb-8 d-flex flex-column gap-7">
-      <section class="d-flex flex-column gap-4">
-        <div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
-          <div class="d-flex flex-column gap-1">
-            <span class="text-label text-muted">Templates</span>
-            <h2>Whole pages, built only from these classes</h2>
-          </div>
-          <p class="text-muted mb-0">Every one is a single standalone HTML file.</p>
-        </div>
+    <div class="wrap hero">
+      <span class="badge fresh">Zero dependencies</span>
+      <h1>Just Another UI</h1>
+      <p class="lead">
+        Write plain semantic HTML. Get a themed page. No <code>.btn</code>, no
+        <code>.card</code>, no class soup — a <code>&lt;button&gt;</code> is a button, a
+        <code>&lt;dialog&gt;</code> is the modal, <code>&lt;details&gt;</code> is the
+        accordion. Everything on this page is the real thing, running live.
+      </p>
+      <div class="ctas">
+        <a class="button primary lg" href="storybook/">Browse every element</a>
+        <a class="button outline lg" href="examples/dashboard.html">Open a template</a>
+      </div>
+      <p>Press <kbd>⌘K</kbd> / <kbd>ctrl</kbd>+<kbd>K</kbd> to jump anywhere on this site.</p>
+    </div>
 
-        <div class="row g-5" id="templates"></div>
+    <main id="main" class="wrap">
+      <section>
+        <div class="section-head">
+          <span class="eyebrow">Templates</span>
+          <h2>Whole pages, built from nothing but HTML</h2>
+          <p>Every one is a single standalone file. Open one and click around.</p>
+        </div>
+        <div class="grid" id="templates"></div>
       </section>
 
-      <section class="d-flex flex-column gap-4">
-        <div class="d-flex flex-column gap-1">
-          <span class="text-label text-muted">Components</span>
+      <section>
+        <div class="section-head">
+          <span class="eyebrow">The platform, styled</span>
           <h2>Poke at the pieces</h2>
         </div>
-        <div class="row g-5">
-          <div class="col-md-6">
-            <a class="card card-hover h-100 text-decoration-none" href="storybook/">
-              <img class="card-img-top object-fit-cover" src="images/cards.png" alt=""
-                   style="block-size: 13rem; object-position: top center" />
-              <div class="card-body">
-                <h3 class="card-title">Storybook</h3>
-                <p class="text-muted">
-                  Every component, every variant, both skins, light and dark — with the
-                  markup for each one underneath it.
-                </p>
-                <span class="btn btn-outline-secondary mt-auto">Open Storybook</span>
-              </div>
-            </a>
+
+        <article>
+          <h3>None of this has a class on it</h3>
+          <p>
+            The markup below is exactly what you would write without a library at all.
+            <code>&lt;dialog&gt;</code>, <code>&lt;details&gt;</code>,
+            <code>[popover]</code> and <code>&lt;progress&gt;</code> are doing the work,
+            and none of them needs a line of JavaScript from us.
+          </p>
+          <div class="demo">
+            <button commandfor="demo-dialog" command="show-modal">Open a dialog</button>
+            <button popovertarget="demo-menu">A popover menu</button>
+            <button class="success" id="demo-toast">Raise a toast</button>
+            <progress value="0.64" aria-label="Example progress"></progress>
           </div>
-          <div class="col-md-6">
-            <div class="card h-100">
-              <img class="card-img-top object-fit-cover" src="images/command-palette.png" alt=""
-                   style="block-size: 13rem; object-position: top center" />
-              <div class="card-body">
-                <h3 class="card-title">Command palette</h3>
-                <p class="text-muted">
-                  An fzf-style ctrl-P: fuzzy ranking, a highlight that slides between rows,
-                  and virtualised rendering for lists in the hundred thousands. The one on
-                  this page is the real component.
-                </p>
-                <button class="btn btn-primary mt-auto" id="palette-open-2">Try it</button>
-              </div>
+
+          <menu id="demo-menu" popover>
+            <li><button>Duplicate</button></li>
+            <li><button>Rename</button></li>
+            <li><button class="danger">Delete</button></li>
+          </menu>
+
+          <dialog id="demo-dialog">
+            <header><h2>A real &lt;dialog&gt;</h2></header>
+            <div>
+              <p>
+                Top layer, a proper <code>::backdrop</code>, focus trapped, Escape closes
+                it. The library adds the scroll lock the spec leaves out, and styles it —
+                that is all.
+              </p>
             </div>
-          </div>
+            <footer>
+              <button commandfor="demo-dialog" command="close">Cancel</button>
+              <button autofocus commandfor="demo-dialog" command="close">Got it</button>
+            </footer>
+          </dialog>
+
+          <details name="demo">
+            <summary>And this is the accordion</summary>
+            <p>
+              One <code>&lt;details&gt;</code> element. It works with JavaScript off, it
+              prints, and find-in-page can open it.
+            </p>
+          </details>
+          <details name="demo">
+            <summary>Adding <code>name</code> makes them exclusive</summary>
+            <p>Opening this one closes the other. No library involved.</p>
+          </details>
+        </article>
+
+        <div class="grid wide">
+          <article>
+            <img src="images/cards.png" alt="" loading="lazy" />
+            <div class="body">
+              <h3><a href="storybook/">Storybook</a></h3>
+              <p>
+                Every element, every variant, both skins, light and dark — with the markup
+                for each one underneath it.
+              </p>
+            </div>
+          </article>
+          <article>
+            <img src="images/command-palette.png" alt="" loading="lazy" />
+            <div class="body">
+              <h3>Command palette</h3>
+              <p>
+                An fzf-style ctrl-P: fuzzy ranking, a highlight that slides between rows,
+                and virtualised rendering for lists in the hundred thousands. One of only
+                two components here with no native equivalent — so it is the one place we
+                still write the whole thing by hand.
+              </p>
+              <button class="primary" id="palette-open-2">Try it</button>
+            </div>
+          </article>
         </div>
       </section>
     </main>
 
-    <footer class="container py-6 d-flex flex-wrap align-items-center justify-content-between gap-3">
-      <span class="text-muted">MIT licensed</span>
+    <footer class="wrap">
+      <span>MIT licensed</span>
       <!-- Stamped by tools/build-site.mjs; the placeholders are replaced at build time. -->
       <a
-        class="badge bg-white text-muted font-monospace"
+        class="badge light"
         id="build-stamp"
         data-built="__BUILD_TIME__"
         href="https://github.com/Cleancookie/ja-ui/commit/__BUILD_SHA__"
@@ -146,32 +321,31 @@
       }
 
       const TEMPLATES = [
-        ['dashboard', 'Admin dashboard', 'Stats, tables, filters and a sidebar.'],
-        ['cms', 'Content manager', 'Lists, editors, tabs and toasts.'],
+        ['dashboard', 'Admin dashboard', 'Stats, tables, a drawer and a sidebar.'],
+        ['cms', 'Content manager', 'Tabs, forms, a drawer and toasts.'],
         ['marketing', 'Marketing page', 'Hero, features, testimonials, footer.'],
-        ['pricing', 'Pricing', 'Three plans and a billing toggle.'],
-        ['shop', 'Shop', 'Product grid, filters and a cart.'],
+        ['pricing', 'Pricing', 'Three plans and a comparison table.'],
+        ['shop', 'Shop', 'Product grid, filters and a basket drawer.'],
         ['signin', 'Sign in', 'A form that shows off focus and validation.'],
       ];
 
       document.querySelector('#templates').innerHTML = TEMPLATES.map(
         ([file, title, blurb]) => `
-          <div class="col-md-6 col-xl-4">
-            <a class="card card-hover h-100 text-decoration-none" href="examples/${file}.html">
-              <img class="card-img-top object-fit-cover" src="images/template-${file}.png" alt="" loading="lazy"
-                   style="block-size: 13rem; object-position: top center" />
-              <div class="card-body">
-                <h3 class="card-title">${title}</h3>
-                <p class="text-muted mb-0">${blurb}</p>
-              </div>
-            </a>
-          </div>`
+          <article>
+            <img src="images/template-${file}.png" alt="" loading="lazy" />
+            <div class="body">
+              <h3><a href="examples/${file}.html">${title}</a></h3>
+              <p>${blurb}</p>
+            </div>
+          </article>`
       ).join('');
 
       addEventListener('DOMContentLoaded', () => {
-        const { CommandPalette, toggleTheme, getStyle, setStyle } = window.JaUI;
+        const { CommandPalette, toggleTheme, getStyle, setStyle, toast } = window.JaUI;
 
-        const go = (href) => () => { location.href = href; };
+        const go = (href) => () => {
+          location.href = href;
+        };
         const palette = new CommandPalette('#palette', {
           hotkey: 'mod+k',
           placeholder: 'Where to?',
@@ -183,8 +357,8 @@
               keywords: `${file} example page template`,
               onSelect: go(`examples/${file}.html`),
             })),
-            { label: 'Every component', description: 'Storybook', group: 'Docs', onSelect: go('storybook/') },
-            { label: 'README', description: 'Install, theming, JavaScript API', group: 'Docs', onSelect: go('https://github.com/Cleancookie/ja-ui#readme') },
+            { label: 'Every element', description: 'Storybook', group: 'Docs', onSelect: go('storybook/') },
+            { label: 'README', description: 'Theming, variants, the JavaScript API', group: 'Docs', onSelect: go('https://github.com/Cleancookie/ja-ui#readme') },
             { label: 'Source on GitHub', group: 'Docs', onSelect: go('https://github.com/Cleancookie/ja-ui') },
             { label: 'Toggle dark mode', group: 'Appearance', hint: 'theme', keywords: 'light dark', onSelect: () => toggleTheme() },
             { label: 'Toggle the neo-brutalist skin', group: 'Appearance', hint: 'skin', keywords: 'brutal playful style', onSelect: () => setStyle(getStyle() === 'brutal' ? 'default' : 'brutal') },
@@ -194,9 +368,11 @@
         for (const id of ['#palette-open', '#palette-open-2']) {
           document.querySelector(id).addEventListener('click', () => palette.show());
         }
-        document.querySelector('#theme-toggle').addEventListener('click', () => toggleTheme());
         document.querySelector('#skin-toggle').addEventListener('click', () => {
           setStyle(getStyle() === 'brutal' ? 'default' : 'brutal');
+        });
+        document.querySelector('#demo-toast').addEventListener('click', () => {
+          toast('That is a native popover, in the top layer.', { variant: 'success' });
         });
       });
     </script>

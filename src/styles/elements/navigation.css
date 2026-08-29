@@ -1,0 +1,508 @@
+/* =============================================================================
+   ja-ui — navigation
+   ---------------------------------------------------------------------------
+   <nav>, the navbar, breadcrumbs, pagination, tabs, list groups, skip links.
+
+   The platform gives us exactly one navigation element — <nav> — and a handful
+   of ARIA *states*. Everything here is built from those two things. Where a
+   pattern has no element at all (tabs), we style the W3C APG roles and document
+   the markup contract, because a JS module drives the keyboard behaviour and it
+   needs to know what the CSS is looking at.
+
+   Three things in this file are accessibility decisions, not styling ones, and
+   each is commented at the point it happens:
+     1. breadcrumb separators are ::before content, never DOM text
+     2. removing a list marker removes the list role in Safari/VoiceOver
+     3. selecting on aria-label's *value* is normally forbidden
+   ============================================================================= */
+
+@layer ja.elements {
+  /* --- <nav> ---------------------------------------------------------------
+     No box of its own. A <nav> is a landmark, not a component: it inherits the
+     page, ships no margin, and only lays out whatever list it contains.
+     ---------------------------------------------------------------------- */
+  nav {
+    --ja-nav-gap: var(--ja-space-4);
+  }
+
+  /* A nav's list is a horizontal row of links.
+
+     <menu> IS NOT A MENU. Per WHATWG, <menu> is "simply a semantic alternative
+     to <ul>" — the old interactive toolbar/context-menu proposal was dropped.
+     It maps to role `list`, exposes exactly the same tree as <ul>, and carries
+     zero behaviour. It is included here so the three list elements look
+     identical; it is never a hook for menu semantics. If you want a real menu,
+     you want role="menu" and a keyboard implementation, not this element. */
+  nav > :is(ul, ol, menu) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ja-nav-gap);
+    /* The marker is gone, so the ACCESSIBILITY TREE LOSES THE LIST in
+       Safari/VoiceOver — see the list-group note further down. Author the
+       markup as <ul role="list"> inside a <nav>. */
+    list-style: none;
+  }
+
+  /* Links inside a nav read as targets, not as prose: no underline until you
+     interact, and a real 44px touch target even when the label is one word. */
+  nav :is(a, button) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ja-space-2);
+    min-block-size: var(--ja-control-height);
+    padding-inline: var(--ja-space-3);
+    border-radius: var(--ja-radius-sm);
+    color: inherit;
+    font-weight: var(--ja-font-weight-semibold);
+    text-decoration: none;
+    transition: background-color var(--ja-transition), color var(--ja-transition);
+  }
+
+  nav :is(a, button):hover {
+    background-color: var(--ja-surface-hover);
+    color: var(--ja-link-hover-color);
+  }
+
+  nav :is(a, button):active {
+    background-color: var(--ja-surface-active);
+  }
+
+  /* --- The active link -----------------------------------------------------
+     aria-current="page" is ARIA STATE, which is exactly what we are allowed to
+     select on: it says "this is the one you are on", it is not translated, and
+     it is the same answer in a navbar, a breadcrumb and a pagination list. One
+     rule serves all three; the pagination block below overrides the treatment
+     to a filled chip because a page number is a chip, not a word.
+
+     The bar is an inset box-shadow rather than an underline so it sits on the
+     padding box edge — hard, zero blur, house style. */
+  nav [aria-current="page"] {
+    font-weight: var(--ja-font-weight-bold);
+    box-shadow: inset 0 calc(-1 * var(--ja-ring-width)) 0 0
+      var(--ja-accent, var(--ja-primary));
+  }
+
+  nav [aria-current="page"]:hover {
+    color: inherit;
+  }
+
+  /* --- The navbar ----------------------------------------------------------
+     body > header > nav is the site navbar, inferred from position rather than
+     from a class. A <nav> nested anywhere else — in an <aside>, in a <footer>,
+     inside a card — stays a plain row of links.
+
+     No margin, ever. If you want the navbar to sit away from the content, that
+     is the page's gap, not the navbar's.
+     ---------------------------------------------------------------------- */
+  body > header > nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ja-space-4);
+    padding-block: var(--ja-space-3);
+    padding-inline: var(--ja-space-4);
+    background-color: var(--ja-surface);
+    color: var(--ja-text);
+    border-block-end: var(--ja-border);
+  }
+
+  /* Sticky is opt-in. A navbar that pins itself is a decision about the page,
+     and pages own their layout in this library — so it is a class, and it is
+     the only place in this file that touches the stacking order. <dialog> and
+     [popover] live in the top layer and pass straight over it. */
+  body > header > nav.sticky {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: var(--ja-z-sticky);
+  }
+
+  /* The brand: the first direct child of the navbar that is not a list. */
+  body > header > nav > :is(a, strong, span):first-child {
+    font-family: var(--ja-heading-family);
+    font-size: var(--ja-font-size-xl);
+    font-weight: var(--ja-heading-weight);
+    letter-spacing: var(--ja-heading-tracking);
+    text-transform: var(--ja-heading-case);
+  }
+
+  /* --- Breadcrumb ----------------------------------------------------------
+     SELECTING ON aria-label'S VALUE IS NORMALLY FORBIDDEN in this library —
+     see ARCHITECTURE.md. The value is author-supplied prose and it is
+     TRANSLATED, so `[aria-label="Breadcrumb"]` silently stops matching the
+     moment the page ships in French. We make one grudging exception here,
+     because the platform gives no other hook for "this ordered list is a
+     trail", and because the ARIA authoring practice for breadcrumbs is
+     precisely `<nav aria-label="Breadcrumb">`.
+
+     So: `.breadcrumb` IS THE RELIABLE SPELLING. Put it on the <nav> or on the
+     list itself. The attribute selector is a convenience for markup that
+     already follows the APG, matched case-insensitively with the `i` flag
+     because "breadcrumb" and "Breadcrumb" are both in the wild.
+     ---------------------------------------------------------------------- */
+  nav[aria-label="Breadcrumb" i] > :is(ol, ul),
+  nav.breadcrumb > :is(ol, ul),
+  :is(ol, ul).breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ja-space-2);
+    list-style: none;
+    font-size: var(--ja-font-size-sm);
+  }
+
+  nav[aria-label="Breadcrumb" i] > :is(ol, ul) > li,
+  nav.breadcrumb > :is(ol, ul) > li,
+  :is(ol, ul).breadcrumb > li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ja-space-2);
+  }
+
+  /* THE SEPARATOR IS CSS, NEVER DOM TEXT.
+
+     A literal "/" or "›" between the links is read out by a screen reader —
+     "Home slash Docs slash Tokens" — and in some voices the character is
+     announced by name every single time. Generated content from ::before is
+     not part of the accessibility tree in the same way, so the trail is
+     announced as the four links it actually is.
+
+     This is why the separator has no colour token of its own to override with
+     an image: if you want a chevron, swap the `content` string. Do not put it
+     in the HTML. */
+  nav[aria-label="Breadcrumb" i] > :is(ol, ul) > li + li::before,
+  nav.breadcrumb > :is(ol, ul) > li + li::before,
+  :is(ol, ul).breadcrumb > li + li::before {
+    content: "/";
+    color: var(--ja-text-muted);
+    font-weight: var(--ja-font-weight-bold);
+  }
+
+  /* Breadcrumb links are prose-scale, so they keep the underline and drop the
+     44px chip sizing — the trail is a sentence, not a toolbar. */
+  nav[aria-label="Breadcrumb" i] :is(a, button),
+  nav.breadcrumb :is(a, button),
+  :is(ol, ul).breadcrumb :is(a, button) {
+    min-block-size: auto;
+    padding-inline: 0;
+    color: var(--ja-link-color);
+    text-decoration: var(--ja-link-decoration);
+    text-decoration-thickness: var(--ja-link-decoration-thickness);
+    text-underline-offset: var(--ja-space-1);
+  }
+
+  /* The last crumb is the current page: it is not a link, and it is not
+     styled like one. */
+  nav[aria-label="Breadcrumb" i] [aria-current="page"],
+  nav.breadcrumb [aria-current="page"],
+  :is(ol, ul).breadcrumb [aria-current="page"] {
+    box-shadow: none;
+    color: var(--ja-text);
+    text-decoration: none;
+  }
+
+  /* --- Pagination ----------------------------------------------------------
+     Same grudging aria-label exception as the breadcrumb, same escape hatch:
+     `.pagination` is the reliable spelling, the attribute selector is the
+     convenience. Page numbers are chunky bordered chips with the full press
+     physics, because they are buttons in everything but element name.
+     ---------------------------------------------------------------------- */
+  nav[aria-label="Pagination" i] > :is(ol, ul),
+  nav.pagination > :is(ol, ul),
+  :is(ol, ul).pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ja-space-2);
+    list-style: none;
+  }
+
+  nav[aria-label="Pagination" i] :is(a, button),
+  nav.pagination :is(a, button),
+  :is(ol, ul).pagination :is(a, button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--ja-control-height);
+    min-block-size: var(--ja-control-height);
+    padding-inline: var(--ja-space-3);
+    background-color: var(--ja-surface);
+    color: var(--ja-text);
+    border: var(--ja-border);
+    border-radius: var(--ja-btn-radius-base);
+    box-shadow: var(--ja-shadow-xs);
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+    transition: translate var(--ja-duration-fast) var(--ja-ease-out),
+      box-shadow var(--ja-duration-fast) var(--ja-ease-out),
+      background-color var(--ja-transition);
+  }
+
+  /* Lift toward you, then press into the page. The shadow grows and shrinks by
+     exactly the travel distance, so its far corner stays pinned. Under
+     prefers-reduced-motion the tokens set --ja-lift/--ja-press to 0 and the
+     travel disappears on its own — nothing to guard here. */
+  nav[aria-label="Pagination" i] :is(a, button):hover,
+  nav.pagination :is(a, button):hover,
+  :is(ol, ul).pagination :is(a, button):hover {
+    translate: var(--ja-lift) var(--ja-lift);
+    box-shadow: var(--ja-shadow-hover);
+    background-color: var(--ja-surface-raised);
+    color: var(--ja-text);
+  }
+
+  nav[aria-label="Pagination" i] :is(a, button):active,
+  nav.pagination :is(a, button):active,
+  :is(ol, ul).pagination :is(a, button):active {
+    translate: var(--ja-press) var(--ja-press);
+    box-shadow: var(--ja-shadow-active);
+  }
+
+  /* The page you are on is filled with the accent, not underlined. Reads the
+     variant contract, so <nav class="pagination danger"> works. */
+  nav[aria-label="Pagination" i] [aria-current="page"],
+  nav.pagination [aria-current="page"],
+  :is(ol, ul).pagination [aria-current="page"] {
+    background-color: var(--ja-accent, var(--ja-primary));
+    color: var(--ja-accent-fg, var(--ja-primary-fg));
+    box-shadow: var(--ja-shadow-xs);
+    translate: none;
+  }
+
+  /* A disabled prev/next is still in the tab order and still announced — it is
+     just not actionable. aria-disabled, not the disabled attribute, because a
+     removed-from-the-tree control is a control the user cannot find again. */
+  nav[aria-label="Pagination" i] [aria-disabled="true"],
+  nav.pagination [aria-disabled="true"],
+  :is(ol, ul).pagination [aria-disabled="true"] {
+    background-color: var(--ja-control-disabled-bg);
+    color: var(--ja-control-disabled-color);
+    box-shadow: none;
+    translate: none;
+    pointer-events: none;
+  }
+
+  /* --- Tabs ----------------------------------------------------------------
+     THERE IS NO NATIVE TABS ELEMENT. <details name> gives you an accordion,
+     not a tablist, and nothing in HTML gives you roving focus. So this is the
+     full W3C APG tabs pattern, styled entirely off ARIA state — aria-selected
+     and aria-orientation are state, which is what we are allowed to select on.
+
+     REQUIRED MARKUP CONTRACT — a JS module drives the keyboard behaviour and
+     these attributes are what both it and this stylesheet read. All of them
+     are required; a tablist missing any one of them is broken, not degraded.
+
+       <div role="tablist" aria-label="Settings sections">
+         <button role="tab" id="t-1" aria-controls="p-1"
+                 aria-selected="true"  tabindex="0">General</button>
+         <button role="tab" id="t-2" aria-controls="p-2"
+                 aria-selected="false" tabindex="-1">Billing</button>
+       </div>
+       <div role="tabpanel" id="p-1" aria-labelledby="t-1" tabindex="0"> … </div>
+       <div role="tabpanel" id="p-2" aria-labelledby="t-2" tabindex="0" hidden> … </div>
+
+       - THE TAB MUST BE A REAL <button>. A <div role="tab"> is not focusable,
+         not activatable by Space, and not announced as pressable. role does
+         not grant behaviour.
+       - ROVING TABINDEX: exactly one tab carries tabindex="0" (the selected
+         one), every other tab carries tabindex="-1". Tab moves into and out of
+         the tablist; Arrow keys move between tabs.
+       - aria-selected GOES ON EVERY TAB, true on one and false on the rest.
+         Omitting it on the inactive tabs is the single most common bug in this
+         pattern, and it is also what makes the CSS below stop working.
+       - aria-controls on each tab points at its panel's id;
+         aria-labelledby on each panel points back at its tab's id.
+       - Panels are shown/hidden with the `hidden` attribute, not display:none
+         from a class — hidden takes them out of the accessibility tree too.
+       - The panel takes tabindex="0" so keyboard users can reach non-focusable
+         content inside it.
+       - aria-orientation="vertical" on the tablist means Up/Down arrows drive
+         it instead of Left/Right, and selects the vertical skin below.
+     ---------------------------------------------------------------------- */
+  [role="tablist"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: var(--ja-space-1);
+    border-block-end: var(--ja-border);
+  }
+
+  [role="tab"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ja-space-2);
+    min-block-size: var(--ja-control-height);
+    padding-block: var(--ja-space-2);
+    padding-inline: var(--ja-control-padding-x);
+    background-color: transparent;
+    color: var(--ja-text-muted);
+    border: 0;
+    border-radius: var(--ja-radius-sm) var(--ja-radius-sm) 0 0;
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+    cursor: pointer;
+    /* The active bar is drawn on the tab's own bottom edge, sitting on top of
+       the tablist's border. Hard, zero blur — it is a bar, not a glow. */
+    box-shadow: inset 0 calc(-1 * var(--ja-border-width)) 0 0 transparent;
+    transition: color var(--ja-transition), background-color var(--ja-transition),
+      box-shadow var(--ja-transition);
+  }
+
+  [role="tab"]:hover {
+    background-color: var(--ja-surface-hover);
+    color: var(--ja-text);
+  }
+
+  /* Underline treatment by default: the selected tab is inked in, and the bar
+     picks up the accent so <div role="tablist" class="success"> retints the
+     whole set through the variant contract without touching this rule. */
+  [role="tab"][aria-selected="true"] {
+    background-color: var(--ja-surface);
+    color: var(--ja-text);
+    box-shadow: inset 0 calc(-1 * var(--ja-ring-width)) 0 0
+      var(--ja-accent, var(--ja-primary));
+  }
+
+  [role="tabpanel"] {
+    padding-block: var(--ja-space-4);
+    /* No margin, no border, no background: the panel is a region of the page,
+       and the page decides what surrounds it. Put it in a card if you want a
+       card. */
+  }
+
+  /* Vertical tabs. aria-orientation is state, and it is also what the JS reads
+     to decide which arrow keys to bind — so the two never disagree. */
+  [role="tablist"][aria-orientation="vertical"] {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    border-block-end: 0;
+    border-inline-end: var(--ja-border);
+  }
+
+  [role="tablist"][aria-orientation="vertical"] > [role="tab"] {
+    justify-content: flex-start;
+    text-align: start;
+    border-radius: var(--ja-radius-sm) 0 0 var(--ja-radius-sm);
+    box-shadow: inset calc(-1 * var(--ja-border-width)) 0 0 0 transparent;
+  }
+
+  [role="tablist"][aria-orientation="vertical"]
+    > [role="tab"][aria-selected="true"] {
+    box-shadow: inset calc(-1 * var(--ja-ring-width)) 0 0 0
+      var(--ja-accent, var(--ja-primary));
+  }
+
+  /* --- List group ----------------------------------------------------------
+     A stack of bordered rows. `.list` on a <ul> or <ol>, or a role="list" list
+     inside a card.
+
+     SAFARI/VOICEOVER DELIBERATELY STRIPS THE LIST ROLE when CSS removes the
+     marker (`list-style: none`). WebKit's position is that a list without
+     markers is not being presented as a list, so announcing "list, 4 items"
+     would be lying; it has been reported repeatedly and it is WONTFIX. The
+     consequence is not cosmetic — the item count and the "list start/end"
+     boundaries vanish for VoiceOver users.
+
+     So: EVERY MARKERLESS LIST IN THIS LIBRARY REQUIRES role="list" IN THE
+     MARKUP. It is redundant on paper and load-bearing in practice, and it is
+     part of the documented contract everywhere we remove a marker — the nav
+     lists above, the breadcrumb, the pagination and this one.
+
+       <ul role="list" class="list"> … </ul>
+     ---------------------------------------------------------------------- */
+  :is(ul, ol).list,
+  article > ul[role="list"] {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    border: var(--ja-border);
+    border-radius: var(--ja-radius);
+    background-color: var(--ja-surface);
+    overflow: clip; /* so the child rows' corners obey the container's radius */
+  }
+
+  :is(ul, ol).list > li,
+  article > ul[role="list"] > li {
+    padding-block: var(--ja-space-3);
+    padding-inline: var(--ja-space-4);
+  }
+
+  :is(ul, ol).list > li + li,
+  article > ul[role="list"] > li + li {
+    border-block-start: var(--ja-border);
+  }
+
+  /* A row that is itself a link or a button fills its cell, so the whole row
+     is the target rather than the few words inside it. */
+  :is(ul, ol).list > li > :is(a, button):only-child,
+  article > ul[role="list"] > li > :is(a, button):only-child {
+    display: flex;
+    align-items: center;
+    gap: var(--ja-space-3);
+    min-block-size: var(--ja-control-height);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :is(ul, ol).list > li:hover:has(> :is(a, button)),
+  article > ul[role="list"] > li:hover:has(> :is(a, button)) {
+    background-color: var(--ja-surface-hover);
+  }
+
+  :is(ul, ol).list > li:has([aria-current="page"]),
+  article > ul[role="list"] > li:has([aria-current="page"]) {
+    background-color: var(--ja-accent, var(--ja-surface-active));
+    color: var(--ja-accent-fg, var(--ja-text));
+  }
+
+  /* --- Skip link -----------------------------------------------------------
+     The first focusable thing on the page, jumping past the navbar to the main
+     content. Visually hidden until it is focused, then a full chunky chip.
+
+     Hidden with clip-path + 1px box rather than display:none or
+     visibility:hidden, because both of those remove it from the tab order and
+     a skip link that cannot be focused is a skip link that does not exist.
+
+     :focus, not :focus-visible — the skip link is reached by keyboard by
+     definition, and a mouse user who somehow lands on it should still see it
+     rather than watch focus vanish into an invisible element.
+     ---------------------------------------------------------------------- */
+  a[href^="#"].skip {
+    position: absolute;
+    inset-block-start: var(--ja-space-2);
+    inset-inline-start: var(--ja-space-2);
+    z-index: var(--ja-z-fixed);
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    background-color: var(--ja-accent, var(--ja-surface));
+    color: var(--ja-accent-fg, var(--ja-text));
+    border: var(--ja-border);
+    border-radius: var(--ja-radius-sm);
+    box-shadow: var(--ja-shadow);
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+    text-decoration: none;
+  }
+
+  a[href^="#"].skip:focus {
+    inline-size: auto;
+    block-size: auto;
+    min-block-size: var(--ja-control-height);
+    display: inline-flex;
+    align-items: center;
+    padding-inline: var(--ja-control-padding-x);
+    overflow: visible;
+    clip-path: none;
+  }
+}

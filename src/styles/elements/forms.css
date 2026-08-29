@@ -1,0 +1,932 @@
+/* =============================================================================
+   ja-ui — forms
+   ---------------------------------------------------------------------------
+   A plain <form> with plain <label>s and plain <input>s comes out fully themed.
+   There is no .form-control and no .form-group: the element IS the selector.
+
+   Two things run through the whole file:
+
+     1. Inputs LIGHT UP, they do not glow. On :focus-visible a control fills
+        with --ja-focus-fill and keeps the reset's ring. There is no soft
+        box-shadow anywhere in this library — every shadow is a hard offset with
+        zero blur, and a "focus glow" is the one shadow that cannot be.
+
+     2. Validation is styled with :user-invalid / :user-valid, NEVER
+        :invalid / :valid. See the validation block near the bottom — it is the
+        single most important rule in this file.
+
+   The reset already owns box-sizing, `font: inherit` on controls, the focus
+   ring, `resize: vertical` on textarea and `cursor: not-allowed` on :disabled.
+   None of it is repeated here.
+
+   Buttons — <button> and input[type=submit|reset|button] — live in
+   elements/controls.css. The only button-shaped thing here is
+   ::file-selector-button, which is part of a file input.
+   ============================================================================= */
+
+@layer ja.elements {
+  /* ===========================================================================
+     The form as a container
+     ---------------------------------------------------------------------------
+     No element in this library ships a margin, so vertical rhythm inside a form
+     has to come from `gap` on the form itself. Grid (not flex) because grid's
+     default `justify-items: stretch` is what makes a bare <input> fill the
+     form's measure without an inline-size declaration.
+
+     This is the only layout opinion in the file, and it is unlayered-CSS-cheap
+     to undo: your own `form { display: block }` beats it with no !important.
+     ========================================================================= */
+  form {
+    display: grid;
+    gap: var(--ja-flow-space);
+  }
+
+  /* A button in a grid form would otherwise stretch to the full measure, which
+     reads as a banner rather than an action. `start` is logical: it flips in
+     RTL on its own. */
+  form > :is(button, input[type="submit"], input[type="reset"], input[type="button"]) {
+    justify-self: start;
+  }
+
+  /* The classless field-group spellings: <p> or <div> holding a label and its
+     control. They get the tight label→control gap, while the form's own gap
+     keeps the fields apart. Without a wrapper (a `for=`-linked label as a bare
+     sibling of its input) the pair gets the form's full gap instead — spacing
+     one sibling relative to another needs a margin, and this library has none.
+     Wrap the control in its <label>, or group the pair, to get the tight pair. */
+  form :is(p, div):has(> :is(input, select, textarea, output, progress, meter)) {
+    display: grid;
+    gap: var(--ja-space-2);
+  }
+
+  /* ===========================================================================
+     fieldset + legend
+     ---------------------------------------------------------------------------
+     The reset zeroed the UA margins. The one that is left — and the only real
+     modern fieldset gotcha — is `min-inline-size: min-content` in the UA sheet,
+     which stops a fieldset ever shrinking below its widest child inside a flex
+     or grid parent. Zero it.
+
+     The folklore that a fieldset cannot be display:flex/grid is stale; it has
+     worked in every engine since 2016, and the rendered <legend> stays in the
+     border cut-out rather than becoming a grid item.
+     ========================================================================= */
+  fieldset {
+    min-inline-size: 0;
+    display: grid;
+    gap: var(--ja-flow-space);
+    padding: var(--ja-space-4);
+    border: var(--ja-border);
+    border-radius: var(--ja-radius);
+    background-color: var(--ja-surface);
+  }
+
+  legend {
+    padding-inline: var(--ja-space-2);
+    font-family: var(--ja-font-heading);
+    font-size: var(--ja-font-size-sm);
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+    line-height: var(--ja-line-height-tight);
+    color: var(--ja-text);
+  }
+
+  /* ===========================================================================
+     label — the loud small text
+     ========================================================================= */
+  label {
+    display: block;
+    font-size: var(--ja-font-size-sm);
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+    line-height: var(--ja-line-height-tight);
+  }
+
+  /* The wrapping-label pattern — <label>Name <input></label> — needs no `for`
+     and no `id`, so it is the spelling that is impossible to get wrong. Stack
+     the caption above the control. */
+  label:has(> :is(input, select, textarea)) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-space-2);
+  }
+
+  /* A wrapped checkbox or radio reads the other way round: box first, caption
+     beside it, and the whole label is the click target. --ja-control-height is
+     44px, which is the minimum comfortable target — the box itself is 24px, so
+     without this the hit area would be half the size it should be. */
+  label:has(> :is(input[type="checkbox"], input[type="radio"])) {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--ja-space-3);
+    min-block-size: var(--ja-control-height);
+    cursor: pointer;
+  }
+
+  /* The `for=`-linked spelling, where the label follows its box. Same target
+     floor. A naked checkbox with no label at all stays 24px: growing it would
+     need a margin or an overlay that steals clicks from its neighbour, so the
+     answer is to give it a label. */
+  :is(input[type="checkbox"], input[type="radio"]) + label {
+    display: flex;
+    align-items: center;
+    min-block-size: var(--ja-control-height);
+    cursor: pointer;
+  }
+
+  /* ===========================================================================
+     Text-ish controls: input, textarea, select
+     ---------------------------------------------------------------------------
+     The selector is a negation, not an enumeration, and that is deliberate.
+     `<input>` with no type at all, and `<input type="quux">` with a typo, both
+     render as text fields — an enumeration of
+       text email password search url tel number
+       date datetime-local month week time
+     would leave exactly those two unstyled and unthemed. So we subtract the
+     types that are not text boxes instead.
+     ========================================================================= */
+  input:not(
+      [type="checkbox"], [type="radio"], [type="range"], [type="color"],
+      [type="file"], [type="image"], [type="hidden"],
+      [type="submit"], [type="reset"], [type="button"]
+    ),
+  textarea,
+  select {
+    block-size: var(--ja-control-height);
+    max-inline-size: 100%;
+    padding-block: 0;
+    padding-inline: var(--ja-control-padding-x);
+    border: var(--ja-border);
+    border-color: var(--ja-control-border-color);
+    border-radius: var(--ja-control-radius);
+    background-color: var(--ja-control-bg);
+    color: var(--ja-control-color);
+    box-shadow: var(--ja-shadow-xs);
+    /* A control inside a flex or grid parent must be allowed to shrink; the UA
+       min-inline-size is `auto`, which floors at the field's intrinsic size and
+       is the usual cause of a form overflowing its container. */
+    min-inline-size: 0;
+    transition:
+      background-color var(--ja-transition),
+      border-color var(--ja-transition);
+  }
+
+  /* Firefox dims the placeholder with its own opacity, so a colour alone is not
+     enough — the token has to be paired with opacity: 1 to be the real colour. */
+  ::placeholder {
+    color: var(--ja-control-placeholder-color);
+    opacity: 1;
+  }
+
+  /* The signature: fill, don't glow.
+
+     Browsers match :focus-visible on a text field even when it was focused with
+     the mouse — text entry always warrants a visible focus indicator — so the
+     fill appears on click as well as on Tab. That is intended: a lit-up field
+     is the whole point. */
+  :is(input, textarea, select):focus-visible {
+    background-color: var(--ja-focus-fill);
+  }
+
+  /* Safari left-pads and vertically re-centres the segments of a date/time
+     field against the padding we set. Pin them back to the text baseline. */
+  ::-webkit-datetime-edit {
+    padding-block: 0;
+  }
+
+  /* Chrome's autofill background is set by the UA at a level author CSS cannot
+     reach — background-color is simply ignored on an autofilled field, and the
+     only workaround is an inset box-shadow with a 100px spread, which would
+     collide with the offset shadow above. So we leave the yellow and make sure
+     the ink on top of it is ours. -webkit-text-fill-color is the one autofill
+     property that does listen. :is() is load-bearing: an unknown selector
+     inside :is() is ignored, whereas an unknown selector in a plain list would
+     invalidate the whole rule. */
+  :is(:-webkit-autofill, :autofill) {
+    -webkit-text-fill-color: var(--ja-control-color);
+  }
+
+  /* --- textarea ------------------------------------------------------------ */
+  textarea {
+    block-size: auto;
+    min-block-size: calc(var(--ja-control-height) * 2);
+    padding-block: var(--ja-space-2);
+    line-height: var(--ja-line-height);
+    /* Grow with the content instead of with a JS scroll-height dance. No
+       @supports guard is needed: an engine that does not know the property
+       simply drops the declaration and the field stays a fixed-size box, which
+       is the behaviour every textarea has always had. min/max keep it from
+       collapsing to one line or eating the viewport. */
+    field-sizing: content;
+    max-block-size: 60svb;
+  }
+
+  /* --- select -------------------------------------------------------------- */
+  select {
+    appearance: none;
+    cursor: pointer;
+    /* Room for the chevron: it sits one padding-step in from the trailing edge
+       and is two 8px squares wide. */
+    padding-inline-end: calc(var(--ja-control-padding-x) * 2 + var(--ja-space-2));
+
+    /* The chevron is two half-filled gradient squares that meet as one solid
+       triangle — not an SVG data URI, because a data URI cannot read
+       currentColor and would need a hard-coded hex, and not a pseudo-element,
+       because ::before/::after on a <select> are not rendered by any engine.
+       Hard 50% stops: there is no soft gradient in this library. */
+    background-image:
+      linear-gradient(45deg, transparent 50%, currentColor 50%),
+      linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-size: var(--ja-space-2) var(--ja-space-2);
+    background-repeat: no-repeat;
+    /* background-position has no logical equivalent — there is no
+       `background-position-inline` — so this is the one place in the file that
+       names a physical side, and the :dir(rtl) rule below is the flip. */
+    background-position:
+      right calc(var(--ja-control-padding-x) + var(--ja-space-2)) center,
+      right var(--ja-control-padding-x) center;
+  }
+
+  select:dir(rtl) {
+    padding-inline-end: calc(var(--ja-control-padding-x) * 2 + var(--ja-space-2));
+    background-position:
+      left calc(var(--ja-control-padding-x) + var(--ja-space-2)) center,
+      left var(--ja-control-padding-x) center;
+  }
+
+  /* A list-box select is a list, not a button: no chevron, no fixed height, and
+     the options need breathing room. [size] with no value and size="1" are both
+     still dropdowns, hence the :not(). */
+  select[multiple],
+  select[size]:not([size="1"]) {
+    block-size: auto;
+    padding-block: var(--ja-space-2);
+    padding-inline-end: var(--ja-control-padding-x);
+    background-image: none;
+    cursor: default;
+  }
+
+  /* --- option / optgroup ---------------------------------------------------
+     In a classic <select> these are drawn by the operating system, not by the
+     page. Font and colour are the only properties any engine honours, and on
+     Windows even a background-color can break the native selection highlight —
+     so we set weight and inherit the family, and nothing else. The full
+     styling story for options is in the base-select block at the end of the
+     file, where they become real, styleable boxes.
+     ------------------------------------------------------------------------ */
+  optgroup {
+    font-weight: var(--ja-font-weight-bold);
+    font-style: normal;
+  }
+
+  option {
+    color: var(--ja-control-color);
+  }
+
+  /* --- <search> and input[type=search] -------------------------------------
+     <search> is a landmark (implicit role=search), not a layout box, but it
+     almost always holds a field and a button on one line, so give it the row.
+     WebKit draws a clear ✕ inside a search field; Firefox never has. Because a
+     control that only exists in one engine cannot be the only way to do
+     anything, the ✕ is left exactly as the UA draws it and is never the sole
+     way to clear the field.
+     ------------------------------------------------------------------------ */
+  search {
+    display: flex;
+    align-items: center;
+    gap: var(--ja-space-2);
+  }
+
+  search > input[type="search"] {
+    flex: 1 1 auto;
+  }
+
+  input[type="search"] {
+    /* iOS forces its own rounded search look otherwise. */
+    appearance: none;
+  }
+
+  /* --- datalist ------------------------------------------------------------
+     Nothing to style, and nothing that can be. The <datalist> popup is drawn by
+     the browser outside the page's stylesheet: it takes no colour, no font, no
+     radius and no max-height, it ignores page zoom entirely (so it renders at
+     OS scale on a zoomed page), and its behaviour differs in every engine. It
+     is genuinely useful as a suggestion list and genuinely unstyleable — if the
+     design needs a styled popup, that is a combobox, and a combobox is JS.
+     The <datalist> element itself is display:none in every UA sheet.
+     ------------------------------------------------------------------------ */
+
+  /* ===========================================================================
+     Checkbox and radio
+     ---------------------------------------------------------------------------
+     accent-color first: one line, no pseudo-elements, correct in every engine,
+     correct in forced-colors mode and correct in print. It stays declared even
+     though the custom rendering below supersedes it, because `appearance: none`
+     on these two controls is the part that is not universally honoured (older
+     WebKit ignored it), and accent-color is then the whole treatment.
+     ========================================================================= */
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--ja-accent, var(--ja-primary));
+    /* --ja-space-5 is 1.5rem — comfortably over the 1.25rem floor, and chunky
+       enough to carry a 2px border without the box closing up. */
+    inline-size: var(--ja-space-5);
+    block-size: var(--ja-space-5);
+    /* Never let a flex or grid parent squash the box. */
+    flex: none;
+
+    appearance: none;
+    display: grid;
+    place-content: center;
+    padding: 0;
+    border: var(--ja-border);
+    border-radius: var(--ja-radius-xs);
+    background-color: var(--ja-control-bg);
+    box-shadow: var(--ja-shadow-xs);
+    cursor: pointer;
+    transition:
+      background-color var(--ja-transition),
+      border-color var(--ja-transition);
+  }
+
+  input[type="radio"] {
+    border-radius: var(--ja-radius-pill);
+  }
+
+  input:is([type="checkbox"], [type="radio"]):checked {
+    background-color: var(--ja-accent, var(--ja-primary));
+  }
+
+  /* Unchecked and focused, the box lights up like every other control. Checked,
+     the accent fill already owns the background, so the ring alone carries it. */
+  input:is([type="checkbox"], [type="radio"]):focus-visible:not(:checked) {
+    background-color: var(--ja-focus-fill);
+  }
+
+  /* A real tick, clipped out of a solid block — not a rotated-border L, which
+     cannot be drawn without a transform origin fudge, and not a font glyph,
+     which would depend on a font we do not download. It scales in from nothing,
+     which reads as a stamp rather than a fade. */
+  input[type="checkbox"]:not([role="switch"])::before {
+    content: "";
+    inline-size: var(--ja-space-4);
+    block-size: var(--ja-space-4);
+    background-color: var(--ja-accent-fg, var(--ja-primary-fg));
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%);
+    scale: 0;
+    transition: scale var(--ja-transition);
+  }
+
+  input[type="checkbox"]:not([role="switch"]):checked::before {
+    scale: 1;
+  }
+
+  /* :indeterminate is set from JS (`el.indeterminate = true`) and has no HTML
+     attribute, which is why it is so often left unstyled — a tri-state "select
+     all" box then looks simply unchecked. Same block, clipped to a bar. */
+  input[type="checkbox"]:not([role="switch"]):indeterminate {
+    background-color: var(--ja-accent, var(--ja-primary));
+  }
+
+  input[type="checkbox"]:not([role="switch"]):indeterminate::before {
+    clip-path: inset(42% 8%);
+    scale: 1;
+  }
+
+  input[type="radio"]::before {
+    content: "";
+    inline-size: var(--ja-space-3);
+    block-size: var(--ja-space-3);
+    border-radius: var(--ja-radius-pill);
+    background-color: var(--ja-accent-fg, var(--ja-primary-fg));
+    scale: 0;
+    transition: scale var(--ja-transition);
+  }
+
+  input[type="radio"]:checked::before {
+    scale: 1;
+  }
+
+  /* ===========================================================================
+     The switch
+     ---------------------------------------------------------------------------
+     input[type="checkbox"][role="switch"]. Selecting on role here is selecting
+     on ARIA *state*, which is the sanctioned kind: role="switch" changes what
+     the control announces ("on"/"off", not "checked"), so the markup that earns
+     the switch look is exactly the markup that earns the switch semantics. A
+     div with a class would have to be taught both.
+     ========================================================================= */
+  input[type="checkbox"][role="switch"] {
+    inline-size: calc(var(--ja-space-5) * 2);
+    block-size: var(--ja-space-5);
+    border-radius: var(--ja-radius-pill);
+    display: flex;
+    align-items: center;
+    padding: 0;
+  }
+
+  input[type="checkbox"][role="switch"]::before {
+    content: "";
+    block-size: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--ja-radius-pill);
+    /* Ink on the empty track, then the accent's own foreground once the track
+       fills — so the thumb stays visible against both. */
+    background-color: var(--ja-border-color);
+    translate: 0;
+    transition:
+      translate var(--ja-transition),
+      background-color var(--ja-transition);
+  }
+
+  /* The travel is (track inline-size − thumb inline-size), and since the thumb
+     is a square of the track's block-size, the borders cancel out and it comes
+     to exactly --ja-space-5. Retune the track width and this moves with it. */
+  input[type="checkbox"][role="switch"]:checked::before {
+    translate: var(--ja-space-5) 0;
+    background-color: var(--ja-accent-fg, var(--ja-primary-fg));
+  }
+
+  /* translate is physical. :dir() is not in the ship-unguarded list, but the
+     failure mode is that the whole rule drops and an RTL switch travels the
+     LTR way — a cosmetic loss, not a broken control. */
+  input[type="checkbox"][role="switch"]:checked:dir(rtl)::before {
+    translate: calc(var(--ja-space-5) * -1) 0;
+  }
+
+  /* ===========================================================================
+     range
+     ---------------------------------------------------------------------------
+     accent-color first, again, and it is left declared for forced-colors and
+     print. The track and thumb are then given the same block-size, which is the
+     trick that makes this work without a margin: WebKit centres the thumb on
+     the track only when their heights match, and every other recipe on the web
+     centres it with a negative margin-top. This library ships no margins.
+
+     Firefox has ::-moz-range-progress (the filled portion before the thumb);
+     WebKit has no equivalent and needs a JS-updated gradient to fake it, so the
+     filled portion is deliberately not styled in either engine.
+     ========================================================================= */
+  input[type="range"] {
+    accent-color: var(--ja-accent, var(--ja-primary));
+    appearance: none;
+    inline-size: 100%;
+    block-size: var(--ja-space-5);
+    padding: 0;
+    background-color: transparent;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track {
+    block-size: 100%;
+    border: var(--ja-border);
+    border-radius: var(--ja-radius-pill);
+    background-color: var(--ja-surface-sunken);
+  }
+
+  input[type="range"]::-moz-range-track {
+    block-size: 100%;
+    border: var(--ja-border);
+    border-radius: var(--ja-radius-pill);
+    background-color: var(--ja-surface-sunken);
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    block-size: 100%;
+    aspect-ratio: 1;
+    border: var(--ja-border);
+    border-radius: var(--ja-radius-pill);
+    background-color: var(--ja-accent, var(--ja-primary));
+    cursor: grab;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    block-size: 100%;
+    aspect-ratio: 1;
+    border: var(--ja-border);
+    border-radius: var(--ja-radius-pill);
+    background-color: var(--ja-accent, var(--ja-primary));
+    cursor: grab;
+  }
+
+  /* ===========================================================================
+     color
+     ---------------------------------------------------------------------------
+     The swatch is ours; the picker the swatch opens is the operating system's
+     and takes no styling of any kind. Padding plus a bordered swatch is the
+     whole treatment.
+     ========================================================================= */
+  input[type="color"] {
+    inline-size: var(--ja-control-height);
+    block-size: var(--ja-control-height);
+    padding: var(--ja-space-1);
+    border: var(--ja-border);
+    border-radius: var(--ja-control-radius);
+    background-color: var(--ja-control-bg);
+    box-shadow: var(--ja-shadow-xs);
+    cursor: pointer;
+  }
+
+  input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: var(--ja-radius-xs);
+  }
+
+  input[type="color"]::-moz-color-swatch {
+    border: none;
+    border-radius: var(--ja-radius-xs);
+  }
+
+  /* ===========================================================================
+     file
+     ---------------------------------------------------------------------------
+     The outer box is a control; ::file-selector-button inside it is a button,
+     and it borrows the same border and shadow tokens as a real one so the two
+     cannot drift apart.
+
+     The gap between the button and the filename text is the UA's own: there is
+     no author-side hook for it that is not a margin on the button, so it is
+     left alone. The standard pseudo-element is used on its own —
+     ::-webkit-file-upload-button is only needed below Safari 14.1 / Chrome 89.
+     ========================================================================= */
+  input[type="file"] {
+    min-block-size: var(--ja-control-height);
+    max-inline-size: 100%;
+    padding: var(--ja-space-1);
+    border: var(--ja-border);
+    border-color: var(--ja-control-border-color);
+    border-radius: var(--ja-control-radius);
+    background-color: var(--ja-control-bg);
+    color: var(--ja-control-color);
+    box-shadow: var(--ja-shadow-xs);
+    cursor: pointer;
+    transition:
+      background-color var(--ja-transition),
+      border-color var(--ja-transition);
+  }
+
+  input[type="file"]::file-selector-button {
+    block-size: var(--ja-control-height-sm);
+    padding-inline: var(--ja-space-3);
+    border: var(--ja-border);
+    border-radius: var(--ja-btn-radius-base);
+    background-color: var(--ja-accent, var(--ja-surface));
+    color: var(--ja-accent-fg, var(--ja-text));
+    box-shadow: var(--ja-shadow-xs);
+    font-family: var(--ja-font-heading);
+    font-size: var(--ja-font-size-sm);
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+    cursor: pointer;
+    transition:
+      box-shadow var(--ja-transition),
+      translate var(--ja-transition);
+  }
+
+  /* The house interaction pair: lift toward the reader, then press into the
+     page. The shadow grows and shrinks by exactly as much as the button moves,
+     so its far corner stays pinned. Both tokens flatten to 0 under
+     prefers-reduced-motion, which is handled once in tokens.css. */
+  input[type="file"]::file-selector-button:hover {
+    box-shadow: var(--ja-shadow-hover);
+    translate: var(--ja-lift) var(--ja-lift);
+  }
+
+  input[type="file"]::file-selector-button:active {
+    box-shadow: var(--ja-shadow-active);
+    translate: var(--ja-press) var(--ja-press);
+  }
+
+  input[type="file"]:focus-visible {
+    background-color: var(--ja-focus-fill);
+  }
+
+  /* ===========================================================================
+     progress
+     ---------------------------------------------------------------------------
+     The element ITSELF carries the track, not just the pseudo-elements, and
+     that is the whole gotcha: the two engines disagree about what the pseudos
+     mean. ::-webkit-progress-bar is the track and ::-webkit-progress-value is
+     the fill, but Firefox has no track pseudo at all — ::-moz-progress-bar is
+     the *fill*, despite reading like the twin of the WebKit track. Style the
+     element for the track and every engine agrees.
+     ========================================================================= */
+  progress {
+    appearance: none;
+    display: block;
+    inline-size: 100%;
+    block-size: var(--ja-space-4);
+    border: var(--ja-border);
+    border-radius: var(--ja-radius-pill);
+    background-color: var(--ja-surface-sunken);
+    /* Fallback fill colour for engines that map the value bar to `color`. */
+    color: var(--ja-accent, var(--ja-primary));
+    overflow: hidden;
+  }
+
+  progress::-webkit-progress-bar {
+    background-color: var(--ja-surface-sunken);
+  }
+
+  progress::-webkit-progress-value {
+    background-color: var(--ja-accent, var(--ja-primary));
+    transition: inline-size var(--ja-transition);
+  }
+
+  progress::-moz-progress-bar {
+    background-color: var(--ja-accent, var(--ja-primary));
+  }
+
+  /* An omitted `value` attribute means indeterminate — "working, length
+     unknown" — and it is a different message from `value="0"`. With
+     appearance: none the engines stop drawing their own animation, so a bare
+     <progress> would otherwise look like a job stuck at zero. The barber pole
+     is a tiled hard-edged gradient (never a soft one) scrolled by exactly one
+     tile, so it loops seamlessly. The value pseudos are made transparent in
+     both engines so the element's own stripes show through. */
+  progress:not([value]) {
+    background-image: linear-gradient(
+      45deg,
+      var(--ja-pattern-color) 25%,
+      transparent 25% 50%,
+      var(--ja-pattern-color) 50% 75%,
+      transparent 75%
+    );
+    background-size: var(--ja-pattern-size) var(--ja-pattern-size);
+    animation: ja-barber-pole calc(var(--ja-duration-slow) * 3) linear infinite;
+  }
+
+  progress:not([value])::-webkit-progress-bar {
+    background-color: transparent;
+  }
+
+  progress:not([value])::-moz-progress-bar {
+    background-color: transparent;
+  }
+
+  @keyframes ja-barber-pole {
+    to {
+      background-position: var(--ja-pattern-size) 0;
+    }
+  }
+
+  /* Reduced motion keeps the stripes — they are what says "indeterminate" — and
+     stops them moving. */
+  @media (prefers-reduced-motion: reduce) {
+    progress:not([value]) {
+      animation: none;
+    }
+  }
+
+  /* ===========================================================================
+     meter
+     ---------------------------------------------------------------------------
+     Same track-on-the-element reasoning as progress, and two extra facts worth
+     writing down:
+
+       1. accent-color does not apply to <meter> in any engine. It is not an
+          oversight to fix later — the meter's colour comes from its band.
+       2. WebKit exposes three band pseudos (optimum / suboptimum /
+          even-less-good), Firefox exposes exactly one, ::-moz-meter-bar. A
+          three-colour gauge is therefore impossible to ship cross-engine, and
+          faking it is worse than not having it: the same value would be green
+          in one browser and amber in another. So every band gets ONE colour
+          here, on purpose. If the band carries meaning, say it in text — colour
+          alone never carries meaning anyway.
+     ========================================================================= */
+  meter {
+    appearance: none;
+    display: block;
+    inline-size: 100%;
+    block-size: var(--ja-space-4);
+    border: var(--ja-border);
+    border-radius: var(--ja-radius-pill);
+    background-color: var(--ja-surface-sunken);
+    overflow: hidden;
+  }
+
+  meter::-webkit-meter-bar {
+    background-color: var(--ja-surface-sunken);
+    border: none;
+  }
+
+  meter::-webkit-meter-optimum-value,
+  meter::-webkit-meter-suboptimum-value,
+  meter::-webkit-meter-even-less-good-value {
+    background-color: var(--ja-accent, var(--ja-primary));
+  }
+
+  meter::-moz-meter-bar {
+    background-color: var(--ja-accent, var(--ja-primary));
+  }
+
+  /* ===========================================================================
+     output
+     ---------------------------------------------------------------------------
+     <output> is the only element in HTML with an implicit live region role: it
+     maps to role="status", which is aria-live="polite". Change its text and a
+     screen reader announces the new value with no ARIA written by hand — which
+     is exactly why it should hold a computed result and nothing else. Do not
+     add aria-live to it (double announcements), and do not reach for it as a
+     generic inline wrapper (every change gets read out).
+     ========================================================================= */
+  output {
+    display: inline-block;
+    font-weight: var(--ja-font-weight-bold);
+    font-variant-numeric: tabular-nums;
+    color: var(--ja-text);
+  }
+
+  /* ===========================================================================
+     Validation — :user-invalid, never :invalid
+     ---------------------------------------------------------------------------
+     THE most important rule in this file.
+
+     :invalid matches an empty required field the instant the page loads, so a
+     form styled with it is painted red before the visitor has typed a single
+     character — it is telling someone off for not yet having done something.
+     :user-invalid waits until the field has been interacted with and blurred,
+     or the form has been submitted. It is the same match, correctly timed, and
+     it is supported everywhere the rest of this library is.
+
+     Both states are expressed as token remaps rather than raw properties, so a
+     control keeps whatever background and border its context gave it and only
+     the two tokens move. --ja-control-bg is remixed from --ja-surface, not from
+     itself: a custom property that references itself is a cycle and resolves to
+     nothing at all.
+
+     [aria-invalid="true"] gets the same treatment. That is ARIA *state* — the
+     sanctioned kind — and it is how a control that fails a server-side or
+     cross-field rule the constraint API cannot express gets the same look.
+
+     The browser's own validation bubble ("Please fill out this field") has been
+     completely unstyleable since Chrome 28 in 2013, in every engine, and no
+     proposal has landed since. A custom error message means adding `novalidate`
+     to the form, listening for the `invalid` event and calling
+     preventDefault(), then rendering the message yourself — there is no CSS
+     path to it, and this library ships none.
+     ========================================================================= */
+  :is(input, select, textarea):user-invalid,
+  :is(input, select, textarea)[aria-invalid="true"] {
+    --ja-control-border-color: var(--ja-danger);
+    --ja-control-bg: color-mix(in oklab, var(--ja-danger) 12%, var(--ja-surface));
+  }
+
+  /* Valid gets a border and nothing else. A whole form tinted green is noise:
+     "correct" is the default state of the world and does not need announcing. */
+  :is(input, select, textarea):user-valid {
+    --ja-control-border-color: var(--ja-success);
+  }
+
+  /* ===========================================================================
+     Disabled and readonly
+     ---------------------------------------------------------------------------
+     They are not the same thing and must not look the same. A disabled control
+     is out of the tab order, submits nothing and cannot be copied from. A
+     readonly control is focusable, selectable, copyable and *is* submitted — so
+     it reads as a filled-in field on sunken paper, with full-contrast ink.
+     ========================================================================= */
+  :is(input, select, textarea):disabled,
+  fieldset:disabled :is(input, select, textarea) {
+    border-color: var(--ja-border-color-subtle);
+    background-color: var(--ja-control-disabled-bg);
+    color: var(--ja-control-disabled-color);
+    box-shadow: none;
+  }
+
+  input:is([type="checkbox"], [type="radio"]):disabled,
+  fieldset:disabled input:is([type="checkbox"], [type="radio"]) {
+    box-shadow: none;
+    opacity: 0.6;
+  }
+
+  /* `fieldset:disabled` disables every descendant control — with one exception
+     that is easy to miss: the contents of the FIRST <legend> are explicitly not
+     disabled by the spec, so a toggle switch living in the legend still works
+     and must not be greyed out with everything else. Hence the :not(). */
+  fieldset:disabled :not(legend:first-of-type, legend:first-of-type *) {
+    color: var(--ja-control-disabled-color);
+    cursor: not-allowed;
+  }
+
+  :is(input, textarea)[readonly] {
+    background-color: var(--ja-surface-sunken);
+    border-style: dashed;
+  }
+
+  /* ===========================================================================
+     Customizable select — progressive enhancement
+     ---------------------------------------------------------------------------
+     `appearance: base-select` opts a <select> out of the OS widget entirely and
+     into the page: the dropdown becomes ::picker(select), a real box in the top
+     layer, and each <option> becomes a real styleable element.
+
+     This is the best-degrading feature on the whole list. An engine that does
+     not know base-select never enters this block and renders the classic select
+     styled above — a plain native dropdown, complete and correct. There is
+     nothing to polyfill and nothing to detect in JS.
+
+     Both the select and its picker must opt in; styling one without the other
+     is the usual reason this appears not to work.
+     ========================================================================= */
+  @supports (appearance: base-select) {
+    select,
+    ::picker(select) {
+      appearance: base-select;
+    }
+
+    select {
+      /* The gradient chevron hands over to ::picker-icon. */
+      background-image: none;
+      padding-inline-end: var(--ja-control-padding-x);
+      display: flex;
+      align-items: center;
+      gap: var(--ja-space-2);
+    }
+
+    /* <selectedcontent> mirrors the chosen option's markup into the button, so
+       an option with an icon keeps its icon once selected. It must not wrap or
+       the button loses its fixed height. */
+    select > selectedcontent {
+      flex: 1 1 auto;
+      min-inline-size: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: start;
+    }
+
+    select::picker-icon {
+      color: currentColor;
+      transition: rotate var(--ja-transition);
+    }
+
+    /* :open is the state, on the select itself — no JS, no aria-expanded to
+       keep in sync. */
+    select:open::picker-icon {
+      rotate: 180deg;
+    }
+
+    ::picker(select) {
+      padding: var(--ja-space-1);
+      border: var(--ja-border);
+      border-radius: var(--ja-control-radius);
+      background-color: var(--ja-surface-raised);
+      box-shadow: var(--ja-shadow);
+      /* The picker lives in the top layer, so it needs no z-index — the same
+         reason <dialog> and [popover] need none. */
+    }
+
+    option {
+      display: flex;
+      align-items: center;
+      gap: var(--ja-space-2);
+      min-block-size: var(--ja-control-height);
+      padding-inline: var(--ja-space-2);
+      border-radius: var(--ja-radius-xs);
+      background-color: transparent;
+      cursor: pointer;
+    }
+
+    option:hover,
+    option:focus {
+      background-color: var(--ja-surface-hover);
+    }
+
+    /* The tick that marks the current option. It is a real pseudo-element with
+       real content, so it can be sized and coloured — reserve its space
+       whatever the state, or the list jumps sideways as the selection moves. */
+    option::checkmark {
+      content: "";
+      inline-size: var(--ja-space-4);
+      block-size: var(--ja-space-4);
+      background-color: transparent;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%);
+    }
+
+    option:checked::checkmark {
+      background-color: var(--ja-accent, var(--ja-primary));
+    }
+
+    option:disabled {
+      color: var(--ja-control-disabled-color);
+      cursor: not-allowed;
+    }
+
+    optgroup {
+      padding-inline: var(--ja-space-2);
+      font-size: var(--ja-font-size-xs);
+      letter-spacing: var(--ja-label-tracking);
+      text-transform: var(--ja-label-case);
+      color: var(--ja-text-muted);
+    }
+  }
+}

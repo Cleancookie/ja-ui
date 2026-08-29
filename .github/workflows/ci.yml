@@ -15,11 +15,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Check the generated CSS is up to date
-        run: |
-          npm run gen
-          git diff --exit-code src/styles/generated \
-            || (echo "::error::src/styles/generated is stale — run 'npm run gen' and commit."; exit 1)
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - name: Smoke test the components in a real browser

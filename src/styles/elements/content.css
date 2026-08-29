@@ -1,0 +1,257 @@
+/* =============================================================================
+   ja-ui — content & document structure
+   ---------------------------------------------------------------------------
+   The card is <article>. There is no .card, and there never will be.
+
+   One idea runs through this whole file: because no element ships a margin,
+   *something* has to space stacked content, and that something is the
+   container's `gap`. Every block that legitimately holds flow content becomes
+   a flex column with `gap: var(--ja-flow-space)`. Change that one token and the
+   entire page re-rhythms.
+
+   Landmark note, once, up front: whether <header>, <footer> and <aside> expose
+   a landmark depends on where they sit, and CSS cannot ask "is this scoped to
+   the body?". So page-level chrome is styled through `body > header` /
+   `body > footer` only, and the card-level versions through `article > …`.
+   Anything nested more deeply than that gets the plain flow treatment, which
+   is the right answer anyway.
+   ============================================================================= */
+
+@layer ja.elements {
+  /* --- <article> — the card --------------------------------------------------
+     Chunky ink border, hard offset shadow with zero blur, generous padding, a
+     real radius. This is the signature object of the library; everything else
+     is quieter than it on purpose.
+     ------------------------------------------------------------------------ */
+  article {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-flow-space);
+    background-color: var(--ja-surface);
+    color: var(--ja-text);
+    padding: var(--ja-space-5);
+    border: var(--ja-border);
+    border-radius: var(--ja-radius-lg);
+    box-shadow: var(--ja-shadow);
+    transition:
+      transform var(--ja-transition),
+      box-shadow var(--ja-transition);
+  }
+
+  /* A card inside a card would stack two full shadows into a smear. The inner
+     one steps down to the smallest offset and reads as an inset panel. */
+  article article {
+    box-shadow: var(--ja-shadow-xs);
+    padding: var(--ja-space-4);
+  }
+
+  /* Only lift where a pointer can actually hover — on touch, :hover sticks
+     after the tap and the card stays raised until you tap elsewhere.
+
+     And deliberately NO `cursor: pointer` on articles: a card is not a
+     control. If the whole card is meant to be clickable, the click target is
+     the <a> inside it, which already carries the right cursor, the right focus
+     ring and the right screen-reader semantics. The card merely reacts. */
+  @media (hover: hover) {
+    article:has(> a:hover),
+    article.interactive:hover {
+      transform: translate(var(--ja-lift), var(--ja-lift));
+      box-shadow: var(--ja-shadow-hover);
+    }
+  }
+
+  /* --- Card header and footer ------------------------------------------------
+     IMPORTANT, because it looks like a bug: a <header> or <footer> inside
+     <article> exposes NO landmark — `banner` and `contentinfo` are scoped to
+     the document. That is correct and intended; these are the card's own head
+     and foot, not the page's. Do not "fix" it with role="banner", which would
+     announce every card in a list as the site header.
+     ------------------------------------------------------------------------ */
+  article > header,
+  article > footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-space-2);
+  }
+
+  article > header {
+    padding-block-end: var(--ja-space-4);
+    border-block-end: var(--ja-border);
+  }
+
+  article > footer {
+    padding-block-start: var(--ja-space-4);
+    border-block-start: var(--ja-border);
+    font-size: var(--ja-font-size-sm);
+    color: var(--ja-text-muted);
+  }
+
+  /* --- <section> -------------------------------------------------------------
+     An *unnamed* <section> maps to `generic` — no role, no landmark, invisible
+     to assistive tech. Only `aria-labelledby`/`aria-label` promotes it to a
+     region. Because it is usually semantically weightless, it is styled
+     weightlessly: it contributes rhythm and nothing else. Reach for <article>
+     or <aside> when you want a surface.
+     ------------------------------------------------------------------------ */
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-flow-space);
+  }
+
+  /* --- <aside> — the callout / sidebar surface -------------------------------
+     Sunken rather than raised: an aside is tangential, so it sits *into* the
+     page instead of on top of it. Backgrounds are never flat where a pattern
+     makes sense, and a dot grid is the cheapest honest texture there is —
+     one gradient, no image, no request. */
+  aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-space-3);
+    background-color: var(--ja-surface-sunken);
+    background-image: radial-gradient(
+      var(--ja-pattern-color) 1px,
+      transparent 1px
+    );
+    background-size: var(--ja-pattern-size) var(--ja-pattern-size);
+    color: var(--ja-text);
+    padding: var(--ja-space-4);
+    border: var(--ja-border);
+    border-radius: var(--ja-radius);
+  }
+
+  /* --- Page-level structure --------------------------------------------------
+     <main> is the one landmark that is unambiguous wherever it appears, so it
+     is safe to style bare. It gets rhythm, not layout: the library ships no
+     grid and no page width — that is the consuming page's job.
+     ------------------------------------------------------------------------ */
+  main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-space-6);
+  }
+
+  /* `body > header` / `body > footer` is as close as CSS gets to "the element
+     that actually produces the banner / contentinfo landmark". A header nested
+     in article, aside, nav, section or main produces none, and would be styled
+     wrongly by a bare `header` selector — hence the child combinator. */
+  body > header,
+  body > footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-space-3);
+    padding-block: var(--ja-space-5);
+    padding-inline: var(--ja-space-5);
+  }
+
+  body > header {
+    border-block-end: var(--ja-border);
+  }
+
+  body > footer {
+    border-block-start: var(--ja-border);
+    font-size: var(--ja-font-size-sm);
+    color: var(--ja-text-muted);
+  }
+
+  /* --- Figures ---------------------------------------------------------------
+     The reset already made images block-level and fluid, so a figure only has
+     to space the caption off its subject.
+     ------------------------------------------------------------------------ */
+  figure {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-space-2);
+  }
+
+  figcaption {
+    font-size: var(--ja-font-size-sm);
+    color: var(--ja-text-muted);
+    text-wrap: pretty;
+  }
+
+  /* --- Description lists -----------------------------------------------------
+     Flat <dl> — dt/dd alternating — is the plain stack.
+     ------------------------------------------------------------------------ */
+  dl {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-space-2);
+  }
+
+  /* The loud small label, same vocabulary as table heads and form labels. */
+  dt {
+    font-weight: var(--ja-label-weight);
+    letter-spacing: var(--ja-label-tracking);
+    text-transform: var(--ja-label-case);
+    font-size: var(--ja-font-size-sm);
+    color: var(--ja-text-muted);
+  }
+
+  /* The UA indents <dd> by 40px, physical. The reset removed the margin; this
+     is here so nothing silently puts it back. */
+  dd {
+    padding-inline-start: 0;
+  }
+
+  /* --- Description lists, grouped -------------------------------------------
+     `<dl><div><dt>…<dd>…</div></dl>` is legal HTML (a <div> may wrap one
+     name/value group) and it is the only per-row hook the element gives us.
+     When the author has used it, the list becomes a real two-column key/value
+     table: the grid is declared on the <dl> and each row opts into it with
+     `subgrid`, so every key column lines up across the whole list rather than
+     each row sizing itself.
+     ------------------------------------------------------------------------ */
+  dl:has(> div) {
+    display: grid;
+    grid-template-columns: minmax(8ch, max-content) 1fr;
+    gap: var(--ja-space-3) var(--ja-space-4);
+  }
+
+  dl > div {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    align-items: baseline;
+    padding-block-end: var(--ja-space-3);
+    border-block-end: var(--ja-border-width) solid var(--ja-border-color-subtle);
+  }
+
+  /* No rule under the last row — it would read as an unfinished table. */
+  dl > div:last-child {
+    padding-block-end: 0;
+    border-block-end: none;
+  }
+
+  /* --- <hgroup> --------------------------------------------------------------
+     The current spec is narrow: exactly ONE heading, plus one or more <p> that
+     are its subtitle/tagline. Those <p> are not prose — they are part of the
+     title block — so they are set as a subtitle: quiet, larger than body, and
+     explicitly opted out of the heading's own casing and tracking, which the
+     brutal skin sets to uppercase.
+     ------------------------------------------------------------------------ */
+  hgroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ja-space-2);
+  }
+
+  hgroup > p {
+    font-size: var(--ja-font-size-lg);
+    font-weight: var(--ja-font-weight-normal);
+    line-height: var(--ja-line-height);
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--ja-text-muted);
+    text-wrap: pretty;
+  }
+
+  /* --- <search> --------------------------------------------------------------
+     A genuinely new element, so an engine that does not know it renders it
+     inline and the form inside collapses. Give it a box. The search *form*
+     itself belongs to forms.css — this is only the landmark wrapper.
+     ------------------------------------------------------------------------ */
+  search {
+    display: block;
+  }
+}

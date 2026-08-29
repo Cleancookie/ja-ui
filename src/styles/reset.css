@@ -1,0 +1,114 @@
+/* =============================================================================
+   ja-ui — reset
+   ---------------------------------------------------------------------------
+   Flattened to specificity 0 with :where(), and first in the layer order, so
+   everything here is trivially overridable. Nothing opinionated lives in this
+   file — opinions belong in the element layer.
+   ============================================================================= */
+
+@layer ja.reset {
+  :where(*, *::before, *::after) {
+    box-sizing: border-box;
+  }
+
+  /* No element ships a margin. Spacing between things is the parent's job. */
+  :where(
+      body, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd, pre,
+      fieldset, legend, hr, ul, ol, menu, table, form, output
+    ) {
+    margin: 0;
+  }
+
+  :where(ul, ol, menu) {
+    padding: 0;
+  }
+
+  :where(html) {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    tab-size: 4;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :where(html:focus-within) {
+      scroll-behavior: smooth;
+    }
+  }
+
+  :where(body) {
+    min-block-size: 100dvb;
+    background-color: var(--ja-body-bg);
+    color: var(--ja-body-color);
+    font-family: var(--ja-font-sans);
+    font-size: var(--ja-font-size);
+    line-height: var(--ja-line-height);
+    /* Stops the layout shifting sideways when a dialog opens and locks scroll. */
+    scrollbar-gutter: stable;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Inherit the page's typography instead of the browser's. */
+  :where(button, input, select, textarea, optgroup) {
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+  }
+
+  :where(img, picture, svg, video, canvas, audio, iframe, embed, object) {
+    display: block;
+    max-inline-size: 100%;
+  }
+
+  :where(img, svg, video, canvas) {
+    block-size: auto;
+  }
+
+  :where(svg) {
+    fill: currentColor;
+  }
+
+  /* Long words and URLs should wrap rather than force a horizontal scrollbar. */
+  :where(p, li, dd, dt, h1, h2, h3, h4, h5, h6, figcaption, td, th) {
+    overflow-wrap: break-word;
+  }
+
+  :where(textarea) {
+    resize: vertical;
+  }
+
+  :where(:disabled) {
+    cursor: not-allowed;
+  }
+
+  /* A visible focus ring is not negotiable, but only for keyboard users. */
+  :where(:focus-visible) {
+    outline: var(--ja-ring-width) solid var(--ja-ring-color);
+    outline-offset: var(--ja-ring-offset);
+  }
+
+  /* Most screen readers announce neither <ins> nor <del>, which silently hides
+     the meaning of a struck-through price. Announce them. */
+  :where(ins, del)::before,
+  :where(ins, del)::after {
+    clip-path: inset(50%);
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  :where(del)::before { content: " [deletion start] "; }
+  :where(del)::after { content: " [deletion end] "; }
+  :where(ins)::before { content: " [insertion start] "; }
+  :where(ins)::after { content: " [insertion end] "; }
+
+}
+
+/* [hidden] has to beat every display: flex/grid in the element layer, and the
+   honest way to do that is a later layer, not !important — !important would
+   invert the layer order and start beating the consumer too. */
+@layer ja.hidden {
+  [hidden]:not([hidden="until-found"]) {
+    display: none;
+  }
+}

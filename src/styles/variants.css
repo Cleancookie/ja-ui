@@ -1,0 +1,253 @@
+/* =============================================================================
+   ja-ui — variants
+   ---------------------------------------------------------------------------
+   Bare, single-word intent classes. Two axes, and they compose:
+
+     class="danger"          class="danger outline"        class="primary lg"
+
+   The one rule that governs this whole file: **nothing here writes a raw
+   property.** Not one `background:`, not one `color:`, not one `padding:`.
+   Every class is a token remap and nothing else. That is precisely what makes
+   a single `.danger` work identically on a <button>, an `a.button`, an
+   `input[type=submit]`, a callout and a badge — each of those elements already
+   reads --ja-accent with its own sensible fallback, so a variant never has to
+   know which element it landed on, and never has to escalate specificity to
+   win. Add a new tintable element and every class in this file works on it for
+   free.
+
+   Specificity is flat by design: every selector here is a single class
+   (0-1-0). They win over the element layer purely because ja.variants comes
+   after ja.elements in the layer order, which is why an explicit
+   `class="danger"` beats the inferred primary on `button[type="submit"]`, and
+   why `.outline` beats the quiet treatment inferred on a close button.
+
+   And nothing in this file — nothing in this library — uses !important.
+   !important inverts layer order, so ours would start beating the consumer's
+   own stylesheet.
+   ============================================================================= */
+
+@layer ja.variants {
+  /* ===========================================================================
+     Axis 1 — colour
+
+     Ten classes. Each sets exactly two tokens: the fill and the ink that sits
+     on it. Never a third. The moment a colour class also sets a border or a
+     shadow it stops composing with the treatment axis.
+
+     They are paired deliberately: --ja-accent-fg is not "white", it is the
+     token that was authored to be legible on that specific accent in both
+     themes and both skins. Setting one without the other is how you get white
+     text on amber.
+     ======================================================================== */
+
+  .primary {
+    --ja-accent: var(--ja-primary);
+    --ja-accent-fg: var(--ja-primary-fg);
+  }
+
+  .secondary {
+    --ja-accent: var(--ja-secondary);
+    --ja-accent-fg: var(--ja-secondary-fg);
+  }
+
+  .success {
+    --ja-accent: var(--ja-success);
+    --ja-accent-fg: var(--ja-success-fg);
+  }
+
+  .info {
+    --ja-accent: var(--ja-info);
+    --ja-accent-fg: var(--ja-info-fg);
+  }
+
+  .warning {
+    --ja-accent: var(--ja-warning);
+    --ja-accent-fg: var(--ja-warning-fg);
+  }
+
+  .danger {
+    --ja-accent: var(--ja-danger);
+    --ja-accent-fg: var(--ja-danger-fg);
+  }
+
+  .light {
+    --ja-accent: var(--ja-light);
+    --ja-accent-fg: var(--ja-light-fg);
+  }
+
+  .dark {
+    --ja-accent: var(--ja-dark);
+    --ja-accent-fg: var(--ja-dark-fg);
+  }
+
+  /* The two ja-ui extras — the confetti colours, promoted to full variants so
+     the playful skin has something to be playful with. */
+  .pop {
+    --ja-accent: var(--ja-pop);
+    --ja-accent-fg: var(--ja-pop-fg);
+  }
+
+  .fresh {
+    --ja-accent: var(--ja-fresh);
+    --ja-accent-fg: var(--ja-fresh-fg);
+  }
+
+  /* The opt-out. `initial` on a custom property is the guaranteed-invalid
+     value, so `var(--ja-accent, <fallback>)` falls all the way through to the
+     element's own default — which is the only way to say "no colour" once a
+     colour has been inherited from an ancestor, or inferred from the markup.
+
+       <form class="danger">                  the whole form reads destructive
+         <button type="submit">Delete</button>
+         <button class="plain">Cancel</button>   ...except this one
+       </form>
+     ======================================================================== */
+  .plain {
+    --ja-accent: initial;
+    --ja-accent-fg: initial;
+  }
+
+  /* ===========================================================================
+     Axis 2 — treatment
+
+     Composes with any colour class: `class="danger outline"`, `class="soft"`,
+     `class="primary ghost"`. These remap the *local* control tokens
+     (--ja-btn-*), which every control reads in front of --ja-accent, so a
+     treatment overrides the fill without ever knowing what the fill was.
+
+     Ink first. All three treatments drop the filled surface, which means the
+     accent itself has to carry the text — and a mid-tone accent on paper is
+     rarely legible at 14px. --ja-accent-ink pulls the accent 30% toward the
+     page's own text colour, which darkens it on a light page and *lightens* it
+     on a dark one, because --ja-text is by definition the readable-on-surface
+     value in whichever theme is live. One expression, both directions.
+
+     color-mix() ships unguarded — it is in every engine the library targets.
+     ======================================================================== */
+
+  .outline,
+  .soft,
+  .ghost {
+    --ja-accent-ink: color-mix(
+      in oklab,
+      var(--ja-accent, var(--ja-text)) 70%,
+      var(--ja-text)
+    );
+  }
+
+  /* Outline — the border does the talking. */
+  .outline {
+    --ja-btn-bg: transparent;
+    --ja-btn-fg: var(--ja-accent-ink);
+    /* The border takes the accent undiluted: it is a 2px slab, not 14px text,
+       so it does not need the legibility mix. */
+    --ja-btn-border-color: var(--ja-accent, var(--ja-border-color));
+    /* A wash on hover, so an outline button still responds with more than a
+       shove. Mixing toward `transparent` yields the accent at 12% alpha, which
+       works over whatever the button happens to be sitting on. */
+    --ja-btn-bg-hover: color-mix(
+      in oklab,
+      var(--ja-accent, var(--ja-text)) 12%,
+      transparent
+    );
+  }
+
+  /* Soft — a tint of the accent, keeping the border and the shadow. The
+     middle weight: louder than outline, quieter than a full fill. Mixed into
+     --ja-surface rather than into transparency so the tint is opaque and the
+     hard shadow underneath never shows through it. */
+  .soft {
+    --ja-btn-bg: color-mix(
+      in oklab,
+      var(--ja-accent, var(--ja-text)) 15%,
+      var(--ja-surface)
+    );
+    --ja-btn-fg: var(--ja-accent-ink);
+    --ja-btn-border-color: var(--ja-accent, var(--ja-border-color));
+    --ja-btn-bg-hover: color-mix(
+      in oklab,
+      var(--ja-accent, var(--ja-text)) 24%,
+      var(--ja-surface)
+    );
+  }
+
+  /* Ghost — nothing at rest, fills on hover. For the third and fourth actions
+     in a row, and for anything that must not compete with the primary.
+
+     No border, no shadow, and therefore no lift: with nothing casting a shadow
+     there is nothing for the movement to be *of*, and a rectangle that slides
+     1px for no reason is the "too much movement" complaint. Zeroing the local
+     lift/press tokens is how a treatment opts out of the interaction without
+     the element file needing to know ghost exists.
+
+     Note `transparent`, not `none`, for the border: the 2px is still occupied,
+     so a ghost button and a filled button side by side line up exactly and
+     nothing reflows when a button changes treatment. */
+  .ghost {
+    --ja-btn-bg: transparent;
+    --ja-btn-fg: var(--ja-accent-ink);
+    --ja-btn-border-color: transparent;
+    --ja-btn-shadow: none;
+    --ja-btn-shadow-hover: none;
+    --ja-btn-shadow-active: none;
+    --ja-btn-lift: 0px;
+    --ja-btn-press: 0px;
+    --ja-btn-bg-hover: color-mix(
+      in oklab,
+      var(--ja-accent, var(--ja-text)) 12%,
+      transparent
+    );
+  }
+
+  /* ===========================================================================
+     Axis 3 — size
+
+     Height, inline padding and label size, all remapped from the control token
+     scale. Radius is deliberately not touched: --ja-btn-radius-base is a pill
+     in the default skin and 0 in brutal, and both are already size-agnostic.
+     ======================================================================== */
+
+  .sm {
+    --ja-btn-height: var(--ja-control-height-sm);
+    --ja-btn-padding-x: var(--ja-control-padding-x-sm);
+    --ja-btn-font-size: var(--ja-font-size-xs);
+    /* Step the whole interaction trio down one notch, keeping the invariant
+       intact: rest 3px, hover 4px, active 2px, against a ±1px lift, so the far
+       corner of the shadow still does not move. The three shadow tokens have
+       to stay exactly one lift apart or the light source jumps. */
+    --ja-btn-shadow: var(--ja-shadow-sm);
+    --ja-btn-shadow-hover: var(--ja-shadow);
+    --ja-btn-shadow-active: var(--ja-shadow-xs);
+  }
+
+  .lg {
+    --ja-btn-height: var(--ja-control-height-lg);
+    --ja-btn-padding-x: var(--ja-control-padding-x-lg);
+    --ja-btn-font-size: var(--ja-font-size);
+    /* The shadow trio is deliberately left at the default 4/5/3. The token
+       scale jumps from --ja-shadow (4px) straight to --ja-shadow-lg (8px), and
+       there is no pair one lift either side of 8 to complete the set — using
+       --ja-shadow-lg alone would unpin the corner on every hover. A big button
+       with the standard offset is right; a big button whose shadow slides is
+       not. If a large trio is ever wanted, it belongs in tokens.css, not as
+       three literals here. */
+  }
+
+  /* -------------------------------------------------------------------------
+     Visually hidden — available to screen readers, invisible on screen.
+     Not a layout utility (those are gone): an accessibility primitive that the
+     rest of the library's markup contract depends on. A badge reading "3" or a
+     decorative spinner is meaningless without a text alternative, and this is
+     where that text goes.
+     `clip-path` rather than the old clip/height hack, and no `display: none`,
+     which would hide it from assistive tech too.
+     ---------------------------------------------------------------------- */
+  .visually-hidden:not(:focus-visible) {
+    position: absolute;
+    clip-path: inset(50%);
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}

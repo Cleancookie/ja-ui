@@ -424,6 +424,13 @@
     border-radius: var(--ja-radius-pill);
     display: flex;
     align-items: center;
+    /* The shared checkbox rule above sets `place-content: center` for the tick.
+       Swapping `display` to flex here does not clear it: the justify-content
+       half survives and centres the thumb in the track — so the switch reads as
+       half-on when off, and the checked translate then carries it clean off the
+       end of the pill. Reset the inline axis explicitly; `align-items` above
+       still handles the block axis. */
+    justify-content: flex-start;
     padding: var(--ja-switch-inset);
   }
 
@@ -441,9 +448,10 @@
       background-color var(--ja-transition);
   }
 
-  /* The travel is (track inline-size − thumb inline-size), and since the thumb
-     is a square of the track's block-size, the borders cancel out and it comes
-     to exactly --ja-space-5. Retune the track width and this moves with it. */
+  /* The travel is (content-box inline-size − thumb inline-size), and since the
+     thumb is a square of the content box's block-size, the borders and the
+     inset both cancel out and it comes to exactly --ja-space-5. Retune the
+     track width or the inset and this moves with it. */
   input[type="checkbox"][role="switch"]:checked::before {
     translate: var(--ja-space-5) 0;
     background-color: var(--ja-accent-fg, var(--ja-primary-fg));

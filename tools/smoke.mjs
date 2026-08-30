@@ -10,6 +10,7 @@ import { execFileSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import { chromium } from 'playwright';
+import { PNG } from 'pngjs';
 
 const CSS = readFileSync('dist/ja-ui.css', 'utf8');
 const JS = readFileSync('dist/ja-ui.iife.js', 'utf8');
@@ -57,6 +58,17 @@ const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8" />
   </div>
   <div id="p1" role="tabpanel" tabindex="0" aria-labelledby="tab1">Pane one</div>
   <div id="p2" role="tabpanel" tabindex="0" aria-labelledby="tab2" hidden>Pane two</div>
+
+  <!-- Switch: no JavaScript at all, but its thumb is a ::before, which has no
+       box in the DOM — only the pixels can say where it actually landed. The
+       inline-block padding gives the screenshot clean background either side of
+       the track to sample. -->
+  <div id="sw-off-box" style="display: inline-block; padding: 20px">
+    <input type="checkbox" role="switch" id="sw-off" />
+  </div>
+  <div id="sw-on-box" style="display: inline-block; padding: 20px">
+    <input type="checkbox" role="switch" id="sw-on" checked />
+  </div>
 
   <div class="command-palette" id="cp"></div>
   <div id="dt" style="inline-size: 880px"></div>
@@ -334,6 +346,60 @@ async function main() {
       return Boolean(any?.textContent?.includes('R500001C401'));
     })
   );
+
+  // The switch — geometry, so it is asserted in pixels ---------------------
+  // The thumb is a ::before: getBoundingClientRect cannot see it and computed
+  // styles report its size but never its position, so a thumb that is centred
+  // in its track (or translated clean off the end of it) is invisible to every
+  // DOM-level assertion. Sample the rendered row of pixels through the middle
+  // of the track instead. The two failures this pins down are the ones the
+  // shared `place-content: center` on the checkbox rule used to cause.
+  const scanSwitch = async (boxId, trackId) => {
+    // Where the track sits inside the wrapper's own screenshot, measured rather
+    // than assumed — inline whitespace around the input shifts it.
+    const track = await page.evaluate(
+      ([box, id]) => {
+        const outer = document.getElementById(box).getBoundingClientRect();
+        const inner = document.getElementById(id).getBoundingClientRect();
+        return { offset: inner.x - outer.x, width: inner.width };
+      },
+      [boxId, trackId]
+    );
+    const png = PNG.sync.read(await page.locator(`#${boxId}`).screenshot());
+    const at = (x) => {
+      const i = (png.width * (png.height >> 1) + Math.round(x)) << 2;
+      return `${png.data[i]},${png.data[i + 1]},${png.data[i + 2]}`;
+    };
+    return {
+      justOutsideStart: at(track.offset - 4),
+      justOutsideEnd: at(track.offset + track.width + 4),
+      insideStart: at(track.offset + 6),
+      insideEnd: at(track.offset + track.width - 7),
+    };
+  };
+
+  const swOff = await scanSwitch('sw-off-box', 'sw-off');
+  const swOn = await scanSwitch('sw-on-box', 'sw-on');
+  check(
+    'an unchecked switch parks its thumb at the inline-start, not the middle',
+    swOff.insideStart !== swOff.insideEnd,
+    `both ends of the track are ${swOff.insideStart} — the thumb is centred`
+  );
+  check(
+    'a checked switch parks its thumb at the inline-end',
+    swOn.insideEnd !== swOn.insideStart,
+    `both ends of the track are ${swOn.insideEnd} — the thumb is centred`
+  );
+  for (const [state, scan] of [['unchecked', swOff], ['checked', swOn]]) {
+    // Both samples sit outside the track's border box, so both must be plain
+    // page background. A thumb that has been translated past the end paints one
+    // of them and the pair stops matching.
+    check(
+      `the ${state} switch keeps its thumb inside the track`,
+      scan.justOutsideEnd === scan.justOutsideStart,
+      `past the end of the track is ${scan.justOutsideEnd}, but before its start is ${scan.justOutsideStart}`
+    );
+  }
 
   // Theme API --------------------------------------------------------------
   await page.evaluate(() => window.JaUI.setTheme('dark'));

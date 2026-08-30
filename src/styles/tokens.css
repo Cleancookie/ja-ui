@@ -314,6 +314,7 @@
     --ja-control-placeholder-color: light-dark(#94a3b8, #5c6370);
     --ja-control-disabled-bg: var(--ja-slate-100);
     --ja-control-disabled-color: var(--ja-slate-400);
+    --ja-switch-inset: 2px;
 
     /* --- Layering ---------------------------------------------------------- */
     --ja-z-sticky: 1020;

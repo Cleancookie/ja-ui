@@ -70,6 +70,15 @@ const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8" />
     <input type="checkbox" role="switch" id="sw-on" checked />
   </div>
 
+  <!-- Pagination: no JavaScript, but the current-page chip is a cascade fight
+       — the generic :hover rule used to out-specify the accent fill. -->
+  <nav class="pagination" aria-label="Pagination">
+    <ul>
+      <li><a href="#" id="pg-current" aria-current="page">1</a></li>
+      <li><a href="#" id="pg-other">2</a></li>
+    </ul>
+  </nav>
+
   <div class="command-palette" id="cp"></div>
   <div id="dt" style="inline-size: 880px"></div>
 <script>${JS}</script></body></html>`;
@@ -456,6 +465,30 @@ async function main() {
       `past the end of the track is ${scan.justOutsideEnd}, but before its start is ${scan.justOutsideStart}`
     );
   }
+
+  // Pagination — the current page keeps its accent under the pointer --------
+  const bgOf = (id) => page.evaluate((s) => getComputedStyle(document.querySelector(s)).backgroundColor, `#${id}`);
+  // --ja-surface-raised is the same white as --ja-surface in the light theme, so
+  // an ordinary chip's hover is a lift, not a repaint — measure the travel.
+  const liftOf = (id) => page.evaluate((s) => getComputedStyle(document.querySelector(s)).translate, `#${id}`);
+  const currentAtRest = await bgOf('pg-current');
+  const otherAtRest = await liftOf('pg-other');
+  await page.hover('#pg-current');
+  await page.waitForTimeout(250);
+  const currentHovered = await bgOf('pg-current');
+  check(
+    'hovering the current page keeps its accent fill',
+    currentHovered === currentAtRest,
+    `the chip went from ${currentAtRest} to ${currentHovered}`
+  );
+  await page.hover('#pg-other');
+  await page.waitForTimeout(250);
+  const otherHovered = await liftOf('pg-other');
+  check(
+    'hovering an ordinary page still lifts it',
+    otherHovered !== otherAtRest,
+    `the chip stayed at ${otherAtRest} — the hover rule is not landing at all`
+  );
 
   // Theme API --------------------------------------------------------------
   await page.evaluate(() => window.JaUI.setTheme('dark'));

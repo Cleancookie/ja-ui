@@ -315,6 +315,23 @@
     translate: none;
   }
 
+  /* Hovering the page you are already on must not repaint it as an ordinary
+     chip. The generic pagination :hover/:active rules above are 0-2-2 and the
+     current-page rule is only 0-2-1, so without this the accent fill lost to
+     --ja-surface-raised the moment the pointer touched it — the chip went
+     white in light mode and grey in dark. Adding the class/attribute to the
+     selector takes it to 0-3-1, which wins on specificity rather than on
+     source order, and repeats `translate: none` so the chip stays flat: it is
+     where you are, not somewhere to go. */
+  nav[aria-label="Pagination" i] [aria-current="page"]:is(:hover, :active),
+  nav.pagination [aria-current="page"]:is(:hover, :active),
+  :is(ol, ul).pagination [aria-current="page"]:is(:hover, :active) {
+    background-color: var(--ja-accent, var(--ja-primary));
+    color: var(--ja-accent-fg, var(--ja-primary-fg));
+    box-shadow: var(--ja-shadow-xs);
+    translate: none;
+  }
+
   /* A filled chip says "you are here" on its own; the underline would just be
      an accent bar drawn on top of the accent. */
   nav[aria-label="Pagination" i] [aria-current="page"]::after,

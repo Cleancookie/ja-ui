@@ -381,7 +381,32 @@
     border-block-end: var(--ja-border);
   }
 
+  /* A TAB IS A BUTTON, so controls.css has already laid it out — and its
+     selector is 0-1-1 against this one's 0-1-0, so a plain `background-color`
+     or `border-radius` here never reaches the page: the tab came out as a
+     pill-shaped, bordered, lifting button sitting in a row. The fix is not
+     specificity — it is the button's own token contract, which is what every
+     other quiet button in this library already uses. Only the two things a
+     button has no token for, the hover ink and the active bar, are written as
+     properties, and both out-specify the button rule on their own. */
   [role="tab"] {
+    --ja-btn-bg: transparent;
+    --ja-btn-bg-hover: var(--ja-surface-hover);
+    --ja-btn-fg: var(--ja-text-muted);
+    /* Transparent, not zero-width: the border keeps occupying its 2px, so a
+       tab's label sits at the same height whether or not it is selected. */
+    --ja-btn-border-color: transparent;
+    --ja-btn-radius: var(--ja-radius-sm) var(--ja-radius-sm) 0 0;
+    --ja-btn-shadow: none;
+    --ja-btn-shadow-hover: none;
+    --ja-btn-shadow-active: none;
+    /* A tab does not travel. It is welded to the tablist's border, and a tab
+       that lifted off it would break the line it is drawn on. */
+    --ja-btn-lift: 0px;
+    --ja-btn-press: 0px;
+
+    /* Layout, for a tab that is not a <button> — broken markup per the
+       contract above, but it should still read as a tab while it is fixed. */
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -389,34 +414,27 @@
     min-block-size: var(--ja-control-height);
     padding-block: var(--ja-space-2);
     padding-inline: var(--ja-control-padding-x);
-    background-color: transparent;
-    color: var(--ja-text-muted);
-    border: 0;
-    border-radius: var(--ja-radius-sm) var(--ja-radius-sm) 0 0;
     font-weight: var(--ja-label-weight);
     letter-spacing: var(--ja-label-tracking);
     text-transform: var(--ja-label-case);
     cursor: pointer;
-    /* The active bar is drawn on the tab's own bottom edge, sitting on top of
-       the tablist's border. Hard, zero blur — it is a bar, not a glow. */
-    box-shadow: inset 0 calc(-1 * var(--ja-border-width)) 0 0 transparent;
-    transition: color var(--ja-transition), background-color var(--ja-transition),
-      box-shadow var(--ja-transition);
   }
 
   [role="tab"]:hover {
-    background-color: var(--ja-surface-hover);
     color: var(--ja-text);
   }
 
   /* Underline treatment by default: the selected tab is inked in, and the bar
      picks up the accent so <div role="tablist" class="success"> retints the
-     whole set through the variant contract without touching this rule. */
+     whole set through the variant contract without touching this rule.
+
+     The bar is the tab's own bottom border, so it lands exactly on top of the
+     tablist's border line. An inset box-shadow would have followed the rounded
+     top corners and curled up at both ends. */
   [role="tab"][aria-selected="true"] {
-    background-color: var(--ja-surface);
-    color: var(--ja-text);
-    box-shadow: inset 0 calc(-1 * var(--ja-ring-width)) 0 0
-      var(--ja-accent, var(--ja-primary));
+    --ja-btn-bg: var(--ja-surface);
+    --ja-btn-fg: var(--ja-text);
+    border-block-end-color: var(--ja-accent, var(--ja-primary));
   }
 
   [role="tabpanel"] {
@@ -437,16 +455,15 @@
   }
 
   [role="tablist"][aria-orientation="vertical"] > [role="tab"] {
+    --ja-btn-radius: var(--ja-radius-sm) 0 0 var(--ja-radius-sm);
     justify-content: flex-start;
     text-align: start;
-    border-radius: var(--ja-radius-sm) 0 0 var(--ja-radius-sm);
-    box-shadow: inset calc(-1 * var(--ja-border-width)) 0 0 0 transparent;
   }
 
   [role="tablist"][aria-orientation="vertical"]
     > [role="tab"][aria-selected="true"] {
-    box-shadow: inset calc(-1 * var(--ja-ring-width)) 0 0 0
-      var(--ja-accent, var(--ja-primary));
+    border-block-end-color: transparent;
+    border-inline-end-color: var(--ja-accent, var(--ja-primary));
   }
 
   /* --- List group ----------------------------------------------------------

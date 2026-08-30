@@ -210,6 +210,39 @@ async function main() {
   await page.keyboard.press('End');
   await page.waitForTimeout(150);
   check('End jumps to the last tab', (await page.getAttribute('#tab2', 'aria-selected')) === 'true');
+  // A tab must not come out as a button. controls.css out-specifies a bare
+  // [role="tab"], so the tab styling is a remap of the button's own tokens —
+  // if that regresses, the tabs render as a row of pill-shaped, shadowed,
+  // bordered buttons. --ja-btn-radius-base is a pill (9999px), so anything
+  // over half the tab's height means the remap stopped reaching the page.
+  const tabSkin = await page.evaluate(() => {
+    const style = getComputedStyle(document.querySelector('#tab1'));
+    const selected = getComputedStyle(document.querySelector('#tab2'));
+    return {
+      radius: parseFloat(style.borderTopLeftRadius),
+      height: document.querySelector('#tab1').getBoundingClientRect().height,
+      shadow: style.boxShadow,
+      background: style.backgroundColor,
+      bar: selected.borderBlockEndColor,
+      idleBar: style.borderBlockEndColor
+    };
+  });
+  check(
+    'an unselected tab is flat and square-shouldered, not a button pill',
+    tabSkin.radius < tabSkin.height / 2 && tabSkin.shadow === 'none',
+    `radius ${tabSkin.radius} on a ${tabSkin.height}px tab, shadow ${tabSkin.shadow}`
+  );
+  check(
+    'an unselected tab has no fill and no bar',
+    /rgba\(0, 0, 0, 0\)|transparent/.test(tabSkin.background) &&
+      /rgba\(0, 0, 0, 0\)|transparent/.test(tabSkin.idleBar),
+    `background ${tabSkin.background}, bar ${tabSkin.idleBar}`
+  );
+  check(
+    'the selected tab is underlined with the accent',
+    !/rgba\(0, 0, 0, 0\)|transparent/.test(tabSkin.bar),
+    `bar ${tabSkin.bar}`
+  );
 
   // Toasts ------------------------------------------------------------------
   await page.evaluate(() => window.JaUI.toast('Saved.', { duration: 500 }));

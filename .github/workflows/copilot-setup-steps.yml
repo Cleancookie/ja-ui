@@ -1,0 +1,30 @@
+# Preinstalls the toolchain into the Copilot coding agent's container, before it is cut
+# off from the network. Without this the agent cannot run `npm run smoke`,
+# `check:examples` or `check:contrast` — they all drive a real Chromium.
+#
+# The job MUST be named `copilot-setup-steps`; that name is the whole contract.
+# Keep it in step with the `build` job in ci.yml, which is what gates the PR.
+
+name: Copilot setup steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths: [.github/workflows/copilot-setup-steps.yml]
+  pull_request:
+    paths: [.github/workflows/copilot-setup-steps.yml]
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install the browser the smoke tests drive
+        run: npx playwright install --with-deps chromium

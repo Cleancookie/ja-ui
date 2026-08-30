@@ -142,6 +142,14 @@
      The radius follows --ja-btn-radius-base, so the badge is a pill in the
      default skin and a hard-cornered block in `[data-style="brutal"]` — the
      skin decides, not this rule.
+
+     `flex-shrink: 0` because `min-inline-size` REPLACES the automatic minimum
+     size a flex item gets from `min-inline-size: auto`. Without it a badge in
+     a flex row — a `.list` row, a table cell, a card header — is squeezed down
+     towards --ja-space-5 as soon as the row is tight, and since the text never
+     wraps (`white-space: nowrap`) it just spills over the padding and the chip
+     reads as having no inline padding at all. Shrinking a badge can never buy
+     a narrower line, only an overflowing one, so it does not shrink.
      ---------------------------------------------------------------------- */
   .badge {
     display: inline-flex;
@@ -151,6 +159,7 @@
     padding-block: var(--ja-space-1);
     padding-inline: var(--ja-space-2);
     min-inline-size: var(--ja-space-5);
+    flex-shrink: 0;
     background-color: var(--ja-accent, var(--ja-ink-fill));
     color: var(--ja-accent-fg, var(--ja-ink-fill-fg));
     border: var(--ja-border-width) solid var(--ja-border-color);

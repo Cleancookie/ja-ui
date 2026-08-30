@@ -201,7 +201,6 @@
       order: 1;
       min-inline-size: 100%;
       flex-wrap: nowrap;
-      justify-content: flex-start;
       /* The row cannot wrap, so only the inline axis ever overflows and this
          is a horizontal scroller. It has to be `overflow`, not an axis pair:
          `visible` on one axis computes to `auto` on both anyway. The links'

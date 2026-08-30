@@ -129,7 +129,7 @@ None of these need a class. They are the elements you would have reached for any
 | `<table>` | Solid ink header, zebra rows on `.striped`, sort arrows from `th[aria-sort]`, and a scroll shell from `[role="region"]`. |
 | `<form>`, `<label>`, `<input>`, `<select>`, `<textarea>`, `<fieldset>` | Inputs that light up on focus instead of glowing. Checkboxes, radios, `[role="switch"]`, range, colour and file inputs are all restyled. Errors show on `:user-invalid`, so an untouched required field is not red on load. |
 | `<progress>`, `<meter>` | The bar. `<progress>` with no `value` is the indeterminate stripe. |
-| `<nav>` | The nav bar. `[aria-current="page"]` marks the current item; `nav.sticky` in `<header>` pins it. |
+| `<nav>` | The nav bar. `[aria-current="page"]` marks the current item; `nav.sticky` in `<header>` pins it. Below 576px the links take a row of their own and scroll sideways, so the bar stays two rows tall on a phone. |
 | `<blockquote>`, `<code>`, `<pre>`, `<kbd>`, `<mark>`, `<abbr title>` | Pull quote, inline code, ink-filled code block, physical keycaps, highlighter, dotted abbreviation. |
 | `<figure>` / `<figcaption>` | Framed media with a caption. |
 | `<dl>` | A definition list, and a two-column key/value grid when its rows are wrapped in `<div>`. |

@@ -34,7 +34,7 @@ const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8" />
   <button id="dlg-open" commandfor="dlg" command="show-modal">Open</button>
   <dialog id="dlg">
     <header><h2>Title</h2></header>
-    <input id="dlg-input" autofocus />
+    <div id="dlg-body"><input id="dlg-input" style="inline-size: 100%" autofocus /></div>
     <footer><button id="dlg-close" commandfor="dlg" command="close">Close</button></footer>
   </dialog>
 
@@ -120,6 +120,29 @@ async function main() {
   check('the dialog is modal, so it gets a ::backdrop', await page.evaluate(() => document.querySelector('#dlg').matches(':modal')));
   check('opening a modal locks the page scroll', await page.evaluate(() => getComputedStyle(document.documentElement).overflow === 'hidden'));
   check('autofocus moves focus inside', await page.evaluate(() => document.activeElement?.id === 'dlg-input'));
+  // The body between the header and the footer scrolls, and a scroll container
+  // clips at its padding box — so a control sitting flush against it loses the
+  // outer half of its focus ring. The region has to carry that room itself.
+  const ringRoom = await page.evaluate(() => {
+    const region = document.querySelector('#dlg-body');
+    const input = document.querySelector('#dlg-input');
+    const root = getComputedStyle(document.documentElement);
+    const space =
+      parseFloat(root.getPropertyValue('--ja-ring-width')) +
+      parseFloat(root.getPropertyValue('--ja-ring-offset'));
+    const r = region.getBoundingClientRect();
+    const i = input.getBoundingClientRect();
+    return {
+      space,
+      scrolls: getComputedStyle(region).overflowY,
+      room: [i.left - r.left, r.right - i.right, i.top - r.top, r.bottom - i.bottom],
+    };
+  });
+  check(
+    'the dialog body leaves room for a focused control\'s ring',
+    ringRoom.scrolls === 'auto' && ringRoom.room.every((gap) => gap >= ringRoom.space - 0.5),
+    `${ringRoom.space}px of ring, ${ringRoom.room.join('/')} of room`
+  );
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
   check('Escape closes the dialog', await page.evaluate(() => !document.querySelector('#dlg').open));

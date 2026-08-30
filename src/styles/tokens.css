@@ -293,6 +293,11 @@
     --ja-ring-color: light-dark(#1e293b, #61afef);
     --ja-ring-width: 3px;
     --ja-ring-offset: 2px;
+    /* How far the ring reaches outside the element it belongs to. A scroll
+       container clips at its padding box, so any region that scrolls needs at
+       least this much padding or it shaves the ring off the controls sitting
+       against its edges. */
+    --ja-ring-space: calc(var(--ja-ring-width) + var(--ja-ring-offset));
     /* Inputs light up instead of glowing. */
     --ja-focus-fill: #fef0cd;
     --ja-focus-fill: light-dark(#fef0cd, #2f3b46);

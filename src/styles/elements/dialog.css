@@ -55,7 +55,17 @@
     max-inline-size: min(32rem, calc(100% - var(--ja-space-6)));
     /* The dialog never grows past the viewport; the body inside it scrolls. */
     max-block-size: min(80dvb, calc(100dvb - var(--ja-space-7)));
-    padding: var(--ja-space-5);
+    /* Block padding here, inline padding on the parts below. The body region
+       is a scroll container, and a scroll container clips at its own padding
+       box — so a full-width control inside it had the outer half of its focus
+       ring shaved off against the dialog's inline padding, which sits outside
+       the clip and cannot help. The room the ring needs has to be padding on
+       the scrolling region itself, so the inline padding moves down to the
+       parts, where the body's share of it doubles as that room. Content stays
+       exactly where it was; the header and footer rules gain the same
+       padding-inline, and their dividers now run edge to edge. */
+    padding-block: var(--ja-space-5);
+    padding-inline: 0;
     border: var(--ja-border);
     border-radius: var(--ja-radius-lg);
     background-color: var(--ja-surface);
@@ -162,6 +172,7 @@
     flex: none;
     align-items: center;
     gap: var(--ja-space-3);
+    padding-inline: var(--ja-space-5);
   }
 
   :is(dialog, dialog > form[method="dialog"]) > header {
@@ -189,6 +200,10 @@
     min-block-size: 0;
     overflow: auto;
     overscroll-behavior: contain;
+    /* The inline padding the dialog gave up, plus just enough block padding
+       that the first and last control keep their whole focus ring. */
+    padding-block: var(--ja-ring-space);
+    padding-inline: var(--ja-space-5);
   }
 
   /* ---------------------------------------------------------------------------

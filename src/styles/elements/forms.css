@@ -424,7 +424,7 @@
     border-radius: var(--ja-radius-pill);
     display: flex;
     align-items: center;
-    padding: 0;
+    padding: 2px;
   }
 
   input[type="checkbox"][role="switch"]::before {

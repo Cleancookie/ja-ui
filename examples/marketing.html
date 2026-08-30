@@ -49,6 +49,18 @@
         gap: var(--ja-space-2);
       }
 
+      /* The library keeps the navbar to two rows on a phone — brand and
+         actions, then the links — but only the page knows which of its own
+         actions earn the space. Three of them wrap this row back into three,
+         and the skin switch is a showcase of the token layer rather than
+         something a visitor came here to do, so on a phone it stands down and
+         the bar keeps the theme toggle and the call to action. */
+      @media (width < 576px) {
+        #skin-toggle {
+          display: none;
+        }
+      }
+
       /* The popover's no-anchor-positioning fallback pins to the nearest
          positioned ancestor. Where anchor positioning exists, ja-ui's own
          @supports block takes over and this is simply ignored. */

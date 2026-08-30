@@ -96,6 +96,12 @@ export const Navbar = {
           'nav`. A `<nav>` nested anywhere else — in an aside, in a footer, inside a card — ' +
           'stays a plain row of links, which is the right answer. `.sticky` is opt-in and is ' +
           'the only place in the whole navigation file that touches the stacking order. ' +
+          '\n\nBelow **576px** the bar stops wrapping into three stacked rows. The list is ' +
+          'sent to a row of its own and scrolls along its inline axis, so the navbar is two ' +
+          'rows tall whatever it holds and however many links are in it — brand and actions ' +
+          'on one, the links on the other. Narrow the preview to see it: no class, no wrapper ' +
+          'element and no script, because there is no platform element for "collapse this nav ' +
+          'behind a button" that does not need markup the consumer never wrote.' +
           '\n\nThis story mounts a real `<header>` at the top of the preview document and ' +
           'removes it again when you navigate away — scroll up to see it. Tab once to reveal ' +
           'the skip link.',

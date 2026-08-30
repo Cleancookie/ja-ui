@@ -165,6 +165,61 @@
     text-transform: var(--ja-heading-case);
   }
 
+  /* --- The navbar on a narrow screen ---------------------------------------
+     A navbar holds three things — brand, links, actions — and on a phone all
+     three wrap onto rows of their own. That is a 250px bar on a 780px screen
+     before the page has said anything, and `nav.sticky` then keeps it there
+     for the whole scroll.
+
+     The platform has no element for "collapse this nav behind a button": the
+     two people reach for, <details> and [popover], both need a wrapper and a
+     trigger in the markup, so a library that styles the markup you already
+     wrote cannot produce one. What it can fix is the row count. The list is
+     sent to a row of its own and scrolls along its inline axis instead of
+     wrapping, so the navbar is two rows tall whatever it holds and however
+     many links are in it — brand and actions on one, the links on the other.
+
+     `min-inline-size`, not `flex-basis`, because a page that sizes its own
+     list — `#primary-links { flex: 1 1 auto }` in the CMS example — is an
+     unlayered id selector and wins the basis. A minimum still forces the
+     break. Targets keep --ja-control-height: this is the touch case.
+     ---------------------------------------------------------------------- */
+  @media (width < 576px) {
+    body > header > nav {
+      gap: var(--ja-space-2);
+      padding-block: var(--ja-space-2);
+      padding-inline: var(--ja-space-3);
+    }
+
+    body > header > nav > :is(a, strong, span):first-child {
+      font-size: var(--ja-font-size-lg);
+    }
+
+    body > header > nav > :is(ul, ol, menu) {
+      --ja-nav-gap: var(--ja-space-1);
+
+      order: 1;
+      min-inline-size: 100%;
+      flex-wrap: nowrap;
+      /* The row cannot wrap, so only the inline axis ever overflows and this
+         is a horizontal scroller. It has to be `overflow`, not an axis pair:
+         `visible` on one axis computes to `auto` on both anyway. The links'
+         focus ring is drawn outside their box, so the scroller carries
+         exactly the ring in padding or it would be clipped away. */
+      overflow: auto;
+      padding-block: calc(var(--ja-ring-width) + var(--ja-ring-offset));
+      /* Don't chain the page's scroll onto the end of the strip's. */
+      overscroll-behavior-inline: contain;
+      /* A scrollbar would cost another row's worth of height; the cut-off
+         link at the edge is the affordance. */
+      scrollbar-width: none;
+    }
+
+    body > header > nav > :is(ul, ol, menu) > li {
+      flex: 0 0 auto;
+    }
+  }
+
   /* --- Breadcrumb ----------------------------------------------------------
      SELECTING ON aria-label'S VALUE IS NORMALLY FORBIDDEN in this library —
      see ARCHITECTURE.md. The value is author-supplied prose and it is

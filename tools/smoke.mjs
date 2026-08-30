@@ -134,7 +134,7 @@ async function main() {
     const i = input.getBoundingClientRect();
     return {
       space,
-      scrolls: getComputedStyle(region).overflowY,
+      scrolls: getComputedStyle(region).overflow,
       room: [i.left - r.left, r.right - i.right, i.top - r.top, r.bottom - i.bottom],
     };
   });

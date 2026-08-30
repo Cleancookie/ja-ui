@@ -16,16 +16,25 @@ const REGION_ID = 'ja-toasts';
 function regionFor(placement) {
   const id = `${REGION_ID}-${placement}`;
   let region = document.getElementById(id);
-  if (region) return region;
 
-  region = document.createElement('div');
-  region.id = id;
-  region.className = `toasts ${placement}`;
-  region.setAttribute('popover', 'manual');
-  document.body.append(region);
+  if (!region) {
+    region = document.createElement('div');
+    region.id = id;
+    region.className = `toasts ${placement}`;
+    region.setAttribute('popover', 'manual');
+    document.body.append(region);
+  }
+
   // The region has to already exist and be shown before anything is injected
   // into it, or the live region announces nothing.
-  region.showPopover?.();
+  //
+  // Re-shown every time, not just on creation: dismissToast hides the region
+  // once the last toast leaves, so a region that outlives its toasts comes
+  // back hidden and the next toast would be appended into a closed popover —
+  // in the DOM, announced, and invisible. showPopover() throws on an
+  // already-open popover, hence the state check rather than a bare call.
+  if (region.showPopover && !region.matches(':popover-open')) region.showPopover();
+
   return region;
 }
 

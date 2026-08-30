@@ -115,7 +115,28 @@ async function main() {
 
   await page.click('#dlg-open');
   await page.waitForTimeout(250);
+  // Grab the box while it is open, then again one frame into the exit. The
+  // dialog is still on screen during the fade — allow-discrete holds `display`
+  // — so any layout property left on dialog[open] is torn off a visible
+  // element and it reflows into a different box, which reads as a second modal
+  // flashing up. Only the scale may differ.
+  const openBox = await page.evaluate(() => {
+    const b = document.querySelector('#dlg').getBoundingClientRect();
+    return { w: b.width, h: b.height };
+  });
   await page.click('#dlg-close');
+  await page.waitForTimeout(30);
+  const exitBox = await page.evaluate(() => {
+    const b = document.querySelector('#dlg').getBoundingClientRect();
+    return { w: b.width, h: b.height };
+  });
+  // 0.96 is the exit scale; allow a frame of easing either side of it.
+  const shapeRatio = (a, b) => (b === 0 ? 0 : a / b);
+  check(
+    'the dialog keeps its shape while it fades out',
+    shapeRatio(exitBox.w, openBox.w) > 0.94 && shapeRatio(exitBox.h, openBox.h) > 0.94,
+    `${openBox.w}x${openBox.h} became ${exitBox.w}x${exitBox.h}`
+  );
   await page.waitForTimeout(400);
   check('a close command button closes the dialog', await page.evaluate(() => !document.querySelector('#dlg').open));
 
@@ -135,6 +156,15 @@ async function main() {
   await page.click('#pop-open');
   await page.waitForTimeout(200);
   check('the popover opens', await page.evaluate(() => document.querySelector('#pop').matches(':popover-open')));
+  // Open is not the same as visible. Where anchor positioning is supported the
+  // menu sits under its trigger; a stray inset left over from the static
+  // fallback parks it on the far edge of the anchor area, off the bottom of the
+  // viewport — open, painted, and nowhere the user will ever see it.
+  check('the popover lands under its trigger, inside the viewport', await page.evaluate(() => {
+    const box = document.querySelector('#pop').getBoundingClientRect();
+    const trigger = document.querySelector('#pop-open').getBoundingClientRect();
+    return box.top >= trigger.bottom - 2 && box.bottom <= window.innerHeight + 1;
+  }));
   await page.keyboard.press('Escape');
   await page.waitForTimeout(200);
   check('Escape light-dismisses the popover', await page.evaluate(() => !document.querySelector('#pop').matches(':popover-open')));
@@ -179,6 +209,21 @@ async function main() {
     document.querySelector('.toasts .toast')?.getAttribute('role') === 'status'));
   await page.waitForTimeout(1200);
   check('the toast dismisses itself', (await page.locator('.toasts .toast').count()) === 0);
+
+  // The region is hidden once it empties, so a second toast has to put it back
+  // in the top layer. Appending into a closed popover is the failure that looks
+  // like "the toast only ever fires once".
+  check('the emptied region hides itself', await page.evaluate(() =>
+    !document.querySelector('.toasts').matches(':popover-open')));
+  await page.evaluate(() => window.JaUI.toast('Again.', { duration: 500 }));
+  await page.waitForTimeout(200);
+  check('a second toast re-opens the region', await page.evaluate(() =>
+    document.querySelector('.toasts').matches(':popover-open')));
+  check('the second toast is actually rendered', await page.evaluate(() => {
+    const t = document.querySelector('.toasts .toast');
+    return !!t && t.getBoundingClientRect().height > 0;
+  }));
+  await page.waitForTimeout(1200);
 
   // Command palette --------------------------------------------------------
   await page.evaluate(() => {

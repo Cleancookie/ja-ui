@@ -391,6 +391,9 @@ async function main() {
     `both ends of the track are ${swOn.insideEnd} — the thumb is centred`
   );
   for (const [state, scan] of [['unchecked', swOff], ['checked', swOn]]) {
+    // Both samples sit outside the track's border box, so both must be plain
+    // page background. A thumb that has been translated past the end paints one
+    // of them and the pair stops matching.
     check(
       `the ${state} switch keeps its thumb inside the track`,
       scan.justOutsideEnd === scan.justOutsideStart,

@@ -7,3 +7,6 @@ node_modules/
 .env.*
 *.tgz
 /docs/
+
+# ralph loop state — attempt counters and per-iteration logs
+/.ralph/

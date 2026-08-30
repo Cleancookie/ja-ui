@@ -101,7 +101,9 @@ export const FormDialog = {
           'A `<form method="dialog">` closes its dialog on submit and reports the pressed ' +
           "button's value in `dialog.returnValue` — no JS, no event listener, no " +
           '`data-bs-dismiss`. Both markup shapes are styled identically, so the header, body ' +
-          'and footer can live inside the form or outside it.',
+          'and footer can live inside the form or outside it. Tab to the field: the body ' +
+          'region scrolls, and a scroll container clips at its padding box, so that region — ' +
+          'not the dialog — carries the padding the focus ring needs to stay whole.',
       },
     },
   },

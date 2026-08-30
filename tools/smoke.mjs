@@ -34,7 +34,7 @@ const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8" />
   <button id="dlg-open" commandfor="dlg" command="show-modal">Open</button>
   <dialog id="dlg">
     <header><h2>Title</h2></header>
-    <input id="dlg-input" autofocus />
+    <div id="dlg-body"><input id="dlg-input" style="inline-size: 100%" autofocus /></div>
     <footer><button id="dlg-close" commandfor="dlg" command="close">Close</button></footer>
   </dialog>
 
@@ -79,6 +79,15 @@ const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8" />
       <span class="badge success" id="badge">Published</span>
     </a></li>
   </ul>
+
+  <!-- Pagination: no JavaScript, but the current-page chip is a cascade fight
+       — the generic :hover rule used to out-specify the accent fill. -->
+  <nav class="pagination" aria-label="Pagination">
+    <ul>
+      <li><a href="#" id="pg-current" aria-current="page">1</a></li>
+      <li><a href="#" id="pg-other">2</a></li>
+    </ul>
+  </nav>
 
   <div class="command-palette" id="cp"></div>
   <div id="dt" style="inline-size: 880px"></div>
@@ -130,6 +139,29 @@ async function main() {
   check('the dialog is modal, so it gets a ::backdrop', await page.evaluate(() => document.querySelector('#dlg').matches(':modal')));
   check('opening a modal locks the page scroll', await page.evaluate(() => getComputedStyle(document.documentElement).overflow === 'hidden'));
   check('autofocus moves focus inside', await page.evaluate(() => document.activeElement?.id === 'dlg-input'));
+  // The body between the header and the footer scrolls, and a scroll container
+  // clips at its padding box — so a control sitting flush against it loses the
+  // outer half of its focus ring. The region has to carry that room itself.
+  const ringRoom = await page.evaluate(() => {
+    const region = document.querySelector('#dlg-body');
+    const input = document.querySelector('#dlg-input');
+    const root = getComputedStyle(document.documentElement);
+    const space =
+      parseFloat(root.getPropertyValue('--ja-ring-width')) +
+      parseFloat(root.getPropertyValue('--ja-ring-offset'));
+    const r = region.getBoundingClientRect();
+    const i = input.getBoundingClientRect();
+    return {
+      space,
+      scrolls: getComputedStyle(region).overflow,
+      room: [i.left - r.left, r.right - i.right, i.top - r.top, r.bottom - i.bottom],
+    };
+  });
+  check(
+    'the dialog body leaves room for a focused control\'s ring',
+    ringRoom.scrolls === 'auto' && ringRoom.room.every((gap) => gap >= ringRoom.space - 0.5),
+    `${ringRoom.space}px of ring, ${ringRoom.room.join('/')} of room`
+  );
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
   check('Escape closes the dialog', await page.evaluate(() => !document.querySelector('#dlg').open));
@@ -220,6 +252,39 @@ async function main() {
   await page.keyboard.press('End');
   await page.waitForTimeout(150);
   check('End jumps to the last tab', (await page.getAttribute('#tab2', 'aria-selected')) === 'true');
+  // A tab must not come out as a button. controls.css out-specifies a bare
+  // [role="tab"], so the tab styling is a remap of the button's own tokens —
+  // if that regresses, the tabs render as a row of pill-shaped, shadowed,
+  // bordered buttons. --ja-btn-radius-base is a pill (9999px), so anything
+  // over half the tab's height means the remap stopped reaching the page.
+  const tabSkin = await page.evaluate(() => {
+    const style = getComputedStyle(document.querySelector('#tab1'));
+    const selected = getComputedStyle(document.querySelector('#tab2'));
+    return {
+      radius: parseFloat(style.borderTopLeftRadius),
+      height: document.querySelector('#tab1').getBoundingClientRect().height,
+      shadow: style.boxShadow,
+      background: style.backgroundColor,
+      bar: selected.borderBlockEndColor,
+      idleBar: style.borderBlockEndColor
+    };
+  });
+  check(
+    'an unselected tab is flat and square-shouldered, not a button pill',
+    tabSkin.radius < tabSkin.height / 2 && tabSkin.shadow === 'none',
+    `radius ${tabSkin.radius} on a ${tabSkin.height}px tab, shadow ${tabSkin.shadow}`
+  );
+  check(
+    'an unselected tab has no fill and no bar',
+    /rgba\(0, 0, 0, 0\)|transparent/.test(tabSkin.background) &&
+      /rgba\(0, 0, 0, 0\)|transparent/.test(tabSkin.idleBar),
+    `background ${tabSkin.background}, bar ${tabSkin.idleBar}`
+  );
+  check(
+    'the selected tab is underlined with the accent',
+    !/rgba\(0, 0, 0, 0\)|transparent/.test(tabSkin.bar),
+    `bar ${tabSkin.bar}`
+  );
 
   // Toasts ------------------------------------------------------------------
   await page.evaluate(() => window.JaUI.toast('Saved.', { duration: 500 }));
@@ -428,6 +493,30 @@ async function main() {
       return badge.getBoundingClientRect().width >= text + padding + border - 0.5;
     }),
     'the badge was squeezed narrower than its own text plus padding'
+  );
+
+  // Pagination — the current page keeps its accent under the pointer --------
+  const bgOf = (id) => page.evaluate((s) => getComputedStyle(document.querySelector(s)).backgroundColor, `#${id}`);
+  // --ja-surface-raised is the same white as --ja-surface in the light theme, so
+  // an ordinary chip's hover is a lift, not a repaint — measure the travel.
+  const liftOf = (id) => page.evaluate((s) => getComputedStyle(document.querySelector(s)).translate, `#${id}`);
+  const currentAtRest = await bgOf('pg-current');
+  const otherAtRest = await liftOf('pg-other');
+  await page.hover('#pg-current');
+  await page.waitForTimeout(250);
+  const currentHovered = await bgOf('pg-current');
+  check(
+    'hovering the current page keeps its accent fill',
+    currentHovered === currentAtRest,
+    `the chip went from ${currentAtRest} to ${currentHovered}`
+  );
+  await page.hover('#pg-other');
+  await page.waitForTimeout(250);
+  const otherHovered = await liftOf('pg-other');
+  check(
+    'hovering an ordinary page still lifts it',
+    otherHovered !== otherAtRest,
+    `the chip stayed at ${otherAtRest} — the hover rule is not landing at all`
   );
 
   // Theme API --------------------------------------------------------------

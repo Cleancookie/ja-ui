@@ -210,6 +210,41 @@ for (const file of readdirSync('examples').filter((f) => f.endsWith('.html')).so
     check(file, 'the theme toggle repaints the page', before !== after, `${before} -> ${after}`);
   }
 
+  // The navbar on a phone. Wrapped, brand + links + actions is three stacked
+  // rows and `nav.sticky` keeps all three on screen for the whole scroll, so
+  // below 576px the list takes a row of its own and scrolls instead of
+  // wrapping. Last, because it resizes the viewport out from under the page.
+  if (await page.locator('body > header > nav > :is(ul, ol, menu)').first().count()) {
+    await page.setViewportSize({ width: 390, height: 780 });
+    await page.waitForTimeout(250);
+    const navbar = await page.evaluate(() => {
+      const nav = document.querySelector('body > header > nav');
+      const list = nav.querySelector(':scope > :is(ul, ol, menu)');
+      const brand = nav.querySelector(':scope > :is(a, strong, span)');
+      const box = list.getBoundingClientRect();
+      const style = getComputedStyle(nav);
+      const content =
+        nav.clientWidth - parseFloat(style.paddingInlineStart) - parseFloat(style.paddingInlineEnd);
+      const items = [...list.children].map((li) => li.getBoundingClientRect());
+      return {
+        // Row two: the whole content width, starting under the brand.
+        ownRow: box.top >= brand.getBoundingClientRect().bottom && box.width >= content - 1,
+        // One row of links, however many there are — not a wrapped block.
+        oneRow: box.height <= Math.max(...items.map((i) => i.height)) + 16,
+        scroller: getComputedStyle(list).overflowX === 'auto',
+        // A phone is the touch case, so the targets do not shrink.
+        target: Math.min(...items.map((i) => i.height)) >= 44,
+        height: Math.round(nav.getBoundingClientRect().height),
+      };
+    });
+    check(
+      file,
+      'the navbar is two rows on a phone, links on a scrolling strip',
+      navbar.ownRow && navbar.oneRow && navbar.scroller && navbar.target,
+      `${navbar.height}px — ${JSON.stringify(navbar)}`
+    );
+  }
+
   await page.close();
 }
 

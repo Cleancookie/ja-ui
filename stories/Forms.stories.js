@@ -7,8 +7,11 @@ import { html, icon, note, row, section, stack, uid } from './helpers.js';
  *
  * Two things run through the whole family:
  *   1. Inputs **light up**, they do not glow. On `:focus-visible` a control
- *      fills with `--ja-focus-fill`. There is no soft shadow in this library,
- *      and a focus glow is the one shadow that cannot be hard-edged.
+ *      fills with `--ja-focus-fill` and takes the amber `--ja-ring-color`.
+ *      There is no soft shadow in this library, and a focus glow is the one
+ *      shadow that cannot be hard-edged — which is also why the ring is never
+ *      `--ja-shadow-color`: an ink ring beside an ink shadow reads as more
+ *      shadow, not as focus.
  *   2. Validation is `:user-invalid`, never `:invalid` — the latter matches an
  *      empty required field on page load and tells someone off for not yet
  *      having done something.

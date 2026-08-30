@@ -37,6 +37,21 @@
      zero — still no margin declared anywhere.
      ------------------------------------------------------------------------ */
   dialog {
+    /* Layout lives here, NOT on dialog[open], even though only an open dialog
+       is ever displayed. On close the [open] attribute is dropped in one frame
+       while `display` is held alive by allow-discrete for the length of the
+       exit transition — so anything layout-shaped left on dialog[open] is
+       yanked out from under a dialog that is still on screen. With
+       flex-direction, gap and overflow up there, the fading dialog re-laid
+       itself out as an unclipped flex *row* for the whole exit: a differently
+       sized, differently placed box, which reads as a second modal flashing up
+       behind the one you just closed. Only display/opacity/scale — the state
+       itself — belong on [open]. */
+    flex-direction: column;
+    gap: var(--ja-space-4);
+    /* The dialog itself never scrolls — the body region inside it does. */
+    overflow: hidden;
+
     max-inline-size: min(32rem, calc(100% - var(--ja-space-6)));
     /* The dialog never grows past the viewport; the body inside it scrolls. */
     max-block-size: min(80dvb, calc(100dvb - var(--ja-space-7)));
@@ -64,10 +79,6 @@
      and paint every closed dialog on the page. */
   dialog[open] {
     display: flex;
-    flex-direction: column;
-    gap: var(--ja-space-4);
-    /* The dialog itself never scrolls — the body region inside it does. */
-    overflow: hidden;
     opacity: 1;
     scale: 1;
   }
@@ -369,6 +380,12 @@
     [popover] {
       position: fixed;
       position-anchor: auto;
+      /* Release the static fallback's insets. position-area hands the popover
+         a new containing block — the region below the anchor — and the
+         fallback's `inset-block-start: 100%` then resolves against *that*,
+         which parks the menu on the far edge of it, off the bottom of the
+         viewport. position-area does the placing here; nothing else may. */
+      inset: auto;
       /* Below the trigger, aligned to its leading edge. */
       position-area: block-end span-inline-end;
       /* Out of room? Flip to the other side rather than clipping. */

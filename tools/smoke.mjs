@@ -412,7 +412,11 @@ async function main() {
 
   // Pagination — the current page keeps its accent under the pointer --------
   const bgOf = (id) => page.evaluate((s) => getComputedStyle(document.querySelector(s)).backgroundColor, `#${id}`);
+  // --ja-surface-raised is the same white as --ja-surface in the light theme, so
+  // an ordinary chip's hover is a lift, not a repaint — measure the travel.
+  const liftOf = (id) => page.evaluate((s) => getComputedStyle(document.querySelector(s)).translate, `#${id}`);
   const currentAtRest = await bgOf('pg-current');
+  const otherAtRest = await liftOf('pg-other');
   await page.hover('#pg-current');
   await page.waitForTimeout(250);
   const currentHovered = await bgOf('pg-current');
@@ -423,9 +427,11 @@ async function main() {
   );
   await page.hover('#pg-other');
   await page.waitForTimeout(250);
+  const otherHovered = await liftOf('pg-other');
   check(
-    'hovering an ordinary page still repaints it',
-    (await bgOf('pg-other')) !== currentAtRest
+    'hovering an ordinary page still lifts it',
+    otherHovered !== otherAtRest,
+    `the chip stayed at ${otherAtRest} — the hover rule is not landing at all`
   );
 
   // Theme API --------------------------------------------------------------

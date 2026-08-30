@@ -89,7 +89,7 @@ for (const theme of ['light', 'dark']) {
       [theme, skin]
     );
 
-    const results = await page.evaluate((cases) => {
+    const results = await page.evaluate(({ cases, nonText }) => {
       const probe = document.getElementById('probe');
       const channel = (value) => {
         const c = value / 255;
@@ -129,7 +129,38 @@ for (const theme of ['light', 'dark']) {
         return stack.reduceRight((below, layer) => over(layer, below), [255, 255, 255]);
       };
 
-      return cases.map((testCase) => {
+      const ratio = (x, y) => {
+        const [a, b] = [luminance(x), luminance(y)].sort((m, n) => n - m);
+        return (a + 0.05) / (b + 0.05);
+      };
+
+      /** A token's resolved colour, read off a real element so light-dark() and
+          color-mix() are resolved by the engine rather than parsed by hand. */
+      const token = (name) => {
+        probe.innerHTML = `<div style="background-color: var(${name})"></div>`;
+        return parse(getComputedStyle(probe.firstElementChild).backgroundColor);
+      };
+
+      // The focus ring is not text and it has no element of its own — the reset
+      // draws it from --ja-ring-color. It has to be legible against the page,
+      // and it must not read as more shadow: every shadow in this library is a
+      // hard zero-blur offset in --ja-shadow-color, so a ring that matches it
+      // disappears into the corner of a focused input.
+      const pageBg = backdrop(probe);
+      const ring = over(token('--ja-ring-color'), pageBg);
+      const shadow = over(token('--ja-shadow-color'), pageBg);
+      const rings = [
+        ['the focus ring on the page', pageBg],
+        ['the focus ring vs the shadow', shadow],
+      ].map(([what, against]) => ({
+        what,
+        min: nonText,
+        ratio: ratio(ring, against),
+        fg: `rgb(${ring.map(Math.round).join(' ')})`,
+        bg: `rgb(${against.map(Math.round).join(' ')})`,
+      }));
+
+      return rings.concat(cases.map((testCase) => {
         probe.innerHTML = testCase.html;
         // The deepest element that actually holds text is the one to measure.
         const target =
@@ -146,8 +177,8 @@ for (const theme of ['light', 'dark']) {
           fg: `rgb(${fg.map(Math.round).join(' ')})`,
           bg: `rgb(${bg.map(Math.round).join(' ')})`,
         };
-      });
-    }, CASES);
+      }));
+    }, { cases: CASES, nonText: NON_TEXT });
 
     for (const result of results) {
       checked += 1;

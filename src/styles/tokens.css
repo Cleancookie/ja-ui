@@ -288,9 +288,15 @@
     --ja-lift: -1px;
     --ja-press: 1px;
 
-    /* --- Focus ring: thick, high-contrast, unmissable --------------------- */
-    --ja-ring-color: #1e293b;
-    --ja-ring-color: light-dark(#1e293b, #61afef);
+    /* --- Focus ring: thick, high-contrast, unmissable ---------------------
+       Never the same colour as --ja-shadow-color. Every shadow here is a hard
+       zero-blur offset in ink, so an ink ring on a light page reads as more
+       shadow rather than as focus. Amber instead — the GOV.UK yellow idea, but
+       dark enough to still clear 3:1 against cream paper, which their yellow
+       only manages by pairing itself with a black bar. The dark theme keeps its
+       blue: nothing there is competing with a near-black shadow. */
+    --ja-ring-color: #d97706;
+    --ja-ring-color: light-dark(#d97706, #61afef);
     --ja-ring-width: 3px;
     --ja-ring-offset: 2px;
     /* How far the ring reaches outside the element it belongs to. A scroll
@@ -446,7 +452,11 @@
     --ja-ease-out: linear;
     --ja-duration: 100ms;
 
-    --ja-ring-color: var(--ja-ink);
+    /* Ink is the shadow colour here too, so the ring takes the same amber the
+       default skin does. Dark keeps ink's own #abb2bf — nothing to collide
+       with against a near-black shadow. */
+    --ja-ring-color: #d97706;
+    --ja-ring-color: light-dark(#d97706, #abb2bf);
     --ja-focus-fill: #ffd93d;
     /* Neo-brutalism has no subtle greys: it is black, or it is a colour. */
     --ja-text-muted: var(--ja-ink);

@@ -70,6 +70,16 @@ const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8" />
     <input type="checkbox" role="switch" id="sw-on" checked />
   </div>
 
+  <!-- Badge in a tight flex row: the row is far narrower than its contents, so
+       a badge that is allowed to shrink is squeezed down to --ja-space-5 and
+       its text spills over the inline padding. -->
+  <ul role="list" class="list" id="badge-row" style="inline-size: 220px">
+    <li><a href="#">
+      <span><strong>A headline long enough to fight for the room</strong></span>
+      <span class="badge success" id="badge">Published</span>
+    </a></li>
+  </ul>
+
   <!-- Pagination: no JavaScript, but the current-page chip is a cascade fight
        — the generic :hover rule used to out-specify the accent fill. -->
   <nav class="pagination" aria-label="Pagination">
@@ -465,6 +475,25 @@ async function main() {
       `past the end of the track is ${scan.justOutsideEnd}, but before its start is ${scan.justOutsideStart}`
     );
   }
+
+  // The badge — geometry again -------------------------------------------
+  // `min-inline-size` replaces the automatic minimum size a flex item gets, so
+  // a badge in a tight row shrinks below its text, and since the text never
+  // wraps it spills straight over the inline padding.
+  check(
+    'a badge in a tight flex row keeps its inline padding',
+    await page.evaluate(() => {
+      const badge = document.getElementById('badge');
+      const style = getComputedStyle(badge);
+      const padding = parseFloat(style.paddingInlineStart) + parseFloat(style.paddingInlineEnd);
+      const border = parseFloat(style.borderInlineStartWidth) + parseFloat(style.borderInlineEndWidth);
+      const range = document.createRange();
+      range.selectNodeContents(badge);
+      const text = range.getBoundingClientRect().width;
+      return badge.getBoundingClientRect().width >= text + padding + border - 0.5;
+    }),
+    'the badge was squeezed narrower than its own text plus padding'
+  );
 
   // Pagination — the current page keeps its accent under the pointer --------
   const bgOf = (id) => page.evaluate((s) => getComputedStyle(document.querySelector(s)).backgroundColor, `#${id}`);

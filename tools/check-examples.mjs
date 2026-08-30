@@ -224,7 +224,7 @@ for (const file of readdirSync('examples').filter((f) => f.endsWith('.html')).so
       const box = list.getBoundingClientRect();
       const style = getComputedStyle(nav);
       const content =
-        nav.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        nav.clientWidth - parseFloat(style.paddingInlineStart) - parseFloat(style.paddingInlineEnd);
       const items = [...list.children].map((li) => li.getBoundingClientRect());
       return {
         // Row two: the whole content width, starting under the brand.

@@ -297,8 +297,8 @@
        blue: nothing there is competing with a near-black shadow. */
     --ja-ring-color: #d97706;
     --ja-ring-color: light-dark(#d97706, #61afef);
-    --ja-ring-width: 3px;
-    --ja-ring-offset: 2px;
+    --ja-ring-width: 4px;
+    --ja-ring-offset: 0px;
     /* How far the ring reaches outside the element it belongs to. A scroll
        container clips at its padding box, so any region that scrolls needs at
        least this much padding or it shaves the ring off the controls sitting
